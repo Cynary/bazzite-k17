@@ -4,6 +4,10 @@ set -euo pipefail
 meta=/usr/share/k17-frl/build
 expected=$(cat "$meta/kernel-release")
 test "$(uname -r)" = "$expected"
+expected_kernel_hash=$(awk '{print $1}' "$meta/stock-vmlinuz.sha256")
+actual_kernel_hash=$(sha256sum "/usr/lib/modules/$expected/vmlinuz" | cut -d' ' -f1)
+test "$expected_kernel_hash" = "$actual_kernel_hash"
+printf 'Stock kernel image hash: %s\n' "$actual_kernel_hash"
 for mod in xe drm_display_helper; do
  test -d "/sys/module/$mod"
  test -s "/sys/kernel/btf/$mod"
@@ -18,7 +22,7 @@ for mod in xe drm_display_helper; do
 done
 cat /sys/module/xe/parameters/experimental_hdmi_vrr
 systemctl is-active sshd cardwired sddm
-if journalctl -b -k --no-pager | grep -E 'BUG:|Oops:|Kernel panic|general protection fault|Unknown symbol|Invalid module format|BTF.*(invalid|Invalid)|CPU pipe.*FIFO underrun|state mismatch'; then
+if journalctl -b -k --no-pager | grep -E 'BUG:|Oops:|Kernel panic|general protection fault|Unknown symbol|Invalid module format|BTF.*(invalid|Invalid)|CPU pipe.*FIFO underrun|state mismatch|mismatch in|FRL Training Failed|flip_done timed out|Atomic update failure'; then
  echo 'Kernel diagnostic failure; inspect journal before promoting.' >&2
  exit 1
 fi

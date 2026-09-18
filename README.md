@@ -30,8 +30,22 @@ from Fedora repositories and recorded; this is not a bit-reproducible toolchain.
 Keep the existing working and stock deployments pinned before switching. Clear
 prototype local kernel overrides in the new deployment, otherwise they defeat the
 purpose of the stock-kernel image. Do not blindly reset/reboot into a half-prepared
-state. Deployment commands and observed test results will be recorded in
-`VALIDATION.md` after this candidate is tested.
+state. See [the validation record](VALIDATION.md) for the exact published digest,
+boot results, and remaining hardware checks.
+
+Images are published to [GHCR](https://github.com/Cynary/bazzite-k17/pkgs/container/bazzite-k17).
+Builds use GitHub OIDC keyless Cosign signatures. Verify the digest before
+deployment, with certificate issuer `https://token.actions.githubusercontent.com`
+and the exact workflow identity. Normal builds use
+`https://github.com/Cynary/bazzite-k17/.github/workflows/build.yml@refs/heads/main`.
+The initial candidate used `publish-existing.yml` in that same path after a
+signing-credential fix; its identity is recorded in the validation file.
+
+The initial deployment is pinned to an immutable registry digest. Its
+`ostree-unverified-registry` transport does **not** enforce Cosign verification;
+the signature was verified separately before boot. This is not an unattended
+signed-update policy. Keep digest selection explicit until policy enforcement
+and hardware qualification are complete.
 
 Pinning preserves recovery deployments; it is not an update lock. Do not infer
 visual stability from a clean kernel log. Confirm actual refresh behavior, HDR,
