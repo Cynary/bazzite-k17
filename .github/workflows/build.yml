@@ -21,8 +21,11 @@ jobs:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          export DOCKER_CONFIG="$RUNNER_TEMP/docker"
+          mkdir -p "$DOCKER_CONFIG"
+          export REGISTRY_AUTH_FILE="$DOCKER_CONFIG/config.json"
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          printf '%s' "$REGISTRY_TOKEN" | podman login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          printf '%s' "$REGISTRY_TOKEN" | podman login --authfile "$REGISTRY_AUTH_FILE" ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           podman build --label "org.opencontainers.image.revision=$GITHUB_SHA" -t "$image:sha-$GITHUB_SHA" .
           podman push --digestfile image.digest "$image:sha-$GITHUB_SHA"
           digest=$(cat image.digest)
