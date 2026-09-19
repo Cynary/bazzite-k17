@@ -1,0 +1,1 @@
+kargs = ["quiet", "rhgb", "loglevel=0", "systemd.show_status=false", "rd.systemd.show_status=false", "rd.udev.log_level=3", "udev.log_level=3", "vt.global_cursor_default=0"]

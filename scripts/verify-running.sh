@@ -22,7 +22,7 @@ for mod in xe drm_display_helper; do
 done
 cat /sys/module/xe/parameters/experimental_hdmi_vrr
 systemctl is-active sshd cardwired sddm
-if journalctl -b -k --no-pager | grep -E 'BUG:|Oops:|Kernel panic|general protection fault|Unknown symbol|Invalid module format|BTF.*(invalid|Invalid)|CPU pipe.*FIFO underrun|state mismatch|mismatch in|FRL Training Failed|flip_done timed out|Atomic update failure'; then
+if journalctl -b -k --no-pager | grep -E 'BUG:|Oops:|Kernel panic|general protection fault|Unknown symbol|Invalid module format|BTF.*(invalid|Invalid)|CPU pipe.*FIFO underrun|state mismatch|mismatch in|flip_done timed out|Atomic update failure|vblank wait timed out|GSC proxy component not bound'; then
  echo 'Kernel diagnostic failure; inspect journal before promoting.' >&2
  exit 1
 fi

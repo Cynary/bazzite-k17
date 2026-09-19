@@ -15,11 +15,15 @@ for mod in xe drm_display_helper; do
 done
 # Follow Bazzite's generic image initramfs recipe, explicitly including our pair.
 dracut --no-hostonly --kver "$kver" --reproducible --zstd --add ostree --add fido2 \
- --add-drivers 'xe drm_display_helper' -f "/usr/lib/modules/$kver/initramfs.img"
+ --add-drivers 'xe drm_display_helper mei_me mei_gsc_proxy' -f "/usr/lib/modules/$kver/initramfs.img"
 chmod 0600 "/usr/lib/modules/$kver/initramfs.img"
 lsinitrd "/usr/lib/modules/$kver/initramfs.img" > /usr/share/k17-frl/build/initramfs-files.txt
 for mod in xe drm_display_helper; do
  grep -q "updates/k17/$mod.ko" /usr/share/k17-frl/build/initramfs-files.txt
+done
+# Xe loads early; include its GSC proxy companion before the initramfs timeout.
+for mod in mei_me mei_gsc_proxy; do
+ grep -q "/$mod.ko" /usr/share/k17-frl/build/initramfs-files.txt
 done
 # Record that the stock kernel and third-party module package set are retained.
 rpm -qa 'kernel*' '*xone*' '*xpadneo*' | sort > /usr/share/k17-frl/build/kernel-packages.txt

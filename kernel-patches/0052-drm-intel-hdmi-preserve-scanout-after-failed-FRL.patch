@@ -1,0 +1,55 @@
+From a5a7dbdf33954095909d0ad53d953a993c31b09c Mon Sep 17 00:00:00 2001
+From: Rodrigo Toste Gomes <rodrigo.toste.gomes@gmail.com>
+Date: Fri, 18 Sep 2026 20:23:56 -0700
+Subject: [PATCH] drm/intel/hdmi: preserve scanout after failed FRL training
+
+End the source training phase and keep transcoder/vblank setup on failure, while returning the failure and requesting link recovery. Tested on K17 Lunar Lake: sink-off failure followed by automatic 40 Gbps recovery, plus user-confirmed 4K120 RGB10 HDR VRR in Steam-launched VRRTest. Developed with Codex. This is a local experimental fix, not an upstream submission.
+---
+ drivers/gpu/drm/i915/display/intel_ddi.c  | 9 ++++++---
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 9 +++++++++
+ 2 files changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_ddi.c b/drivers/gpu/drm/i915/display/intel_ddi.c
+index 107563e51..8952807a1 100644
+--- a/drivers/gpu/drm/i915/display/intel_ddi.c
++++ b/drivers/gpu/drm/i915/display/intel_ddi.c
+@@ -3592,10 +3592,13 @@ static void intel_ddi_enable_hdmi(struct intel_atomic_state *state,
+ 	if (DISPLAY_VER(display) >= 14) {
+ 		if (crtc_state->frl.enable &&
+ 		    intel_hdmi_start_frl(encoder, crtc_state) < 0) {
+-			intel_hdmi_disable_frl(encoder, crtc_state);
++			/*
++			 * The atomic commit still needs a running transcoder and
++			 * vblank events even if the sink cannot receive the stream.
++			 * Leave FRL configured until the normal disable sequence
++			 * and let userspace retry the failed link.
++			 */
+ 			schedule_work(&intel_connector->modeset_retry_work);
+-
+-			return;
+ 		}
+ 		intel_hdmi_frl_cfg_write(crtc_state);
+ 		intel_hdmi_frl_dfm_write(crtc_state);
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 6ddbd1915..7133da02d 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -4135,6 +4135,15 @@ int intel_hdmi_start_frl(struct intel_encoder *encoder,
+ 			connector->base.id, connector->name,
+ 			req_rate);
+ 
++	/*
++	 * Stop sending training patterns so that the transcoder can run while
++	 * userspace recovers the failed link. This does not mark the sink link
++	 * as trained; the failure is still returned to the caller.
++	 */
++	intel_de_rmw(display,
++		     TRANS_HDMI_FRL_CFG(display, crtc_state->cpu_transcoder),
++		     0, TRANS_HDMI_FRL_TRAINING_COMPLETE);
++
+ 	return -EINVAL;
+ }
+ 
+-- 
+2.55.0
+

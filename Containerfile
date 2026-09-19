@@ -4,7 +4,7 @@ FROM docker.io/library/fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f
 RUN dnf install -y gcc make binutils elfutils-libelf-devel openssl-devel dwarves python3 kmod cpio zstd xz bc bison flex diffutils findutils curl tar gzip git-core && dnf clean all
 ARG KERNEL_RELEASE=7.2.4-ogc3.1.fc44.x86_64
 ARG SOURCE_BASE_COMMIT=43d13ad09df8a544c032f75dc84fddd2aefe8f76
-ARG SOURCE_COMMIT=f37b49ee569bbf42bb8d1a675040f28c8b26cac6
+ARG SOURCE_COMMIT=a5a7dbdf33954095909d0ad53d953a993c31b09c
 COPY --from=base /usr/src/kernels/${KERNEL_RELEASE}/ /work/kernel/
 COPY --from=base /usr/lib/modules/${KERNEL_RELEASE}/vmlinuz /work/stock-vmlinuz
 COPY scripts/build-modules.sh /work/build-modules.sh
@@ -12,7 +12,7 @@ COPY kernel-patches/ /work/patches/
 RUN /work/build-modules.sh
 FROM base AS final
 ARG BASE_IMAGE
-ARG SOURCE_COMMIT=f37b49ee569bbf42bb8d1a675040f28c8b26cac6
+ARG SOURCE_COMMIT=a5a7dbdf33954095909d0ad53d953a993c31b09c
 ARG KERNEL_RELEASE=7.2.4-ogc3.1.fc44.x86_64
 LABEL org.opencontainers.image.title="Bazzite K17 FRL/VRR candidate" \
       org.opencontainers.image.source="https://github.com/Cynary/bazzite-k17" \
@@ -21,5 +21,6 @@ LABEL org.opencontainers.image.title="Bazzite K17 FRL/VRR candidate" \
       io.cynary.k17.source-commit="${SOURCE_COMMIT}"
 COPY --from=builder /out/ /usr/share/k17-frl/build/
 COPY scripts/install-modules.sh /tmp/k17-install-modules.sh
+COPY files/ /
 RUN /tmp/k17-install-modules.sh && rm /tmp/k17-install-modules.sh
 RUN --mount=type=tmpfs,target=/run --network=none bootc container lint

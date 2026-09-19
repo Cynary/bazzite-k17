@@ -4,3 +4,5 @@
 !scripts/**
 !kernel-patches
 !kernel-patches/**
+!files
+!files/**
