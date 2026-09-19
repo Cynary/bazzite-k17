@@ -108,3 +108,15 @@ Pending before stable promotion: visual HDR/VRR/flicker/dropout checks, HDMI aud
 controllers, Moonlight decoding/streaming, cold boot, suspend/resume and display
 power/input/hotplug recovery. The stock xone module is retained but controller
 operation was not exercised. No stable tag or unattended updates were enabled.
+
+## Xbox association retry correction — 2026-09-18
+
+The current source recipe replaces the unqualified restart-poweroff workaround
+with a focused association-retry patch. It reuses an existing client slot but
+answers repeated association requests instead of silently dropping them. The
+stock firmware, GIP modules, USB-reset behavior, and shutdown behavior remain.
+See [the controlled test and limits](experimental/xone/association-retry-investigation.md).
+
+This source change is not a completed image release. Existing image validation
+above describes earlier revisions. The separate USB command-stall/overflow
+failure is unresolved; do not claim comprehensive controller reliability.

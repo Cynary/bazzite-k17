@@ -1,5 +1,11 @@
 # Xbox adapter diagnostic candidate, 2026-09-18
 
+**Latest finding:** a separate association-retry bug has been demonstrated
+with controlled fault injection and fixed experimentally. See
+[the investigation](association-retry-investigation.md). The earlier USB
+overflow/command-stall fault is not yet explained. The chronological notes
+below include superseded candidates and must not be read as current state.
+
 **Restart fault remains unresolved. The receive-parser candidate FAILED the
 controller-on reboot test. Do not promote it as a controller reliability fix.**
 
