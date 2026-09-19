@@ -50,3 +50,27 @@ The diagnostic build also passed two controller-off reboots through the full
 pairing timeout with no USB transfer failures or phantom clients. This does
 not establish a cause or fix for the earlier low-level failures. The clean
 retry-only module is currently loaded; both workarounds are absent.
+
+## Five-restart stress test: FAILED
+
+All five requested restarts used the exact clean module
+D6FE09A44192045F57D7A85, with no driver/firmware changes or physical
+replug between runs. Each boot was observed through the 90-second startup
+USB capture. No real controller input device registered in any run. The user
+confirmed failure after pressing Xbox and a flashing controller. Subsequent
+reboots did not recover the failed state.
+
+No nonzero USB completion status was captured, and no explicit xone driver
+error was logged. Later captures contain repeated firmware CLIENT_LOST events
+and no normal WLAN endpoint traffic. The adapter still answers register reads
+and accepts outgoing bulk transfers. Acceptance by USB does not establish
+that the firmware executed those commands correctly.
+
+A live A/B/A test of the existing TO_FIRMWARE / TO_HOST receive-routing
+command did not restore WLAN traffic. The original routing setting and driver
+binding were restored afterward. Expanded read-only register snapshots were
+saved for comparison with a physical power cycle. No new fix is established.
+
+The retry fix remains valid for the separately demonstrated lost-association
+reply defect, but is **insufficient for overall restart reliability**. Do not
+promote this build as resolving the Xbox adapter problem.
