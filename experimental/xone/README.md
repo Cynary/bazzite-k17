@@ -138,3 +138,19 @@ removes the SYSTEM_RESTART early return in xone_dongle_shutdown, allowing
 normal controller power-off on reboot. Module srcversion
 042B49711030E5168B50CEB. User power cycle/reconnection and reboot test pending.
 Temporary boot loader now selects this shutdown-only candidate.
+
+## Shutdown-only candidate reboot tests
+
+After physical recovery, shutdown-only srcversion 042B49711030E5168B50CEB
+was booted with the controller connected. User confirmed the restart powered
+off the controller and that pressing Xbox reconnected it without unplugging.
+A second connected-controller restart again had no packet errors, phantom
+clients or continuous endpoint-5 USB stream, and a real controller input
+registered after the user powered it back on. Steam input confirmation pending.
+
+Image packaging now selects ONLY the restart-cleanup patch. The failed parser
+candidate remains archived under experimental, not included in the next image.
+No firmware replacement, DMA-register experiments, packet-filter changes or
+receive-buffer changes are included. This is a promising restart workaround;
+the precise cause of the adapter's invalid USB stream and suspend/resume
+behavior remain unproven. Tests should not be described as comprehensive.
