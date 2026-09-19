@@ -64,13 +64,13 @@ Track upstream Bazzite security updates promptly. Holding the entire image at a 
 
 Record each result separately; do not inherit “tested” status from another kernel just because the patches applied.
 
-## Phase 4 — retire the private patch stack
+## Phase 4 — retire the carried patch stack
 
-Track upstream Intel FRL and VRR changes and remove private patches when their
-upstream replacements pass the same hardware tests. Keep this work private;
+Track upstream Intel FRL and VRR changes and remove carried patches when their
+upstream replacements pass the same hardware tests. Keep the fork and images public;
 no upstream submissions are planned or authorized.
 
 When the normal Bazzite/OGC kernel passes the complete matrix without our patches,
 switch back to the stock image and remove experimental parameters. Retain the
-private history as a reproducer. Upstream FRL availability alone does not prove
+public history as a reproducer. Upstream FRL availability alone does not prove
 this machine's HDR, VRR and standby recovery work correctly.

@@ -1,4 +1,4 @@
-name: Build private candidate
+name: Build public candidate
 on:
   workflow_dispatch:
 permissions:
@@ -25,11 +25,11 @@ jobs:
           export DOCKER_CONFIG="$RUNNER_TEMP/docker"
           mkdir -p "$DOCKER_CONFIG"
           export REGISTRY_AUTH_FILE="$DOCKER_CONFIG/config.json"
-          image="ghcr.io/${GITHUB_REPOSITORY,,}-private"
-          package_api="https://api.github.com/users/$GITHUB_REPOSITORY_OWNER/packages/container/${GITHUB_REPOSITORY#*/}-private"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          package_api="https://api.github.com/users/$GITHUB_REPOSITORY_OWNER/packages/container/${GITHUB_REPOSITORY#*/}"
           status=$(curl -sS -o package.json -w '%{http_code}' -H "Authorization: Bearer $REGISTRY_TOKEN" "$package_api")
           if [ "$status" = 200 ]; then
-            jq -e '.visibility == "private"' package.json
+            jq -e '.visibility == "public"' package.json
           else
             test "$status" = 404
           fi
@@ -37,8 +37,8 @@ jobs:
           podman build --label "org.opencontainers.image.revision=$GITHUB_SHA" -t "$image:sha-$GITHUB_SHA" .
           podman push --digestfile image.digest "$image:sha-$GITHUB_SHA"
           digest=$(cat image.digest)
-          curl --fail --silent --show-error -H "Authorization: Bearer $REGISTRY_TOKEN" "$package_api" | jq -e '.visibility == "private"'
+          curl --fail --silent --show-error -H "Authorization: Bearer $REGISTRY_TOKEN" "$package_api" | jq -e '.visibility == "public"'
           cosign sign --yes --key env://COSIGN_PRIVATE_KEY --use-signing-config=false --tlog-upload=false "$image@$digest"
           podman tag "$image:sha-$GITHUB_SHA" "$image:candidate"
           podman push "$image:candidate"
-          printf 'Private candidate: `%s@%s`\n\nNo stable promotion or client update was performed.\n' "$image" "$digest" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Public candidate: `%s@%s`\n\nNo stable promotion or client update was performed.\n' "$image" "$digest" >> "$GITHUB_STEP_SUMMARY"
