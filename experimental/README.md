@@ -22,8 +22,9 @@ Candidate 2 passed its first real TV-off recovery test on 2026-09-18:
   10-Gbps lanes. Hardware vblank intervals varied after recovery.
 
 This is software evidence from one recovery cycle, not visual confirmation
-of picture quality or comprehensive cold-boot/resume validation. Candidate 2
-remains experimental and is not yet part of the normal image patch stack.
+of picture quality or comprehensive cold-boot/resume validation. Candidate 2 was subsequently visually validated through a normal Steam launch
+and is now included as patch 0052. Broad cold-boot/resume validation remains
+incomplete; see PERFORMANCE.md for release qualification limits.
 
 The first private CI image built and pushed successfully, with package
 visibility verified private, but signing failed because Cosign defaults to

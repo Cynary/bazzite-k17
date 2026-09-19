@@ -64,3 +64,6 @@ conflicts or module validation errors fail the build. See the
 
 Source, releases, and images are public. No patches or reports will be submitted
 to upstream kernel maintainers without an explicit user request.
+
+See [K17 boot measurements and performance decisions](PERFORMANCE.md) for the
+129.6-to-28.0-second boot improvement, current tuning and remaining errors.
