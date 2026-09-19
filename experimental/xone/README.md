@@ -1,5 +1,8 @@
 # Xbox adapter diagnostic candidate, 2026-09-18
 
+**Restart fault remains unresolved. The receive-parser candidate FAILED the
+controller-on reboot test. Do not promote it as a controller reliability fix.**
+
 Not included in the image or qualified for persistent deployment.
 
 Base: OpenGamingCollective/xonedo 982cbcb019ae4d2bee5ae69385223409ee555c88.
@@ -116,3 +119,22 @@ Recovery by live swap from the failed state remains untested. Do not label
 this candidate a confirmed restart fix, or infer a firmware fault. Logs in
 ~/k17-option1/xone-restart/ab. Restore patched candidate after comparison;
 keep image on candidate track pending stronger validation.
+
+## Controller-on reboot with parser candidate: FAILED
+
+The controller remained flashing; dongle LED solid; host had zero clients.
+USB monitoring revealed a continuous command-endpoint-5 stream completing
+with -EOVERFLOW (-75), 1536 bytes against a 1620-byte buffer. xone silently
+resubmits failed URBs, so clean dmesg was insufficient evidence of health.
+Rounding input buffers to the endpoint packet size removed overflow but
+left a continuous invalid-data stream (2048-byte successful completions),
+with no controller connection. This did not recover by live module replacement.
+Firmware reset/upload experiments and reinitializing USB DMA configuration
+did not recover it either. Original DMA config already read 0xc00000.
+Do not conclude firmware fault solely from these observations.
+
+Next single-variable diagnostic restores upstream parsing/firmware code and
+removes the SYSTEM_RESTART early return in xone_dongle_shutdown, allowing
+normal controller power-off on reboot. Module srcversion
+042B49711030E5168B50CEB. User power cycle/reconnection and reboot test pending.
+Temporary boot loader now selects this shutdown-only candidate.
