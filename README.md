@@ -1,6 +1,13 @@
-# Bazzite K17 — stock-kernel FRL/VRR candidate
+# Bazzite K17 — experimental FRL/VRR images
 
-Custom Bazzite Deck image retaining the **stock OGC kernel and all its packaged
+Two variants are maintained here:
+
+- **BORE + ThinLTO full kernel:** [release and installation instructions](RELEASES.md). The `bore-20260919.1` prerelease preserves the exact image boot-tested on the K17. It uses a separate versioned tag and is not the stock-kernel `candidate` channel.
+- **Stock-kernel module replacement:** the root Containerfile and `Build public candidate` workflow described below.
+
+Personal Moonlight/MoonDeck settings and TV/AVR credentials are installed separately and are not distributed in either OS image.
+
+The stock variant is a custom Bazzite Deck image retaining the **stock OGC kernel and all its packaged
 modules**, with matched `xe.ko` and `drm_display_helper.ko` replacements.
 The complete carried patch stack is in `kernel-patches/`; provenance and hardware notes are in `kernel-notes/`. A release also preserves the original kernel Git history.
 
