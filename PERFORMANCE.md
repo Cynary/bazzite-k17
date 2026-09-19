@@ -74,8 +74,10 @@ Next benchmark candidates, all reversible and one at a time:
    Measure tail frame times, power/temperature and fan noise; P/E-core affinity
    only if traces show migration-related delays. Do not disable E cores blindly.
 3. kyber versus none/mq-deadline only with real install/shader-cache I/O loads.
-4. If CPU scheduling remains a measured bottleneck, evaluate a separate full
-   Cachy-style kernel variant, preserving the stock-based release as fallback.
+4. Evaluate a separate full-kernel BORE candidate for interactive responsiveness
+   under contention, preserving the stock-based release as fallback. Average
+   FPS alone is not a sufficient acceptance test; include input-to-frame latency,
+   UI stalls and frame-time tails during downloads, shader compilation and I/O.
 
 Benchmarks must use a real Steam-launched game/stream, 4K120 HDR+VRR, warmed
 shader caches, repeat runs, dropped-frame counts and p95/p99 frame-time tails.
@@ -112,3 +114,24 @@ Filesystem references:
 Our source and images are public. No upstream kernel patch/report submission
 is authorized. Candidate publishing does not imply stable promotion or an
 automatic deployment to the K17.
+
+## Full-kernel maintenance scope
+
+BORE is a reasonable experimental track, not a promise of a universal speedup.
+Use the same OGC base and configuration initially, add only a matching BORE
+patch, and rebuild the entire kernel plus its external controller modules.
+CI should produce versioned images, retain a known-good deployment and prevent
+automatic candidate promotion. Routine stable updates can be automated, but
+boot, suspend/resume, controllers and FRL/HDR/VRR still need hardware validation.
+Major rebases can need manual scheduler/graphics patch conflict resolution.
+The existing experimental HDMI stack is itself a substantial maintenance
+commitment; BORE adds scheduler coverage and full-kernel packaging, rather than
+requiring every update to be rebuilt by hand. Do not bundle LTO, new compiler
+flags and scheduler changes into the first comparison.
+
+BORE upstream: https://github.com/firelzrd/bore-scheduler
+
+Compression correction was staged on the K17 with:
+`rpm-ostree kargs --delete=rootflags --append=rootflags=subvol=root,compress=zstd:1`
+(the previous rootflags contained only subvol=root). It requires a reboot and
+verification of the live mount options; no existing files were recompressed.
