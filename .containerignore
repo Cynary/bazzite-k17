@@ -6,3 +6,5 @@
 !kernel-patches/**
 !files
 !files/**
+!xone-patches
+!xone-patches/**
