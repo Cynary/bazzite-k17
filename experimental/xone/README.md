@@ -146,7 +146,8 @@ was booted with the controller connected. User confirmed the restart powered
 off the controller and that pressing Xbox reconnected it without unplugging.
 A second connected-controller restart again had no packet errors, phantom
 clients or continuous endpoint-5 USB stream, and a real controller input
-registered after the user powered it back on. Steam input confirmation pending.
+registered after the user powered it back on. User confirmed reconnection and
+Steam menu input on this second test as well.
 
 Image packaging now selects ONLY the restart-cleanup patch. The failed parser
 candidate remains archived under experimental, not included in the next image.
