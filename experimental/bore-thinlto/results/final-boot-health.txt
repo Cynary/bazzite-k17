@@ -1,0 +1,6 @@
+/usr/lib/modules/7.2.4-k17bore1+/vmlinuz: OK
+active
+active
+active
+    inet 192.168.5.10/24 brd 192.168.5.255 scope global dynamic noprefixroute enp86s0
+K17 BORE boot health check passed. Visual and performance tests remain separate.

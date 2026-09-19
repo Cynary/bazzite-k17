@@ -70,3 +70,11 @@ Same-kernel runtime comparison (BORE off/on/on/off), eight matrixprod background
 | Frame intervals above 16.667 ms | 0 / 0 | 0 / 0 |
 
 Interpretation: substantially lower wake latency and lower worst observed task-completion latency; no p99 task-completion improvement. The small frame-interval difference is not strong evidence of a meaningful gaming performance gain. Frame intervals come from the application's update loop, not panel scanout. Maximum observed CPU temperature in the latency tests was 69 C. BORE was restored to enabled and the test closed/restored its source afterward. These comparisons do not isolate ThinLTO against GCC, and runtime BORE disable does not remove compile-time layout/default changes. Raw results are in results/.
+
+## Final local candidate deployed
+
+Local OCI image `/var/lib/k17-images/bore2`, manifest digest `sha256:e12799860cc9ee12647ac9a6f5859238ef51417e9314d80f68e884b5cb631da6`, image configuration `48912802d2250e0d14877f71731df7562b8defeffa8fbd424f4684c4036c8709`. Kernel image SHA256 `af17aab87f9536e4fdf6674f44b4267605148c3e6849f05b218a1188fd1779e2`.
+
+Final image lint: 13 passed, 1 skipped, zero warnings. All four dynamically requested Xbox firmware files were verified in the initramfs. Second hardware boot passed health checks with BORE=1 and sched_ext disabled, zero failed services, 4K120 and bpp=30 reported by Xe, and no early xone firmware-load failure. No BUG/Oops, underrun or flip timeout appeared in the checks. Startup to graphical target was 29.294 seconds (firmware 10.348, loader 4.144, kernel 0.662, initrd 4.740, userspace 9.397). The new deployment and original known-good stock-kernel deployment are pinned; the one-shot recovery timer was disarmed after success.
+
+The final image is a local hardware-test deployment, not a promoted public stable release. TV-side visual HDR/VRR and controller-button confirmation remain outstanding. No additional kernel rebuild occurred between the measured candidate and the final firmware-packaging correction.
