@@ -1,0 +1,14 @@
+diff --git a/transport/dongle.c b/transport/dongle.c
+index fb5494b..8b936fc 100644
+--- a/transport/dongle.c
++++ b/transport/dongle.c
+@@ -332,6 +332,9 @@ static void xone_dongle_pairing_scan(struct work_struct *work)
+ 
+ 	mutex_lock(&dongle->pairing_lock);
+ 
++	/* Diagnostic: retain the selected channel on the original adapter. */
++	if (dongle->product == 0x02e6)
++		goto out_unlock;
+ 	if (!dongle->pairing)
+ 		goto out_unlock;
+ 
