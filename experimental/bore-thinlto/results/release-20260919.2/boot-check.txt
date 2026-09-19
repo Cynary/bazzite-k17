@@ -1,0 +1,23 @@
+/usr/lib/modules/7.2.4-k17bore1+/vmlinuz: OK
+active
+active
+active
+K17 BORE boot health check passed. Visual and performance tests remain separate.
+Startup finished in 10.224s (firmware) + 3.913s (loader) + 620ms (kernel) + 4.852s (initrd) + 10.519s (userspace) = 30.130s 
+graphical.target reached after 10.519s in userspace.
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+terra-gamescope-3.16.29^1-1.fc44.x86_64
+CRTC info
+---------
+[CRTC:152:pipe A]:
+	uapi: enable=yes, active=yes, mode="3840x2160": 120 1188000 3840 4016 4104 4400 2160 2168 2178 2250 0x40 0x5
+	hw: enable=yes, active=yes
+	adjusted_mode="3840x2160": 120 1188000 3840 4016 4104 4400 2160 2168 2178 2250 0x40 0x5
+	pipe__mode="3840x2160": 120 1188000 3840 4016 4104 4400 2160 2168 2178 2250 0x40 0x5
+	pipe src=3840x2160+0+0, dither=no, bpp=30
+	port_clock=1000000, lane_count=4
+	num_scalers=2, scaler_users=0 scaler_id=-1 scaling_filter=0 sharpness_strength=0, scalers[0]: use=no, mode=0, scalers[1]: use=no, mode=0
+	background color (10bpc XRGB2101010): 00000000
+	[ENCODER:406:DDI TC2/PHY TC2]: connectors:

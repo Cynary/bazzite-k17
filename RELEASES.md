@@ -70,10 +70,13 @@ if a regression is discovered; clients still need to perform an update/reboot.
 
 - `bore-20260919.1`: Bazzite 44.20260916, kernel 7.2.4-k17bore1+.
   Digest `sha256:e12799860cc9ee12647ac9a6f5859238ef51417e9314d80f68e884b5cb631da6`.
-- The next candidate, `bore-20260919.2`, updates the base to 44.20260919, reuses
-  the same tested full-kernel RPMs (upstream's kernel version is unchanged), and
-  includes the signature policy required for the moving channel. Promotion and
-  validation results are recorded with the published release.
+- `bore-20260919.2` (**current `:moonmachine`**): Bazzite 44.20260919, the same
+  tested full-kernel RPMs (upstream's kernel version is unchanged), updated
+  Gamescope 3.16.29, and native signature-policy enforcement.
+  Digest `sha256:01921691cf33b54dd97b9ea3f9239a591a74a595b79efebd8e4e2320d65f4916`.
+  Hardware boot/health and MoonDeck launch/host-exit checks passed.
+  See [release notes](https://github.com/Cynary/bazzite-k17/releases/tag/bore-20260919.2)
+  for validation limits and [boot measurements](experimental/bore-thinlto/results/release-20260919.2/boot-check.txt).
 
 See [GitHub releases](https://github.com/Cynary/bazzite-k17/releases) for exact
 artifacts/digests and [kernel configuration and limitations](experimental/bore-thinlto/README.md).
