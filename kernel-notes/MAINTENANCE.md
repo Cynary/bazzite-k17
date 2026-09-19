@@ -64,8 +64,13 @@ Track upstream Bazzite security updates promptly. Holding the entire image at a 
 
 Record each result separately; do not inherit “tested” status from another kernel just because the patches applied.
 
-## Phase 4 — reduce and retire the fork
+## Phase 4 — retire the private patch stack
 
-Rebase to current Intel FRL work, submit narrowly scoped arithmetic/clock fixes with reproduced evidence, and discuss the HDMI VRR design with Intel display maintainers. The VTEM-over-GMP and blanking-accounting changes require substantive review rather than assuming the experiment is upstream-ready. Include Codex authorship disclosure and follow the target project's contribution/AI policies at submission time.
+Track upstream Intel FRL and VRR changes and remove private patches when their
+upstream replacements pass the same hardware tests. Keep this work private;
+no upstream submissions are planned or authorized.
 
-When the normal Bazzite/OGC kernel passes the same matrix without our patches, switch back to the stock image, remove experimental parameters/config where no longer needed, and retain this fork as an archived reproducer. “HDMI 2.1 merged” is not by itself the exit criterion: this hardware's FRL, HDR, VRR and lifecycle behavior must all be verified.
+When the normal Bazzite/OGC kernel passes the complete matrix without our patches,
+switch back to the stock image and remove experimental parameters. Retain the
+private history as a reproducer. Upstream FRL availability alone does not prove
+this machine's HDR, VRR and standby recovery work correctly.
