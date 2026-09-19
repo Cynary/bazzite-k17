@@ -9,6 +9,7 @@ COPY --from=base /usr/src/kernels/${KERNEL_RELEASE}/ /work/kernel/
 COPY --from=base /usr/lib/modules/${KERNEL_RELEASE}/vmlinuz /work/stock-vmlinuz
 COPY scripts/build-modules.sh /work/build-modules.sh
 COPY kernel-patches/ /work/patches/
+COPY wifi-patches/ /work/wifi-patches/
 RUN /work/build-modules.sh
 ARG XONE_SOURCE_COMMIT=982cbcb019ae4d2bee5ae69385223409ee555c88
 COPY --from=base /usr/lib/modules/${KERNEL_RELEASE}/extra/xone/xone_gip.ko.xz /work/stock-xone-gip.ko.xz
