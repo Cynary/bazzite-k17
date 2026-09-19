@@ -1,0 +1,13 @@
+[Unit]
+Description=Prepare Moonmachine streaming apps
+After=local-fs.target
+Before=display-manager.service
+ConditionPathExists=!/etc/moonmachine/disable-app-setup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/moonmachine-setup
+TimeoutStartSec=30
+
+[Install]
+WantedBy=multi-user.target

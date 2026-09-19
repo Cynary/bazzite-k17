@@ -1,0 +1,96 @@
+#!/usr/bin/python3
+"""Prepare bundled Decky and MoonDeck for the first regular login account."""
+import json
+import os
+from pathlib import Path
+import pwd
+import shutil
+import subprocess
+import uuid
+
+
+def seed(account, share, service_dir):
+    home = Path(account.pw_dir)
+    brew = home / 'homebrew'
+    unit = service_dir / 'plugin_loader.service'
+    # Never replace a working loader, plugins or settings on an OS update.
+    existing_loader = unit.exists()
+    if not existing_loader and brew.exists():
+        print('An unmanaged homebrew directory exists; leaving it unchanged.')
+        return False
+    if not existing_loader:
+        services = brew / 'services'
+        services.mkdir(parents=True)
+        shutil.copy2(share / 'PluginLoader', services / 'PluginLoader')
+        version = json.loads((share / 'sources.json').read_text())['decky']['version']
+        (services / '.loader.version').write_text('v' + version + '\n')
+        steam = home / '.local/share/Steam'
+        steam.mkdir(parents=True, exist_ok=True)
+        (steam / '.cef-enable-remote-debugging').touch()
+        # Steam and Decky need access to the directories created here.
+        for parent in [home / '.local', home / '.local/share', steam]:
+            os.chown(parent, account.pw_uid, account.pw_gid)
+        os.chown(steam / '.cef-enable-remote-debugging', account.pw_uid, account.pw_gid)
+        service_dir.mkdir(parents=True, exist_ok=True)
+        unit.write_text(f'''[Unit]
+Description=Steam Deck Plugin Loader
+After=network.target
+[Service]
+Type=simple
+User=root
+Restart=always
+KillMode=process
+TimeoutStopSec=15
+ExecStart={services}/PluginLoader
+WorkingDirectory={services}
+Environment=UNPRIVILEGED_PATH={brew}
+Environment=PRIVILEGED_PATH={brew}
+Environment=LOG_LEVEL=INFO
+[Install]
+WantedBy=multi-user.target
+''')
+    # An existing installation may use a different home; do not change its plugins.
+    elif f'UNPRIVILEGED_PATH={brew}' not in unit.read_text():
+        return False
+    plugin = brew / 'plugins/moondeck'
+    if not plugin.exists():
+        plugin.parent.mkdir(parents=True, exist_ok=True)
+        staging = plugin.with_name('.moondeck-new')
+        if staging.exists():
+            shutil.rmtree(staging)
+        shutil.copytree(share / 'moondeck', staging)
+        staging.rename(plugin)
+        for p in [plugin.parent, plugin, *plugin.rglob('*')]:
+            os.chown(p, account.pw_uid, account.pw_gid, follow_symlinks=False)
+    settings = home / '.config/moondeck/settings.json'
+    if not settings.exists():
+        settings.parent.mkdir(parents=True, exist_ok=True)
+        data = json.loads((share / 'moondeck-defaults.json').read_text())
+        data['clientId'] = str(uuid.uuid4())
+        with settings.open('x') as f:
+            json.dump(data, f, indent=2)
+        for p in [home / '.config', settings.parent, settings]:
+            os.chown(p, account.pw_uid, account.pw_gid)
+    if not existing_loader:
+        for p in [brew, brew / 'services', *(brew / 'services').iterdir()]:
+            os.chown(p, account.pw_uid, account.pw_gid)
+    return not existing_loader
+
+
+def main():
+    accounts = sorted((p for p in pwd.getpwall() if 1000 <= p.pw_uid < 60000
+                       and p.pw_shell not in ['/usr/sbin/nologin', '/sbin/nologin', '/bin/false']
+                       and Path(p.pw_dir).is_dir()), key=lambda p: p.pw_uid)
+    if not accounts:
+        return
+    account = accounts[0]
+    if any(c in account.pw_dir for c in '\n\r%"\\ '):
+        raise ValueError('Unsupported home directory for Decky service')
+    if seed(account, Path('/usr/share/moonmachine'), Path('/etc/systemd/system')):
+        subprocess.run(['restorecon', '-RF', account.pw_dir + '/homebrew'], check=True)
+        subprocess.run(['chcon', '-t', 'bin_t', account.pw_dir + '/homebrew/services/PluginLoader'], check=True)
+        subprocess.run(['systemctl', 'daemon-reload'], check=True)
+        subprocess.run(['systemctl', 'enable', '--now', 'plugin_loader.service'], check=True)
+
+if __name__ == '__main__':
+    main()

@@ -25,8 +25,3 @@ This is software evidence from one recovery cycle, not visual confirmation
 of picture quality or comprehensive cold-boot/resume validation. Candidate 2 was subsequently visually validated through a normal Steam launch
 and is now included as patch 0052. Broad cold-boot/resume validation remains
 incomplete; see PERFORMANCE.md for release qualification limits.
-
-The first private CI image built and pushed successfully, with package
-visibility verified private, but signing failed because Cosign defaults to
-a TUF signing config incompatible with --tlog-upload=false. Explicitly
-disable that config when using our private signing key and no public log.

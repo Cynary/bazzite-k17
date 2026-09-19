@@ -113,7 +113,7 @@ being packaged under xone-patches; image deployment validation remains pending.
 
 ## A/B retest: causal claim remains unproven
 
-The user requested reproducing on the old driver and switching live into the
+The comparison reproduced the failure on the old driver before switching live into the
 patched driver before reboot. Packaged srcversion 228407C6EB982C5BA099BF0
 was booted with the same delayed loader and reconnected after idle. Then the
 loader override was disabled and two normal early-loading stock-driver boots

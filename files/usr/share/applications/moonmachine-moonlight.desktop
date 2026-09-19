@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Moonlight
+Comment=Stream games from your gaming PC
+Exec=/usr/bin/moonlight
+Icon=applications-games
+Categories=Game;
+Terminal=false

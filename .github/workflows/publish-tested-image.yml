@@ -33,7 +33,7 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE" =~ ^bore-[0-9]{8}\.[0-9]+$ ]]
+          [[ "$RELEASE" =~ ^(bore|moonmachine)-[0-9]{8}\.[0-9]+$ ]]
           [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           sudo apt-get update -qq
           sudo apt-get install -y skopeo

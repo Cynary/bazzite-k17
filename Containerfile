@@ -1,32 +1,21 @@
-ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite-deck@sha256:f956a8f987e40b81990d673a9f5c777691944b45858f4267ea77f2e75c14d27b
-FROM ${BASE_IMAGE} AS base
-FROM docker.io/library/fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80 AS builder
-RUN dnf install -y gcc make binutils elfutils-libelf-devel openssl-devel dwarves python3 kmod cpio zstd xz bc bison flex diffutils findutils curl tar gzip git-core && dnf clean all
-ARG KERNEL_RELEASE=7.2.4-ogc3.1.fc44.x86_64
-ARG SOURCE_BASE_COMMIT=43d13ad09df8a544c032f75dc84fddd2aefe8f76
-ARG SOURCE_COMMIT=a5a7dbdf33954095909d0ad53d953a993c31b09c
-COPY --from=base /usr/src/kernels/${KERNEL_RELEASE}/ /work/kernel/
-COPY --from=base /usr/lib/modules/${KERNEL_RELEASE}/vmlinuz /work/stock-vmlinuz
-COPY scripts/build-modules.sh /work/build-modules.sh
-COPY kernel-patches/ /work/patches/
-COPY wifi-patches/ /work/wifi-patches/
-RUN /work/build-modules.sh
-ARG XONE_SOURCE_COMMIT=982cbcb019ae4d2bee5ae69385223409ee555c88
-COPY --from=base /usr/lib/modules/${KERNEL_RELEASE}/extra/xone/xone_gip.ko.xz /work/stock-xone-gip.ko.xz
-COPY scripts/build-xone.sh /work/build-xone.sh
-COPY xone-patches/ /work/xone-patches/
-RUN /work/build-xone.sh
-FROM base AS final
-ARG BASE_IMAGE
-ARG SOURCE_COMMIT=a5a7dbdf33954095909d0ad53d953a993c31b09c
-ARG KERNEL_RELEASE=7.2.4-ogc3.1.fc44.x86_64
-LABEL org.opencontainers.image.title="Bazzite K17 FRL/VRR candidate" \
-      org.opencontainers.image.source="https://github.com/Cynary/bazzite-k17" \
-      org.opencontainers.image.description="Stock Bazzite kernel with matched experimental Xe/display-helper replacements" \
-      org.opencontainers.image.base.name="${BASE_IMAGE}" \
-      io.cynary.k17.source-commit="${SOURCE_COMMIT}"
-COPY --from=builder /out/ /usr/share/k17-frl/build/
-COPY scripts/install-modules.sh /tmp/k17-install-modules.sh
+# Build context is created by experimental/bore-thinlto/prepare-image.sh.
+ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite-deck@sha256:050572c864322f567a223741922f70932d2a888f34f6b839f12e06ebd8e08f64
+FROM ${BASE_IMAGE}
+LABEL org.opencontainers.image.title="Moonmachine" \
+      org.opencontainers.image.description="Experimental full kernel with K17 FRL/VRR, BORE 6.8.0 and ThinLTO; no AutoFDO" \
+      io.cynary.k17.source-commit="8cff674dac5e46b6452d4349ed3f3483d6cff1bc"
 COPY files/ /
-RUN /tmp/k17-install-modules.sh && rm /tmp/k17-install-modules.sh
+COPY channel/cosign.pub /etc/pki/containers/cynary-k17.pub
+COPY channel/cynary-k17.yaml /etc/containers/registries.d/cynary-k17.yaml
+COPY configure-signature-policy.py /tmp/k17-signature-policy.py
+RUN python3 /tmp/k17-signature-policy.py && rm /tmp/k17-signature-policy.py
+COPY rpms/ /tmp/k17-bore-rpms/
+COPY verify-boot.sh /usr/libexec/k17-verify-bore
+COPY install-image.sh /tmp/k17-bore-install.sh
+RUN /tmp/k17-bore-install.sh && rm -rf /tmp/k17-bore-rpms /tmp/k17-bore-install.sh
+COPY apps/ /tmp/moonmachine-apps/
+RUN python3 /tmp/moonmachine-apps/install.py && rm -rf /tmp/moonmachine-apps
+RUN dnf5 clean all && rm -rf /var/cache/libdnf5 /var/cache/ldconfig/aux-cache /var/lib/dnf/repos && rm -f /var/log/dnf5.log
 RUN --mount=type=tmpfs,target=/run --network=none bootc container lint
+LABEL org.opencontainers.image.source="https://github.com/Cynary/bazzite-k17" \
+      io.cynary.k17.release="moonmachine-20260919.3"

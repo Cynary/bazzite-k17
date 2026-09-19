@@ -22,9 +22,9 @@ Backported two upstream changes, in order, preserving their authorship in wifi-p
 
 The second patch is essential: the first alone would reject the installed firmware. Firmware itself was not changed. CLC regulatory handling is retained; bounds instrumentation is not disabled.
 
-Built mt7921-common against the exact installed kernel-devel and symbol versions. Repeated initialization and Wi-Fi scanning succeeded without new UBSAN reports. One reboot also passed: k17-wifi.service active, 53 scan results, no boot-time UBSAN report and no failed systemd units. No saved Wi-Fi credentials exist on the test machine, so association and throughput have not been tested.
-
-The image recipe installs the replacement via updates/k17 and includes it in initramfs. Until that image is built/deployed, the test machine uses a kernel-version-guarded modprobe loader in /usr/local/sbin/k17-wifi-load, module in /var/lib/k17-wifi, and k17-wifi.service. The module has a persistent modules_object_t SELinux file-context rule; enforcement remains enabled. Remove /etc/modprobe.d/99-k17-wifi.conf and disable/remove k17-wifi.service when transitioning to the image-integrated module. The loader falls back to stock on other kernel versions.
+The fixes are included in the full kernel. Repeated initialization, reboot and
+Wi-Fi scanning succeeded without new UBSAN reports. Wi-Fi association and
+throughput have not been tested.
 
 Upstream discussion: https://lists.openwall.net/linux-kernel/2026/09/14/334
 

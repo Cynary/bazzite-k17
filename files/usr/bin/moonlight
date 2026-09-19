@@ -1,0 +1,8 @@
+#!/bin/bash
+# Gamescope's presentation layer supplies HDR and frame timing in Gaming Mode.
+set -euo pipefail
+runtime_dir=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+if [[ -S "$runtime_dir/${GAMESCOPE_WAYLAND_DISPLAY:-gamescope-0}" ]]; then
+    export QT_QPA_PLATFORM=xcb SDL_VIDEODRIVER=x11 ENABLE_GAMESCOPE_WSI=1
+fi
+exec /usr/lib/moonmachine/moonlight/AppRun "$@"

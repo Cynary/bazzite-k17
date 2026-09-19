@@ -6,10 +6,6 @@ Apply numbered patches in lexical order to public OGC source commit
 headers. Original authors and existing sign-offs are retained. No new human DCO
 sign-off has been added by the agent.
 
-This private repository is the canonical home for further changes. Do not push
-new commits to the former public fork or submit them upstream. The unvalidated
-recovery experiment is kept separately under `experimental/` until tested.
-
-The private `source-backup-20260918` release contains the complete local shallow
-Git history and source trees; its SHA256 is
-`2dbce29062f77ac957bd2192234c7da0cc17ab07bde6b176bc8d02f0ccb5927d`.
+The current complete kernel source, including subsequent fixes and BORE, is
+[Cynary/linux-k17-frl](https://github.com/Cynary/linux-k17-frl/tree/k17-bore-thinlto).
+See [kernel build notes](../experimental/bore-thinlto/README.md) for pinned inputs.

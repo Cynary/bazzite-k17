@@ -1,5 +1,7 @@
-import subprocess,pathlib,time,json,os
-home=pathlib.Path('/var/home/rodrigo');main=home/'VRRTest/main.lua';original=main.read_bytes()
+import subprocess,pathlib,time,json,os,pwd
+test_user=os.environ['TEST_USER']; account=pwd.getpwnam(test_user)
+runtime='/run/user/'+str(account.pw_uid); app_id=int(os.environ['VRRTEST_APP_ID'])
+home=pathlib.Path(account.pw_dir);main=home/'VRRTest/main.lua';original=main.read_bytes()
 result=home/'.var/app/org.love2d.love2d/data/love/freesynctest/k17-timing.json'
 bore=pathlib.Path('/proc/sys/kernel/sched_bore');original_bore=bore.read_text().strip()
 assert pathlib.Path('/sys/kernel/sched_ext/state').read_text().strip()=='disabled'
@@ -21,7 +23,7 @@ love.update = function(dt)
  end
 end
 '''
-env=os.environ.copy();env.update(DISPLAY=':0',XDG_RUNTIME_DIR='/run/user/1000',DBUS_SESSION_BUS_ADDRESS='unix:path=/run/user/1000/bus')
+env=os.environ.copy();env.update(DISPLAY=':0',XDG_RUNTIME_DIR=runtime,DBUS_SESSION_BUS_ADDRESS='unix:path='+runtime+'/bus')
 hw=next(p for p in pathlib.Path('/sys/class/hwmon').glob('hwmon*') if (p/'name').read_text().strip()=='coretemp')
 try:
  main.write_bytes(original+instrument.encode())
@@ -29,7 +31,7 @@ try:
   bore.write_text(str(conf))
   result.unlink(missing_ok=True)
   load=subprocess.Popen(['stress-ng','--cpu','8','--cpu-method','matrixprod','--timeout','50s'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-  subprocess.run(['runuser','-u','rodrigo','--','env','DISPLAY=:0','XDG_RUNTIME_DIR=/run/user/1000','DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus','/usr/bin/steam','steam://rungameid/'+str((4063733204<<32)|0x02000000)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10)
+  subprocess.run(['runuser','-u',test_user,'--','env','DISPLAY=:0','XDG_RUNTIME_DIR='+runtime,'DBUS_SESSION_BUS_ADDRESS=unix:path='+runtime+'/bus','/usr/bin/steam','steam://rungameid/'+str((app_id<<32)|0x02000000)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10)
   deadline=time.monotonic()+65
   while not result.exists():
    if time.monotonic()>deadline:raise RuntimeError('No render result')

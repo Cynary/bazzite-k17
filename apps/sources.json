@@ -1,0 +1,5 @@
+{
+  "decky": {"version":"3.2.9", "url":"https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.9/PluginLoader", "sha256":"0a5246db98f2df93a6685ac8230e0acfbfa6e91d99b41b8dbbf1f94c308dedce", "source":"https://github.com/SteamDeckHomebrew/decky-loader/tree/v3.2.9"},
+  "moondeck": {"version":"1.12.2", "url":"https://github.com/FrogTheFrog/moondeck/releases/download/nightly/moondeck.zip", "sha256":"aa1c57ab454a86b7a95984e4b8a109aa05ebd22a7c858317001542f28de9f5fc", "source":"https://github.com/FrogTheFrog/moondeck/tree/aebfbd6"},
+  "moonlight": {"version":"6.1.0-vrr17.1", "url":"https://github.com/Nonary/moonlight-qt/releases/download/v6.1.0-vrr17.1/Moonlight-6.1.0-vrr17.1-x86_64.AppImage", "sha256":"8eb17df59a11efadc446820b126a0bdf7c885fcd1bcc4147a8d2d28913e88a7c", "source":"https://github.com/Nonary/moonlight-qt/tree/v6.1.0-vrr17.1"}
+}

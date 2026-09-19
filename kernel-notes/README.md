@@ -10,7 +10,7 @@
 - Base operating system: Bazzite Deck KDE `44.20260916`.
 - Compiler: GCC 16.2.1 20260810; GNU binutils 2.47. Full build retained DWARF5/BTF and module BTF. Secure Boot was disabled; this is not a Secure Boot validation.
 
-The additional local changes were written with OpenAI Codex. Hardware observations came from the owner and instrumented driver/vblank measurements. These experiments require review before upstream submission, particularly the blanking calculation and VTEM/GMP transport.
+The additional local changes were written with OpenAI Codex. Hardware observations combine TV checks and instrumented driver/vblank measurements. These experiments require review before upstream submission, particularly the blanking calculation and VTEM/GMP transport.
 
 ## What changed
 
@@ -44,36 +44,8 @@ Full kernel build passed its x86 checks (8,212,978 decoded instructions and 1,00
 
 HDMI audio, suspend/resume, hotplug/retraining, long-term stability, Moonlight end-to-end HDR/4:4:4/VRR streaming, DSC, other receivers/TVs, and other GPUs still need validation. Successful display output is separate from video decoding support. Kernel warning-free runs alone cannot prove absence of a visible link dropout.
 
-## Rebuilding the source
+## Building the current kernel
 
-Use a separate output directory and the archived configuration, not the machine's incidental running config:
-
-```sh
-git clone --branch k17-frl-vrr-test https://github.com/Cynary/linux-k17-frl.git
-cd linux-k17-frl
-mkdir -p ../k17-build
-cp k17/configs/k17-vrr4.config ../k17-build/.config
-make O="$PWD/../k17-build" olddefconfig
-make O="$PWD/../k17-build" -j7 bzImage modules
-python3 k17/tests/check-dfm.py
-```
-
-These are source rebuild instructions, not a one-command deployment. Use the archived compiler versions for the closest reproduction. Packages such as gcc, make, binutils, bc, bison, flex, OpenSSL/ELF development headers and pahole are required. A generated module-signing key and build timestamps mean a rebuild is not byte-for-byte identical. Private signing keys are deliberately not archived.
-
-To rebuild *exactly the tested source*, copy the config and supporting files out of the checkout first, then check out `k17-vrr4-tested` before compiling. Documentation-only commits after that tag do not change driver code. Git's local-version handling may vary with checkout state; compare `include/config/kernel.release` instead of assuming its suffix.
-
-`packaging/kernel-k17-vrr4.spec` records the five-package prototype layout. The original archive was `kernel-vrr4-stage.tar.gz`, SHA256 `bee05b18ed4a67253d9fee65e7f5343d8d19c5548308668eb32f22dd390dac73`. `packaging/stage-rpms.sh` is a portable adaptation of the staging procedure; the portable wrapper itself has not undergone a fresh full RPM/install test. Binary releases and an automated build pipeline are future work.
-
-## Session settings used
-
-Gamescope preferred the TV connector (HDMI-A-1 on this unit), saved 3840×2160@120 for the receiver, and enabled HDR/adaptive sync. KDE used automatic VRR. Steam's native VRR preference also had to be enabled: Steam can override Gamescope's `--adaptive-sync` default. Prefer the Steam UI for that preference, and verify it after account/profile changes. Connector names are machine-specific.
-
-BTF is essential on this installation: omitting it broke cardwired and Gaming Mode startup. Keep it in future configurations.
-
-## Recovery and current packaging debt
-
-Both the stock and tested deployments are pinned on the test machine. Pinning retains rollback deployments; it does not freeze updates or guarantee that overrides are compatible with later images. Select the known stock deployment in the boot menu for recovery; the immediate previous deployment may itself be an experimental kernel.
-
-The prototype replaced the complete kernel package set and removed incompatible prebuilt third-party kmod packages. In particular, controller support such as xone/xpadneo must be retained or rebuilt before this becomes an everyday replacement image. The minimal prototype config is an archive of the experiment, not the recommended future general-purpose configuration.
-
-A stale base RPM database in this Bazzite image required a one-off deployment workaround and an exact-entry boot-argument edit. That machine-specific workaround is not distributed as an installer here. The next deployment system should build a consistent image and avoid this workaround entirely.
+These are the original graphics experiments. For the current complete build,
+see [kernel build notes](../experimental/bore-thinlto/README.md) and
+[image maintenance](../MAINTAINING.md).
