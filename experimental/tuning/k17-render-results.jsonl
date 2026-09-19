@@ -1,0 +1,4 @@
+{"config": "default", "result": {"n": 2159, "median_ms": 11.206, "p99_ms": 13.723, "max_ms": 15.812, "over_16_667ms": 0}}
+{"config": "bpfland", "result": {"n": 2238, "median_ms": 11.008, "p99_ms": 12.936, "max_ms": 14.053, "over_16_667ms": 0}}
+{"config": "bpfland", "result": {"n": 2243, "median_ms": 11.004, "p99_ms": 12.634, "max_ms": 13.146, "over_16_667ms": 0}}
+{"config": "default", "result": {"n": 2164, "median_ms": 11.151, "p99_ms": 13.824, "max_ms": 15.298, "over_16_667ms": 0}}

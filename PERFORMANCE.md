@@ -135,3 +135,16 @@ Compression correction was staged on the K17 with:
 `rpm-ostree kargs --delete=rootflags --append=rootflags=subvol=root,compress=zstd:1`
 (the previous rootflags contained only subvol=root). It requires a reboot and
 verification of the live mount options; no existing files were recompressed.
+
+## 2026-09-19 measured tuning trial
+
+See [experimental/tuning/README.md](experimental/tuning/README.md) for scripts,
+raw measurements and limitations. CPU load test passed at 25 W, peak 74 C,
+with no thermal-throttling counter increase. BPFLAND default/Auto improved
+p99 application frame intervals in both Steam-launched VRRTest runs under
+CPU contention, and is enabled as a reversible local trial. It is not yet
+qualified for release with real games/Moonlight or suspend/resume testing.
+Full preemption and performance EPP did not justify replacing current defaults.
+Btrfs zstd:1 is now confirmed in live mount options. No full-kernel BORE/LTO
+change was made. Image integration of the scheduler trial is deliberately
+kept separate from the release recipe pending qualification.
