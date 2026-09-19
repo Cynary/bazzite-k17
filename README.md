@@ -2,7 +2,7 @@
 
 Two variants are maintained here:
 
-- **BORE + ThinLTO full kernel:** [release and installation instructions](RELEASES.md). The `bore-20260919.1` prerelease preserves the exact image boot-tested on the K17. It uses a separate versioned tag and is not the stock-kernel `candidate` channel.
+- **BORE + ThinLTO full kernel:** [release and installation instructions](RELEASES.md). The `:moonmachine` release stream delivers explicitly promoted, signed images through normal system updates. Numbered releases preserve exact tested artifacts. This is separate from the stock-kernel `candidate` channel.
 - **Stock-kernel module replacement:** the root Containerfile and `Build public candidate` workflow described below.
 
 Personal settings and TV/AVR automation stay local. See [shared-image scope](IMAGE-SCOPE.md) for the planned clean Moonlight/Decky/MoonDeck preinstallation and the distinction between VRR fixes and forced preferences. The current release does not preinstall these applications.
@@ -54,8 +54,9 @@ cosign verify --key cosign.pub --insecure-ignore-tlog=true "$IMAGE@$DIGEST"
 The transparency-log check is deliberately omitted for these key-based signatures;
 verification still requires the pinned public key. Initial historical candidates
 used GitHub OIDC keyless signing; see `VALIDATION.md` for their identity and digest.
-The installed `ostree-unverified-*` transport does not enforce Cosign verification
-itself, so verify each selected digest before staging. No unattended promotion is
+Historical stock-candidate installs using `ostree-unverified-*` do not enforce
+verification themselves. The Moonmachine enrollment helper instead configures
+native container signature verification for every OS update; see [RELEASES.md](RELEASES.md). No unattended promotion is
 enabled. Public images can be pulled anonymously; local OCI deployment is
 also available for offline testing.
 

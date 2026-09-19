@@ -88,4 +88,5 @@ rebooted successfully in 29.951 seconds. Boot verifier passed, zero failed servi
 no observed BUG/Oops, underrun or flip timeout. The public deployment is pinned.
 See [installation and update instructions](../../RELEASES.md). This is an
 experimental prerelease; it does not promote the stock `candidate` tag or create
-an automatically advancing full-kernel channel.
+the moving channel by itself. The subsequently added `:moonmachine` stream
+provides signed updates after explicit maintainer promotion; see RELEASES.md.

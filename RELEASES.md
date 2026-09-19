@@ -1,109 +1,114 @@
-# Installing and maintaining the K17 image
+# Moonmachine releases and updates
 
-This is a community experimental Bazzite Deck derivative, developed with Codex,
-not an official Bazzite release or a general Intel hardware support claim.
+Moonmachine is this repository's experimental K17 Bazzite Deck derivative,
+with the custom FRL/VRR kernel, BORE and ThinLTO. It is not an official Bazzite
+release or a general Intel hardware support guarantee. Secure Boot is unsupported.
 
-## Current full-kernel release
+## Follow the release stream
 
-[bore-20260919.1](https://github.com/Cynary/bazzite-k17/releases/tag/bore-20260919.1)
-contains the exact hardware-tested BORE + ThinLTO OCI image and kernel RPMs.
-The kernel source is [8cff674dac5e46b6452d4349ed3f3483d6cff1bc](https://github.com/Cynary/linux-k17-frl/commit/8cff674dac5e46b6452d4349ed3f3483d6cff1bc).
+The moving channel is:
 
 ```
-ghcr.io/cynary/bazzite-k17:bore-20260919.1
-sha256:e12799860cc9ee12647ac9a6f5859238ef51417e9314d80f68e884b5cb631da6
+ghcr.io/cynary/bazzite-k17:moonmachine
 ```
 
-The base is Bazzite Deck 44.20260916; kernel 7.2.4-k17bore1+ carries the
-K17 FRL/VRR, MediaTek and Xbox adapter fixes, BORE 6.8 and Clang ThinLTO.
-No AutoFDO. See [configuration, limitations and measured results](experimental/bore-thinlto/README.md).
-Secure Boot is unsupported. Rust kernel modules and several optional third-party
-specialty modules are absent. Existing firmware ACPI warnings remain.
-TV-side validation of this full-kernel candidate is still required before stable promotion.
+Machines following this tag receive approved images through normal Bazzite system
+updates, or `sudo bootc upgrade`, followed by a reboot. The tag advances only when
+we explicitly promote a tested release; it does not blindly follow upstream
+Bazzite or automatically compile new kernels. A check that finds no newer digest
+correctly reports no OS update. Flatpak and Steam applications update separately.
 
-Publication validation: [workflow 35473358558](https://github.com/Cynary/bazzite-k17/actions/runs/35473358558)
-verified the archive checksums/digest, pushed without rebuilding and signed the
-image. Anonymous registry access and on-device Cosign verification passed. The
-K17 then switched from local OCI to this public digest and rebooted successfully:
-29.951 seconds to graphical target, boot verifier passed, no failed services,
-no observed BUG/Oops, underrun or flip timeout. The public deployment and previous
-working deployments are pinned. These checks do not replace TV-side qualification.
+A machine installed using `@sha256:...` or a numbered release tag remains pinned
+to that version. It needs a **one-time switch** to `:moonmachine` to follow updates.
+Pinning an OSTree recovery deployment is different: it preserves that deployment
+without preventing the active channel from updating.
 
-## Existing Bazzite installation
-
-Back up important data, keep a known-good deployment pinned, and verify the
-release's exact digest with `cosign` and this repository's `cosign.pub`.
-Obtain the public key through a source you trust; downloading a key beside an
-image is not independent verification of the publisher.
+From a trusted checkout of this repository on Bazzite:
 
 ```sh
-IMAGE=ghcr.io/cynary/bazzite-k17
-DIGEST=sha256:e12799860cc9ee12647ac9a6f5859238ef51417e9314d80f68e884b5cb631da6
-cosign verify --key cosign.pub --insecure-ignore-tlog=true "$IMAGE@$DIGEST"
 sudo ostree admin status
-# Pin the index of the currently working deployment shown above:
+# Pin the working deployment's actual index; it is normally 0 if none is staged.
 sudo ostree admin pin 0
-sudo bootc switch "$IMAGE@$DIGEST"
+sudo ./scripts/join-moonmachine-channel.sh
 sudo systemctl reboot
 ```
 
-Check the actual index: index 0 is normally the current deployment only when
-there is no staged deployment. Review or clear old local kernel overrides before
-switching; do not mix this full kernel with replacement modules from another ABI.
-The commands deliberately select a verified immutable digest. The default
-container policy may not enforce our signature: verify each new digest before
-switching. This key-based signature omits the transparency log, not the signature check.
+Review/trust `cosign.pub` before this initial enrollment. The helper verifies the
+channel's resolved digest, installs the repository key and a narrowly scoped
+container signature policy, and uses `bootc switch --enforce-container-sigpolicy`.
+It preserves policies for other repositories. Subsequent OS updates require a
+signature from this key; a mere mutable tag is not the trust boundary.
 
-After reboot, `uname -r`, `sudo bootc status` and
-`sudo /usr/libexec/k17-verify-bore` should identify and verify the new kernel.
-Then check actual TV HDR/10-bit/VRR, controllers, sound and suspend/resume.
-If a candidate fails, select the pinned working deployment in the boot menu.
-`sudo bootc rollback` schedules the available rollback deployment; inspect its
-identity first because it may not be the particular pinned deployment you want.
+Existing enrolled machines can switch with:
 
-## Fresh machine
+```sh
+sudo bootc switch --enforce-container-sigpolicy ghcr.io/cynary/bazzite-k17:moonmachine
+```
 
-Install official Bazzite's AMD/Intel HTPC/Steam Gaming Mode image first, selecting
-Intel graphics for this K17. Complete first boot, then follow the switch above.
-There is no separate installer ISO in this release. The OCI image is the complete
-operating-system payload; an ISO would only add an installation environment.
-Use [Bazzite's image selector](https://bazzite.gg/) for the initial installer.
+No additional automatic reboot timer is enabled by this project. Bazzite's own
+update UI, update scheduling and reboot behavior remain in control.
 
-For offline transfer, download every `image.oci.tar.part-*` asset and
-`IMAGE-SHA256SUMS`, verify the checksums, and concatenate/extract into an empty
-directory. The archive contains an OCI layout, not a disk image to write with dd.
-Kernel RPM assets are image-build inputs, not a recommendation to layer RPMs onto
-an existing Bazzite deployment.
+## Installation and rollback
 
-## Updates
+For a fresh computer, install official Bazzite's Intel HTPC/Steam Gaming Mode
+image first, complete first boot, then enroll above. Use the
+[Bazzite selector](https://bazzite.gg/). Our release is a complete bootable OCI OS
+payload, not a custom installer ISO or a disk image to write using dd.
 
-This first release is pinned. `bootc upgrade` cannot turn its immutable digest
-into a newer kernel. Flatpak/Steam applications still update separately.
+After reboot, inspect `sudo bootc status`, `uname -r` and
+`sudo /usr/libexec/k17-verify-bore`. Verify actual TV HDR/10-bit/VRR, controllers,
+sound and suspend/resume. Keep known-good deployments pinned. If boot fails,
+select a pinned working deployment in the boot menu. `sudo bootc rollback`
+schedules the available rollback deployment; check its identity first.
 
-To publish an OS update:
+Numbered tags and explicit digests remain available for reproducible installs,
+comparison and recovery. Switching to one stops following the moving stream until
+you switch back. A channel can also be moved back to a previous signed release
+if a regression is discovered; clients still need to perform an update/reboot.
 
-1. Advance the pinned Bazzite base and inspect its kernel/driver changes.
-2. Rebase the carried patches onto the matching OGC kernel; rebuild the full
-   kernel and every out-of-tree module, including xone, for that ABI. If keeping
-   an older kernel temporarily, explicitly verify its integration with the new base.
-3. Build the OCI image; run lint, VM smoke, hardware boot and graphics/input/
-   suspend tests. Pin the previous working deployment before testing.
-4. Package the exact tested image and checksums as a new versioned prerelease.
-   `Publish tested full-kernel image` verifies the archive and expected digest,
-   copies it to GHCR without rebuilding, then signs it using repository secrets.
-5. Users verify the newly published digest and run `bootc switch` to it.
+## Releases
 
-No rolling full-kernel channel or unattended promotion is enabled yet. Once the
-hardware qualification and update procedure are dependable, a signed rolling
-channel can point at approved versions. Updating then becomes normal image
-updates for clients, while the maintainer still carries/rebuilds the patch stack.
-DKMS does not replace this work: BORE/LTO and these DRM changes require the kernel
-build, not just an independently installable leaf driver.
+- `bore-20260919.1`: Bazzite 44.20260916, kernel 7.2.4-k17bore1+.
+  Digest `sha256:e12799860cc9ee12647ac9a6f5859238ef51417e9314d80f68e884b5cb631da6`.
+- The next candidate, `bore-20260919.2`, updates the base to 44.20260919, reuses
+  the same tested full-kernel RPMs (upstream's kernel version is unchanged), and
+  includes the signature policy required for the moving channel. Promotion and
+  validation results are recorded with the published release.
 
-## Personal setup is separate
+See [GitHub releases](https://github.com/Cynary/bazzite-k17/releases) for exact
+artifacts/digests and [kernel configuration and limitations](experimental/bore-thinlto/README.md).
+Rust kernel modules and several optional out-of-tree specialty modules are absent.
+Existing firmware ACPI warnings remain. No general gaming performance gain is claimed.
 
-Moonlight builds, Decky plugins, MoonDeck host settings and TV/AVR automation can
-live under `/var/home`, `/var/lib` and `/etc`, surviving image updates. Their pairing
-keys, account data, addresses and machine-specific network settings do not belong
-in the public image. Python virtual environments may need rebuilding after a
-Python minor-version upgrade. Retest plugins after Steam/Decky updates.
+## Maintainer procedure
+
+1. Advance the pinned Bazzite base. Compare kernel version/configuration and OS
+   integration changes. Rebase/rebuild the full kernel and every out-of-tree
+   module when needed. Reuse existing RPMs only after an explicit compatibility
+   review; matching the version alone is not a general ABI guarantee.
+2. Prepare the full-kernel build context with `experimental/bore-thinlto/prepare-image.sh`,
+   setting `RPM_DIR` and `IMAGE_CONTEXT`. It includes graphical boot defaults and
+   channel trust policy from this repository; it does not copy the live host.
+3. Build and lint the image, boot-test with pinned recovery, and test graphics,
+   input, networking, applications and suspend/resume as applicable.
+4. Upload the exact tested OCI archive/checksums as a numbered release and run
+   `Publish tested full-kernel image`. It verifies the archive/digest and publishes
+   it without rebuilding. It provides both native containers/image signatures
+   for OS updates and Cosign signatures for independent verification.
+5. Run `Promote tested Moonmachine release` with the numbered release and expected
+   digest. It verifies signatures using the OS signature-policy implementation
+   before moving `:moonmachine` to that same digest. No kernel patches are sent
+   upstream by this workflow.
+
+The maintainer still needs to carry patches and qualify new images. Consumers no
+longer need to manually switch to each numbered release once enrolled. DKMS does
+not replace the full-kernel work needed for BORE/LTO and the carried DRM changes.
+
+## Personal configuration
+
+TV/AVR automation, pairings, account data and host addresses stay outside the
+shared image. Files in `/var/home`, `/var/lib` and `/etc` survive OS updates.
+Recreate Python virtual environments if the Python minor version changes.
+See [image scope](IMAGE-SCOPE.md) for planned clean upstream MoonDeck preinstallation;
+that feature is separate from this OS/channel update and is not yet packaged.
+Existing personal MoonDeck forks are preserved.
