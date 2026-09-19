@@ -5,7 +5,7 @@ Two variants are maintained here:
 - **BORE + ThinLTO full kernel:** [release and installation instructions](RELEASES.md). The `bore-20260919.1` prerelease preserves the exact image boot-tested on the K17. It uses a separate versioned tag and is not the stock-kernel `candidate` channel.
 - **Stock-kernel module replacement:** the root Containerfile and `Build public candidate` workflow described below.
 
-Personal Moonlight/MoonDeck settings and TV/AVR credentials are installed separately and are not distributed in either OS image.
+Personal settings and TV/AVR automation stay local. See [shared-image scope](IMAGE-SCOPE.md) for the planned clean Moonlight/Decky/MoonDeck preinstallation and the distinction between VRR fixes and forced preferences. The current release does not preinstall these applications.
 
 The stock variant is a custom Bazzite Deck image retaining the **stock OGC kernel and all its packaged
 modules**, with matched `xe.ko` and `drm_display_helper.ko` replacements.
