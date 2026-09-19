@@ -40,4 +40,13 @@ exclude unrelated wireless frames and are derived from decoded USB records.
 
 The standalone patch built successfully against 7.2.4-ogc3.1.fc44.x86_64;
 xone_dongle srcversion D6FE09A44192045F57D7A85, xone_gip matches stock
-202AABE021C636443A21D63. Clean-module hardware validation remains pending.
+202AABE021C636443A21D63. The clean module subsequently booted, registered the real controller input,
+and the user confirmed connection without re-pairing or unplugging. A
+connected-controller restart of this exact build then automatically registered
+the real Xbox controller and Steam virtual controller without a replug. No
+Xbox driver errors were reported in that boot.
+
+The diagnostic build also passed two controller-off reboots through the full
+pairing timeout with no USB transfer failures or phantom clients. This does
+not establish a cause or fix for the earlier low-level failures. The clean
+retry-only module is currently loaded; both workarounds are absent.
