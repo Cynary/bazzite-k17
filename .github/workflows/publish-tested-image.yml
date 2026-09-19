@@ -47,7 +47,11 @@ jobs:
           export DOCKER_CONFIG="$RUNNER_TEMP/registry-auth"
           mkdir -p "$DOCKER_CONFIG"
           printf '%s' "$GH_TOKEN" | skopeo login --authfile "$DOCKER_CONFIG/config.json" --username "$GITHUB_ACTOR" --password-stdin ghcr.io
-          skopeo copy --preserve-digests --dest-authfile "$DOCKER_CONFIG/config.json" oci:image "docker://$image:$RELEASE"
+          umask 077
+          printf '%s' "$COSIGN_PRIVATE_KEY" > "$RUNNER_TEMP/cosign.key"
+          printf '%s' "$COSIGN_PASSWORD" > "$RUNNER_TEMP/cosign-password"
+          sudo install -D -m 644 channel/cynary-k17.yaml /etc/containers/registries.d/cynary-k17.yaml
+          skopeo copy --preserve-digests --sign-by-sigstore-private-key "$RUNNER_TEMP/cosign.key" --sign-passphrase-file "$RUNNER_TEMP/cosign-password" --dest-authfile "$DOCKER_CONFIG/config.json" oci:image "docker://$image:$RELEASE"
           cosign sign --yes --key env://COSIGN_PRIVATE_KEY --use-signing-config=false --tlog-upload=false "$image@$DIGEST"
           cosign verify --key cosign.pub --insecure-ignore-tlog=true "$image@$DIGEST" > /dev/null
           printf 'Published exact tested image: `%s@%s`\nVersion: `%s`\nNo stable-channel promotion.\n' "$image" "$DIGEST" "$RELEASE" >> "$GITHUB_STEP_SUMMARY"

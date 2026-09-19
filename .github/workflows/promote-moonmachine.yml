@@ -1,0 +1,56 @@
+name: Promote tested Moonmachine release
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Hardware-tested numbered release to promote
+        required: true
+        type: string
+      digest:
+        description: Verified sha256 manifest digest for that release
+        required: true
+        type: string
+permissions:
+  contents: read
+  packages: write
+concurrency:
+  group: k17-moonmachine-channel
+  cancel-in-progress: false
+jobs:
+  promote:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: sigstore/cosign-installer@828df1e55de306ba29db814d6057ddae71883cda
+      - name: Verify signature and advance channel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          RELEASE: ${{ inputs.release }}
+          DIGEST: ${{ inputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE" =~ ^bore-[0-9]{8}\.[0-9]+$ ]]
+          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          sudo apt-get update -qq
+          sudo apt-get install -y skopeo
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          actual=$(skopeo inspect --raw "docker://$image:$RELEASE" | sha256sum | cut -d' ' -f1)
+          test "sha256:$actual" = "$DIGEST"
+          cosign verify --key cosign.pub --insecure-ignore-tlog=true "$image@$DIGEST" > /dev/null
+          export REGISTRY_AUTH_FILE="$RUNNER_TEMP/registry-auth.json"
+          printf '%s' "$GH_TOKEN" | skopeo login --authfile "$REGISTRY_AUTH_FILE" --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          # Also supply the native containers/image signature format used by bootc.
+          umask 077
+          printf '%s' "$COSIGN_PRIVATE_KEY" > "$RUNNER_TEMP/cosign.key"
+          printf '%s' "$COSIGN_PASSWORD" > "$RUNNER_TEMP/cosign-password"
+          sudo install -D -m 644 channel/cynary-k17.yaml /etc/containers/registries.d/cynary-k17.yaml
+          skopeo copy --preserve-digests --sign-by-sigstore-private-key "$RUNNER_TEMP/cosign.key" --sign-passphrase-file "$RUNNER_TEMP/cosign-password" "docker://$image@$DIGEST" "docker://$image:$RELEASE"
+          jq -n --arg image "$image" --arg key "$PWD/cosign.pub" '{default:[{type:"reject"}],transports:{docker:{($image):[{type:"sigstoreSigned",keyPath:$key,signedIdentity:{type:"matchRepository"}}]}}}' > "$RUNNER_TEMP/verify-policy.json"
+          # Channel promotion must pass the same signature policy as OS updates.
+          skopeo copy --policy "$RUNNER_TEMP/verify-policy.json" --preserve-digests "docker://$image@$DIGEST" "docker://$image:moonmachine"
+          promoted=$(skopeo inspect --raw "docker://$image:moonmachine" | sha256sum | cut -d' ' -f1)
+          test "sha256:$promoted" = "$DIGEST"
+          printf 'Moonmachine channel now points to `%s` (`%s`).\n' "$RELEASE" "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
