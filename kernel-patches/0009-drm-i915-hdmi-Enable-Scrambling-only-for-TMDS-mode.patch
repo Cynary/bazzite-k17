@@ -1,0 +1,28 @@
+From 5b658e6745b630590c0caaf44578496666682d04 Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:43:54 +0530
+Subject: [PATCH 09/51] drm/i915/hdmi: Enable Scrambling only for TMDS mode
+
+Enable scrambling in SCDC only for TMDS mode. For FRL mode scrambling
+is handled as part of the FRL protocol and should not be configured
+via the TMDS scrambling path.
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 8be54ab1a..387150262 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -2430,7 +2430,8 @@ int intel_hdmi_compute_config(struct intel_encoder *encoder,
+ 
+ 	pipe_config->lane_count = 4;
+ 
+-	if (scdc->scrambling.supported && source_supports_scrambling(encoder)) {
++	if (scdc->scrambling.supported && source_supports_scrambling(encoder) &&
++	    !pipe_config->frl.enable) {
+ 		if (scdc->scrambling.low_rates)
+ 			pipe_config->hdmi_scrambling = true;
+ 

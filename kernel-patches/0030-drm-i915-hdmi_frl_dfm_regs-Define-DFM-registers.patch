@@ -1,0 +1,57 @@
+From 95f5784379163366a7b8b757742ba67f6cdac212 Mon Sep 17 00:00:00 2001
+From: Vandita Kulkarni <vandita.kulkarni@intel.com>
+Date: Fri, 7 Aug 2026 09:44:15 +0530
+Subject: [PATCH 30/51] drm/i915/hdmi_frl_dfm_regs: Define DFM registers
+
+Add defines for HDMI FRL dataflow metering registers
+to take care of DFM values.
+
+Signed-off-by: Vandita Kulkarni <vandita.kulkarni@intel.com>
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ .../i915/display/intel_hdmi_frl_dfm_regs.h    | 36 +++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+ create mode 100644 drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm_regs.h
+
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm_regs.h b/drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm_regs.h
+new file mode 100644
+index 000000000..bb5cb76b3
+--- /dev/null
++++ b/drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm_regs.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: MIT */
++/*
++ * Copyright © 2022 Intel Corporation
++ */
++
++#ifndef __INTEL_HDMI_FRL_DFM_REGS_H__
++#define __INTEL_HDMI_FRL_DFM_REGS_H__
++
++#include "intel_display_reg_defs.h"
++
++#define _TRANS_HDMI_FRL_DFMRDCTL_A			0x600bc
++#define TRANS_HDMI_FRL_DFMRDCTL(dev_priv, trans)	_MMIO_TRANS2(dev_priv, \
++								     trans, \
++								     _TRANS_HDMI_FRL_DFMRDCTL_A)
++#define   TB_DIFF_MAX_OFFSET_MASK			REG_GENMASK(8, 0)
++#define   TB_DIFF_MAX_OFFSET(val)			REG_FIELD_PREP(TB_DIFF_MAX_OFFSET_MASK, val)
++
++#define _TRANS_HDMI_FRL_DFMWRCTL_A			0x600c0
++#define TRANS_HDMI_FRL_DFMWRCTL(dev_priv, trans)	_MMIO_TRANS2(dev_priv, \
++								     trans, \
++								     _TRANS_HDMI_FRL_DFMWRCTL_A)
++#define  TB_ACTUAL_OFFSET_MASK				REG_GENMASK(8, 0)
++#define  TB_ACTUAL_OFFSET(val)				REG_FIELD_PREP(TB_ACTUAL_OFFSET_MASK, val)
++
++#define _TRANS_HDMI_FRL_DFMTHRSH_A			0x600c4
++#define TRANS_HDMI_FRL_DFMTHRSH(dev_priv, trans)	_MMIO_TRANS2(dev_priv, \
++								     trans, \
++								     _TRANS_HDMI_FRL_DFMTHRSH_A)
++#define  RUN_LEN_THRESHOLD_MASK				REG_GENMASK(31, 24)
++#define  RUN_LEN_THRESHOLD(val)				REG_FIELD_PREP(RUN_LEN_THRESHOLD_MASK, val)
++#define  TB_MAX_THRESHOLD_MASK				REG_GENMASK(21, 12)
++#define  TB_MAX_THRESHOLD(val)				REG_FIELD_PREP(TB_MAX_THRESHOLD_MASK, val)
++#define  TB_MIN_THESHOLD_MASK				REG_GENMASK(9, 0)
++#define  TB_MIN_THESHOLD(val)				REG_FIELD_PREP(TB_MIN_THESHOLD_MASK, val)
++
++#endif /* __INTEL_HDMI_FRL_DFM_REGS_H__ */

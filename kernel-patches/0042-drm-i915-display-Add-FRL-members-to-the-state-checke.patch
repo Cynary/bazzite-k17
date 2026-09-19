@@ -1,0 +1,32 @@
+From b91cb183ce90d1e729d6fdb1f67c1fb472bdaff7 Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:27 +0530
+Subject: [PATCH 42/51] drm/i915/display: Add FRL members to the state checker
+
+Plug in the FRL members to the state checker.
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_display.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_display.c b/drivers/gpu/drm/i915/display/intel_display.c
+index 8e269b71f..c72786614 100644
+--- a/drivers/gpu/drm/i915/display/intel_display.c
++++ b/drivers/gpu/drm/i915/display/intel_display.c
+@@ -5507,6 +5507,15 @@ intel_pipe_config_compare(const struct intel_crtc_state *current_config,
+ 
+ 	PIPE_CONF_CHECK_I(set_context_latency);
+ 
++	PIPE_CONF_CHECK_BOOL(frl.enable);
++	PIPE_CONF_CHECK_BOOL(frl.rsrc_sched_en);
++	PIPE_CONF_CHECK_I(frl.required_lanes);
++	PIPE_CONF_CHECK_I(frl.tb_borrowed);
++	PIPE_CONF_CHECK_I(frl.tb_actual);
++	PIPE_CONF_CHECK_I(frl.active_char_buf_threshold);
++	PIPE_CONF_CHECK_I(frl.link_m);
++	PIPE_CONF_CHECK_I(frl.link_n);
++
+ #undef PIPE_CONF_CHECK_X
+ #undef PIPE_CONF_CHECK_I
+ #undef PIPE_CONF_CHECK_LLI

@@ -1,0 +1,50 @@
+From 9fad6063add72d1453794661a7704907b926a434 Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:12 +0530
+Subject: [PATCH 27/51] drm/i915/lt_phy: Add helper to check if the FRL rate is
+ valid
+
+Introduce helper intel_lt_phy_hdmi_frl_rate_valid() to check if the
+given FRL rate is supported for the LT Phy.
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_lt_phy.c | 16 ++++++++++++++++
+ drivers/gpu/drm/i915/display/intel_lt_phy.h |  1 +
+ 2 files changed, 17 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_lt_phy.c b/drivers/gpu/drm/i915/display/intel_lt_phy.c
+index 864b9386c..47c850bb5 100644
+--- a/drivers/gpu/drm/i915/display/intel_lt_phy.c
++++ b/drivers/gpu/drm/i915/display/intel_lt_phy.c
+@@ -2642,3 +2642,19 @@ void intel_lt_phy_verify_plls(struct intel_display *display)
+ 	intel_lt_phy_pll_verify_tables(display, xe3plpd_lt_edp_tables);
+ 	intel_lt_phy_pll_verify_tables(display, xe3plpd_lt_hdmi_tables);
+ }
++
++enum drm_mode_status intel_lt_phy_hdmi_frl_rate_valid(int clock_rate)
++{
++	const struct intel_lt_phy_pll_params *tables = xe3plpd_lt_hdmi_tables;
++	int i;
++
++	for (i = 0; tables[i].name; i++) {
++		if (!intel_hdmi_is_frl(tables[i].clock_rate))
++			continue;
++
++		if (clock_rate == tables[i].clock_rate)
++			return MODE_OK;
++	}
++
++	return MODE_CLOCK_RANGE;
++}
+diff --git a/drivers/gpu/drm/i915/display/intel_lt_phy.h b/drivers/gpu/drm/i915/display/intel_lt_phy.h
+index 16de39484..20714ecd9 100644
+--- a/drivers/gpu/drm/i915/display/intel_lt_phy.h
++++ b/drivers/gpu/drm/i915/display/intel_lt_phy.h
+@@ -49,5 +49,6 @@ void intel_xe3plpd_pll_enable(struct intel_encoder *encoder,
+ 			      const struct intel_dpll_hw_state *dpll_hw_state);
+ void intel_xe3plpd_pll_disable(struct intel_encoder *encoder);
+ void intel_lt_phy_verify_plls(struct intel_display *display);
++enum drm_mode_status intel_lt_phy_hdmi_frl_rate_valid(int clock_rate);
+ 
+ #endif /* __INTEL_LT_PHY_H__ */

@@ -1,0 +1,57 @@
+From 65e3d5848ae3f2e17d59a8225afd6a205be9747e Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:11 +0530
+Subject: [PATCH 26/51] drm/i915/cx0: Add helper to check if the FRL rate is
+ valid
+
+Introduce helper intel_cx0_phy_hdmi_frl_rate_valid() to check if the
+given FRL rate is supported for the c10/20 Phys.
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_cx0_phy.c | 23 ++++++++++++++++++++
+ drivers/gpu/drm/i915/display/intel_cx0_phy.h |  1 +
+ 2 files changed, 24 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_cx0_phy.c b/drivers/gpu/drm/i915/display/intel_cx0_phy.c
+index 24a51ab21..c57d44402 100644
+--- a/drivers/gpu/drm/i915/display/intel_cx0_phy.c
++++ b/drivers/gpu/drm/i915/display/intel_cx0_phy.c
+@@ -3857,3 +3857,26 @@ void intel_cx0pll_verify_plls(struct intel_display *display)
+ 	intel_cx0pll_verify_tables(display, xe3lpd_c20_dp_edp_tables);
+ 	intel_cx0pll_verify_tables(display, mtl_c20_hdmi_tables);
+ }
++
++enum drm_mode_status
++intel_cx0_phy_hdmi_frl_rate_valid(struct intel_hdmi *hdmi, int clock_rate)
++{
++	struct intel_digital_port *dig_port = hdmi_to_dig_port(hdmi);
++	const struct intel_cx0pll_params *tables;
++	int i;
++
++	if (intel_encoder_is_c10phy(&dig_port->base))
++		tables = mtl_c10_hdmi_tables;
++	else
++		tables = mtl_c20_hdmi_tables;
++
++	for (i = 0; tables[i].name; i++) {
++		if (!intel_hdmi_is_frl(tables[i].clock_rate))
++			continue;
++
++		if (clock_rate == tables[i].clock_rate)
++			return MODE_OK;
++	}
++
++	return MODE_CLOCK_RANGE;
++}
+diff --git a/drivers/gpu/drm/i915/display/intel_cx0_phy.h b/drivers/gpu/drm/i915/display/intel_cx0_phy.h
+index 1428e7a5a..48fcd5ad6 100644
+--- a/drivers/gpu/drm/i915/display/intel_cx0_phy.h
++++ b/drivers/gpu/drm/i915/display/intel_cx0_phy.h
+@@ -85,5 +85,6 @@ void intel_lnl_mac_transmit_lfps(struct intel_encoder *encoder,
+ void intel_mtl_tbt_pll_enable(struct intel_encoder *encoder,
+ 			      const struct intel_crtc_state *crtc_state);
+ void intel_mtl_tbt_pll_disable(struct intel_encoder *encoder);
++enum drm_mode_status intel_cx0_phy_hdmi_frl_rate_valid(struct intel_hdmi *hdmi, int clock_rate);
+ 
+ #endif /* __INTEL_CX0_PHY_H__ */

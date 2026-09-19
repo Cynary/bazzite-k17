@@ -1,0 +1,45 @@
+From ae2736138dde39c7800defe6ec42c897582aa39e Mon Sep 17 00:00:00 2001
+From: Rodrigo Toste Gomes <rodrigo.toste.gomes@gmail.com>
+Date: Wed, 16 Sep 2026 23:36:36 -0700
+Subject: [PATCH 47/51] drm/i915/hdmi: Try FRL before TMDS chroma fallback
+ above 600 MHz
+
+---
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 47ca8d35e..cf9c04974 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -2610,6 +2610,8 @@ int intel_hdmi_compute_config(struct intel_encoder *encoder,
+ 	struct drm_scdc *scdc = &connector->base.display_info.hdmi.scdc;
+ 	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(encoder);
+ 	bool enable_frl = false;
++	bool use_frl;
++	int target_bpp;
+ 	int lane_count = 4;
+ 	int ret;
+ 
+@@ -2640,10 +2642,19 @@ int intel_hdmi_compute_config(struct intel_encoder *encoder,
+ 	    intel_hdmi->has_sink_hdmi_21)
+ 		enable_frl = true;
+ 
+-	ret = intel_hdmi_compute_formats(encoder, pipe_config, conn_state, false);
++	/* Do not settle for TMDS 4:2:0 before trying full-color FRL. */
++	use_frl = enable_frl && adjusted_mode->clock > 600000;
++	target_bpp = pipe_config->pipe_bpp;
++	ret = intel_hdmi_compute_formats(encoder, pipe_config, conn_state, use_frl);
+ 
+ 	if (ret && enable_frl) {
+-		ret = intel_hdmi_compute_formats(encoder, pipe_config, conn_state, true);
++		pipe_config->pipe_bpp = target_bpp;
++		memset(&pipe_config->frl, 0, sizeof(pipe_config->frl));
++		use_frl = !use_frl;
++		ret = intel_hdmi_compute_formats(encoder, pipe_config, conn_state, use_frl);
++	}
++
++	if (!ret && use_frl) {
+ 		drm_dbg_kms(display->drm,
+ 			    "Enabling FRL mode with lanes = %d rate = %d\n",
+ 			    pipe_config->frl.required_lanes,

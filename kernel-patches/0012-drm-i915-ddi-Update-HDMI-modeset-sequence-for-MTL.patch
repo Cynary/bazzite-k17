@@ -1,0 +1,46 @@
+From 0b73ad8c99cb1729d782afbceb74c8f565b920f3 Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:43:57 +0530
+Subject: [PATCH 12/51] drm/i915/ddi: Update HDMI modeset sequence for MTL+
+
+Per BSpec, the HDMI enable sequence differs starting MTL+: the port
+must be fully configured and enabled (DDI_CTL_DE) before enabling the
+transcoder (TRANS_CONF), whereas pre-MTL platforms enable the
+transcoder before the port (DDI_BUF_CTL).
+
+Today the HDMI path still uses the pre-MTL ordering: when the MTL+ DDI
+sequences were implemented, HDMI was left enabling the transcoder before
+the port. This does not cause any visible issue with current TMDS usage,
+but it needs to be corrected before FRL can be wired up.
+
+Bspec: 49191, 54145 (pre-MTL)
+Bspec: 65750, 68848 (MTL+)
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_ddi.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_ddi.c b/drivers/gpu/drm/i915/display/intel_ddi.c
+index a6671528d..e18247d20 100644
+--- a/drivers/gpu/drm/i915/display/intel_ddi.c
++++ b/drivers/gpu/drm/i915/display/intel_ddi.c
+@@ -3472,7 +3472,8 @@ static void intel_ddi_enable_hdmi(struct intel_atomic_state *state,
+ 
+ 	intel_vrr_transcoder_enable(crtc_state);
+ 
+-	intel_ddi_enable_transcoder_and_vblank(state, encoder, crtc_state);
++	if (DISPLAY_VER(display) < 14)
++		intel_ddi_enable_transcoder_and_vblank(state, encoder, crtc_state);
+ 
+ 	if (!intel_hdmi_handle_sink_scrambling(encoder, connector,
+ 					       crtc_state->hdmi_high_tmds_clock_ratio,
+@@ -3575,6 +3576,9 @@ static void intel_ddi_enable_hdmi(struct intel_atomic_state *state,
+ 
+ 	intel_ddi_buf_enable(encoder, buf_ctl);
+ 
++	if (DISPLAY_VER(display) >= 14)
++		intel_ddi_enable_transcoder_and_vblank(state, encoder, crtc_state);
++
+ 	intel_hdmi_poll_for_scrambling_enable(crtc_state, connector);
+ }
+ 

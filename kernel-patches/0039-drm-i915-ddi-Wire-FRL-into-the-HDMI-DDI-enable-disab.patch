@@ -1,0 +1,85 @@
+From 6c85a2c2d589a993e55b41c298a3a5cdf9d16beb Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:24 +0530
+Subject: [PATCH 39/51] drm/i915/ddi: Wire FRL into the HDMI DDI enable/disable
+ path
+
+Enable HDMI FRL in the DDI enable and disable sequences for MTL+:
+
+Enable path (intel_ddi_enable_hdmi):
+-Prepare for FRL mode before enabling D2D link.
+-After the DDI buffer is enabled, run FRL link training. If FRL link
+training fails, disable FRL and notify userspace. On success, write
+DFM registers and enable the transcoder.
+
+Disable path (intel_ddi_post_disable_hdmi):
+Call intel_hdmi_disable_frl() after the DDI buffer is disabled to perform
+LTS:L teardown and clear the FRL function registers.
+
+Bspec:65750
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_ddi.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_ddi.c b/drivers/gpu/drm/i915/display/intel_ddi.c
+index 5d33c7b05..61d564aba 100644
+--- a/drivers/gpu/drm/i915/display/intel_ddi.c
++++ b/drivers/gpu/drm/i915/display/intel_ddi.c
+@@ -70,6 +70,7 @@
+ #include "intel_gmbus.h"
+ #include "intel_hdcp.h"
+ #include "intel_hdmi.h"
++#include "intel_hdmi_frl_dfm.h"
+ #include "intel_hotplug.h"
+ #include "intel_hti.h"
+ #include "intel_lspcon.h"
+@@ -3215,6 +3216,8 @@ static void intel_ddi_post_disable_hdmi(struct intel_atomic_state *state,
+ 		intel_ddi_disable_transcoder_clock(old_crtc_state);
+ 
+ 	intel_ddi_buf_disable(encoder, old_crtc_state);
++	if (intel_crtc_has_type(old_crtc_state, INTEL_OUTPUT_HDMI))
++		intel_hdmi_disable_frl(encoder, old_crtc_state);
+ 
+ 	if (DISPLAY_VER(display) >= 12)
+ 		intel_ddi_disable_transcoder_clock(old_crtc_state);
+@@ -3469,6 +3472,9 @@ static void intel_ddi_enable_hdmi(struct intel_atomic_state *state,
+ 	struct intel_display *display = to_intel_display(encoder);
+ 	struct intel_digital_port *dig_port = enc_to_dig_port(encoder);
+ 	struct drm_connector *connector = conn_state->connector;
++	struct intel_hdmi *intel_hdmi = &dig_port->hdmi;
++	struct intel_connector *intel_connector =
++		intel_hdmi->attached_connector;
+ 	enum port port = encoder->port;
+ 	u32 buf_ctl = 0;
+ 
+@@ -3489,6 +3495,9 @@ static void intel_ddi_enable_hdmi(struct intel_atomic_state *state,
+ 	if (has_buf_trans_select(display))
+ 		hsw_prepare_hdmi_ddi_buffers(encoder, crtc_state);
+ 
++	if (DISPLAY_VER(display) >= 14 && crtc_state->frl.enable)
++		intel_hdmi_prepare_for_frl_mode(crtc_state);
++
+ 	/* e. Enable D2D Link for C10/C20 Phy */
+ 	mtl_ddi_enable_d2d(encoder);
+ 
+@@ -3580,8 +3589,18 @@ static void intel_ddi_enable_hdmi(struct intel_atomic_state *state,
+ 
+ 	intel_ddi_buf_enable(encoder, buf_ctl);
+ 
+-	if (DISPLAY_VER(display) >= 14)
++	if (DISPLAY_VER(display) >= 14) {
++		if (crtc_state->frl.enable &&
++		    intel_hdmi_start_frl(encoder, crtc_state) < 0) {
++			intel_hdmi_disable_frl(encoder, crtc_state);
++			schedule_work(&intel_connector->modeset_retry_work);
++
++			return;
++		}
++		intel_hdmi_frl_cfg_write(crtc_state);
++		intel_hdmi_frl_dfm_write(crtc_state);
+ 		intel_ddi_enable_transcoder_and_vblank(state, encoder, crtc_state);
++	}
+ 
+ 	intel_hdmi_poll_for_scrambling_enable(crtc_state, connector);
+ }

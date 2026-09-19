@@ -1,0 +1,50 @@
+From 5b937ead957dd11e6e6a29a8cf0ad92906385b50 Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:19 +0530
+Subject: [PATCH 34/51] drm/i915/hdmi: Add helper to write FRL CFG register
+
+Introduce helpers to write FRL CFG refister bits.
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 16 ++++++++++++++++
+ drivers/gpu/drm/i915/display/intel_hdmi.h |  2 ++
+ 2 files changed, 18 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 5a34dcc8c..ebfe633c7 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -3974,3 +3974,19 @@ void intel_hdmi_disable_frl(struct intel_encoder *encoder,
+ 
+ 	intel_hdmi_reset_frl_config(intel_hdmi);
+ }
++
++void intel_hdmi_frl_cfg_write(const struct intel_crtc_state *crtc_state)
++{
++	struct intel_display *display = to_intel_display(crtc_state);
++	enum transcoder cpu_trans = crtc_state->cpu_transcoder;
++	u32 val;
++
++	if (!crtc_state->frl.enable)
++		return;
++
++	val = TRANS_HDMI_R_B_SCHED_ENABLE(crtc_state->frl.rsrc_sched_en);
++	val |= TRANS_HDMI_ACTIVE_CHAR_BUF_THRESH(crtc_state->frl.active_char_buf_threshold);
++	val |= TRANS_HDMI_MIN_BLANK_CHAR(TRANS_HDMI_MIN_BLANK_CHAR_VAL);
++
++	intel_de_rmw(display, TRANS_HDMI_FRL_CFG(display, cpu_trans), 0, val);
++}
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.h b/drivers/gpu/drm/i915/display/intel_hdmi.h
+index 1c49fd4ee..9e56f1f1a 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.h
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.h
+@@ -79,6 +79,8 @@ void hsw_read_infoframe(struct intel_encoder *encoder,
+ void intel_hdmi_poll_for_scrambling_enable(const struct intel_crtc_state *crtc_state,
+ 					   struct drm_connector *_connector);
+ 
++void intel_hdmi_frl_cfg_write(const struct intel_crtc_state *crtc_state);
++
+ /* FRL rate per lane (Gbps) -> PHY PLL table units (10 kbps) */
+ #define FRL_GBPS_TO_10KBPS(rate)	((rate) * 100000)
+ 

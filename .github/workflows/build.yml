@@ -1,10 +1,9 @@
-name: Build candidate
+name: Build private candidate
 on:
   workflow_dispatch:
 permissions:
   contents: read
   packages: write
-  id-token: write
 concurrency:
   group: k17-candidate
   cancel-in-progress: false
@@ -19,17 +18,27 @@ jobs:
       - name: Build and push candidate
         env:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
           set -euo pipefail
           export DOCKER_CONFIG="$RUNNER_TEMP/docker"
           mkdir -p "$DOCKER_CONFIG"
           export REGISTRY_AUTH_FILE="$DOCKER_CONFIG/config.json"
-          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}-private"
+          package_api="https://api.github.com/users/$GITHUB_REPOSITORY_OWNER/packages/container/${GITHUB_REPOSITORY#*/}-private"
+          status=$(curl -sS -o package.json -w '%{http_code}' -H "Authorization: Bearer $REGISTRY_TOKEN" "$package_api")
+          if [ "$status" = 200 ]; then
+            jq -e '.visibility == "private"' package.json
+          else
+            test "$status" = 404
+          fi
           printf '%s' "$REGISTRY_TOKEN" | podman login --authfile "$REGISTRY_AUTH_FILE" ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           podman build --label "org.opencontainers.image.revision=$GITHUB_SHA" -t "$image:sha-$GITHUB_SHA" .
           podman push --digestfile image.digest "$image:sha-$GITHUB_SHA"
           digest=$(cat image.digest)
-          cosign sign --yes "$image@$digest"
+          curl --fail --silent --show-error -H "Authorization: Bearer $REGISTRY_TOKEN" "$package_api" | jq -e '.visibility == "private"'
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY --tlog-upload=false "$image@$digest"
           podman tag "$image:sha-$GITHUB_SHA" "$image:candidate"
           podman push "$image:candidate"
-          printf 'Candidate: `%s@%s`\n\nNo stable promotion or client update was performed.\n' "$image" "$digest" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Private candidate: `%s@%s`\n\nNo stable promotion or client update was performed.\n' "$image" "$digest" >> "$GITHUB_STEP_SUMMARY"

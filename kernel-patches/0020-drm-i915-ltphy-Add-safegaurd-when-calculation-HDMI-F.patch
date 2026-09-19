@@ -1,0 +1,30 @@
+From 40b5a7af6ef9749fecedc0a220501b94ee90f1ae Mon Sep 17 00:00:00 2001
+From: Suraj Kandpal <suraj.kandpal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:05 +0530
+Subject: [PATCH 20/51] drm/i915/ltphy: Add safegaurd when calculation HDMI FRL
+ state
+
+intel_lt_phy_pll_calc_state() will also take into account the
+HDMI FRL tables and use them when the DPLL matches. We
+still add a safegaurd to not calculate hdmi pll state if we are
+using HDMI FRL.
+
+Signed-off-by: Suraj Kandpal <suraj.kandpal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_lt_phy.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_lt_phy.c b/drivers/gpu/drm/i915/display/intel_lt_phy.c
+index 249c2cbc9..2b2bf3a9c 100644
+--- a/drivers/gpu/drm/i915/display/intel_lt_phy.c
++++ b/drivers/gpu/drm/i915/display/intel_lt_phy.c
+@@ -2042,7 +2042,8 @@ intel_lt_phy_pll_calc_state(struct intel_crtc_state *crtc_state,
+ 		}
+ 	}
+ 
+-	if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI)) {
++	if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI) &&
++	    !intel_hdmi_is_frl(crtc_state->port_clock)) {
+ 		hw_state->ltpll.lane_count = crtc_state->lane_count;
+ 		return intel_lt_phy_calculate_hdmi_state(&hw_state->ltpll,
+ 							 crtc_state->port_clock);

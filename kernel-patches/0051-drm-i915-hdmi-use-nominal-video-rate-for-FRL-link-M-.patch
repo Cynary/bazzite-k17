@@ -1,0 +1,42 @@
+From f37b49ee569bbf42bb8d1a675040f28c8b26cac6 Mon Sep 17 00:00:00 2001
+From: Rodrigo Toste Gomes <rodrigo.toste.gomes@gmail.com>
+Date: Thu, 17 Sep 2026 00:55:40 -0700
+Subject: [PATCH 51/51] drm/i915/hdmi: use nominal video rate for FRL link M/N
+
+---
+ drivers/gpu/drm/i915/display/intel_display.c      | 6 +++---
+ drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm.c | 4 +++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_display.c b/drivers/gpu/drm/i915/display/intel_display.c
+index dce7c7680..f7019507e 100644
+--- a/drivers/gpu/drm/i915/display/intel_display.c
++++ b/drivers/gpu/drm/i915/display/intel_display.c
+@@ -4112,9 +4112,9 @@ int intel_crtc_dotclock(const struct intel_crtc_state *pipe_config)
+ 		u64 ftb_avg = div64_u64(div18 * pipe_config->frl.link_m,
+ 				      pipe_config->frl.link_n);
+ 
+-		/* Undo the DFM 0.5% pixel clock tolerance and deep-color factor. */
+-		dotclock = DIV_ROUND_CLOSEST_ULL(ftb_avg * 24 * 1000,
+-					       (u64)pipe_config->pipe_bpp * 1005 * 1000);
++		/* Link M/N carries the nominal tribyte rate, including deep color. */
++		dotclock = DIV_ROUND_CLOSEST_ULL(ftb_avg * 24,
++					       (u64)pipe_config->pipe_bpp * 1000);
+ 	} else if (intel_crtc_has_dp_encoder(pipe_config))
+ 		dotclock = intel_dotclock_calculate(pipe_config->port_clock,
+ 						    &pipe_config->dp_m_n);
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm.c b/drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm.c
+index 89183da69..a27b22676 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi_frl_dfm.c
+@@ -793,7 +793,9 @@ compute_frl_mn(struct intel_crtc_state *crtc_state, u32 ftb_avg_k)
+ 	u64 ftb_avg, div_18_clk, gcd_val;
+ 	u32 link_m, link_n;
+ 
+-	ftb_avg = ftb_avg_k * 1000;
++	/* DFM budgeting includes clock tolerance; M/N must describe nominal video. */
++	ftb_avg = DIV_ROUND_CLOSEST_ULL((u64)ftb_avg_k * 1000000,
++				      1000 + TOLERANCE_PIXEL_CLOCK);
+ 	div_18_clk = mult_frac(1000000000, crtc_state->frl.required_rate, 18);
+ 	gcd_val = gcd(ftb_avg, div_18_clk);
+ 

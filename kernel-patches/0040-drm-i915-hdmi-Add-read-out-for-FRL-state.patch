@@ -1,0 +1,87 @@
+From b2368ad66a3802415b2c1e05664f98f30aacc970 Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:25 +0530
+Subject: [PATCH 40/51] drm/i915/hdmi: Add read out for FRL state
+
+Read out the FRL configuration and Data Flow Metering registers and
+fill the FRL members in crtc_state.
+
+In subsequent changes these are added to the state checker and compared
+bwteen two crtc_states in intel_pipe_config_compare().
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_ddi.c  |  3 ++
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 35 +++++++++++++++++++++++
+ drivers/gpu/drm/i915/display/intel_hdmi.h |  1 +
+ 3 files changed, 39 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_ddi.c b/drivers/gpu/drm/i915/display/intel_ddi.c
+index 61d564aba..260483047 100644
+--- a/drivers/gpu/drm/i915/display/intel_ddi.c
++++ b/drivers/gpu/drm/i915/display/intel_ddi.c
+@@ -4279,6 +4279,9 @@ static void intel_ddi_get_config(struct intel_encoder *encoder,
+ 	intel_read_dp_sdp(encoder, pipe_config, DP_SDP_ADAPTIVE_SYNC);
+ 
+ 	intel_audio_codec_get_config(encoder, pipe_config);
++
++	if (intel_crtc_has_type(pipe_config, INTEL_OUTPUT_HDMI))
++		intel_hdmi_frl_get_config(pipe_config);
+ }
+ 
+ void intel_ddi_get_clock(struct intel_encoder *encoder,
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 40bf30587..d42a30149 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -4081,3 +4081,38 @@ void intel_hdmi_frl_cfg_write(const struct intel_crtc_state *crtc_state)
+ 
+ 	intel_de_rmw(display, TRANS_HDMI_FRL_CFG(display, cpu_trans), 0, val);
+ }
++
++static void intel_hdmi_frl_cfg_read(struct intel_crtc_state *crtc_state)
++{
++	struct intel_display *display = to_intel_display(crtc_state);
++	enum transcoder cpu_trans = crtc_state->cpu_transcoder;
++	u32 val;
++
++	val = intel_de_read(display, TRANS_HDMI_FRL_CFG(display, cpu_trans));
++
++	if (val & TRANS_HDMI_FRL_ENABLE)
++		crtc_state->frl.enable = true;
++
++	crtc_state->frl.rsrc_sched_en =
++		REG_FIELD_GET(TRANS_HDMI_R_B_SCHED_ENABLE_MASK, val);
++	crtc_state->frl.active_char_buf_threshold =
++		REG_FIELD_GET(TRANS_HDMI_ACTIVE_CHAR_BUF_THRESH_MASK, val);
++}
++
++void intel_hdmi_frl_get_config(struct intel_crtc_state *crtc_state)
++{
++	struct intel_display *display = to_intel_display(crtc_state);
++
++	if (!HAS_HDMI_FRL(display))
++		return;
++
++	intel_hdmi_frl_cfg_read(crtc_state);
++
++	if (!crtc_state->frl.enable)
++		return;
++
++	crtc_state->frl.required_rate = crtc_state->port_clock / 100000;
++	crtc_state->frl.required_lanes = crtc_state->lane_count;
++
++	intel_hdmi_frl_dfm_read(crtc_state);
++}
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.h b/drivers/gpu/drm/i915/display/intel_hdmi.h
+index 9e56f1f1a..fbd7bf1cb 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.h
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.h
+@@ -80,6 +80,7 @@ void intel_hdmi_poll_for_scrambling_enable(const struct intel_crtc_state *crtc_s
+ 					   struct drm_connector *_connector);
+ 
+ void intel_hdmi_frl_cfg_write(const struct intel_crtc_state *crtc_state);
++void intel_hdmi_frl_get_config(struct intel_crtc_state *crtc_state);
+ 
+ /* FRL rate per lane (Gbps) -> PHY PLL table units (10 kbps) */
+ #define FRL_GBPS_TO_10KBPS(rate)	((rate) * 100000)

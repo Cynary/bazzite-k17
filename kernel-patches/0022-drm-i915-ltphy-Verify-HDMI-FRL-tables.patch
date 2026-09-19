@@ -1,0 +1,28 @@
+From f9d42a319ea92c4a44866d0ab38fb5d91414565d Mon Sep 17 00:00:00 2001
+From: Suraj Kandpal <suraj.kandpal@intel.com>
+Date: Fri, 7 Aug 2026 09:44:07 +0530
+Subject: [PATCH 22/51] drm/i915/ltphy: Verify HDMI FRL tables
+
+Verify the HDMI FRL tables now that they are defined.
+Also skip recalculating the HDMI state via port clock for HDMI
+FRL use case.
+
+Signed-off-by: Suraj Kandpal <suraj.kandpal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_lt_phy.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_lt_phy.c b/drivers/gpu/drm/i915/display/intel_lt_phy.c
+index d18b572ba..864b9386c 100644
+--- a/drivers/gpu/drm/i915/display/intel_lt_phy.c
++++ b/drivers/gpu/drm/i915/display/intel_lt_phy.c
+@@ -2618,6 +2618,9 @@ static void intel_lt_phy_pll_verify_params(struct intel_display *display,
+ 	if (!pll_params->is_hdmi)
+ 		return;
+ 
++	if (intel_hdmi_is_frl(pll_params->clock_rate))
++		return;
++
+ 	if (intel_lt_phy_calculate_hdmi_state(&pll_state, pll_params->clock_rate) != 0)
+ 		return;
+ 

@@ -1,8 +1,8 @@
-# Bazzite K17 — stock-kernel FRL/VRR candidate
+# Private Bazzite K17 — stock-kernel FRL/VRR candidate
 
 Custom Bazzite Deck image retaining the **stock OGC kernel and all its packaged
 modules**, with matched `xe.ko` and `drm_display_helper.ko` replacements.
-Source patches and provenance: [Cynary/linux-k17-frl](https://github.com/Cynary/linux-k17-frl).
+The complete carried patch stack is in `kernel-patches/`; provenance and hardware notes are in `kernel-notes/`. A private release also preserves the original kernel Git history.
 
 This is an experimental Lunar Lake / GMKtec K17 image, developed with Codex.
 TV-level HDR/VRR validation is required before treating a new candidate as stable.
@@ -14,7 +14,7 @@ signed with an enrolled key. This does not change the machine's firmware setting
 `podman build -t localhost/bazzite-k17:candidate .`
 
 The Containerfile pins the Bazzite base by digest, the stock kernel release and
-the patched source commit. Both modules are built against that base's exact
+the original OGC source commit and private patch stack. Both modules are built against that base's exact
 kernel-devel tree and BTF extracted from its stock kernel image. No forced module
 loading or vermagic rewriting is used. Module selection and initramfs contents
 are checked during the build. Build metadata is under `/usr/share/k17-frl/build`.
@@ -33,19 +33,24 @@ purpose of the stock-kernel image. Do not blindly reset/reboot into a half-prepa
 state. See [the validation record](VALIDATION.md) for the exact published digest,
 boot results, and remaining hardware checks.
 
-Images are published to [GHCR](https://github.com/Cynary/bazzite-k17/pkgs/container/bazzite-k17).
-Builds use GitHub OIDC keyless Cosign signatures. Verify the digest before
-deployment, with certificate issuer `https://token.actions.githubusercontent.com`
-and the exact workflow identity. Normal builds use
-`https://github.com/Cynary/bazzite-k17/.github/workflows/build.yml@refs/heads/main`.
-The initial candidate used `publish-existing.yml` in that same path after a
-signing-credential fix; its identity is recorded in the validation file.
+Future images use `ghcr.io/cynary/bazzite-k17-private`, with visibility checked by
+CI before reusing the package and after its first upload. The old public image
+package is never a publishing target of the current workflow. Builds sign with
+a repository-specific key, without a public transparency-log upload. The public
+verification key is `cosign.pub`; the private key/password are repository secrets.
+For a new private image, authenticate to GHCR and verify its digest with:
 
-The initial deployment is pinned to an immutable registry digest. Its
-`ostree-unverified-registry` transport does **not** enforce Cosign verification;
-the signature was verified separately before boot. This is not an unattended
-signed-update policy. Keep digest selection explicit until policy enforcement
-and hardware qualification are complete.
+```sh
+cosign verify --key cosign.pub --insecure-ignore-tlog=true "$IMAGE@$DIGEST"
+```
+
+The transparency-log check is deliberately omitted for these private signatures;
+verification still requires the pinned public key. Initial historical candidates
+used GitHub OIDC keyless signing; see `VALIDATION.md` for their identity and digest.
+The installed `ostree-unverified-*` transport does not enforce Cosign verification
+itself, so verify each selected digest before staging. No unattended promotion is
+enabled. Private pulls require registry credentials; local OCI deployment is
+available for offline testing without storing account credentials on the K17.
 
 Pinning preserves recovery deployments; it is not an update lock. Do not infer
 visual stability from a clean kernel log. Confirm actual refresh behavior, HDR,
@@ -55,4 +60,4 @@ visual stability from a clean kernel log. Confirm actual refresh behavior, HDR,
 
 Changes to kernel/base digests require a complete rebuild of the pair. Source API
 conflicts or module validation errors fail the build. See the
-[maintenance plan](https://github.com/Cynary/linux-k17-frl/blob/k17-frl-vrr-test/k17/MAINTENANCE.md).
+[maintenance plan](kernel-notes/MAINTENANCE.md).

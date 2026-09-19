@@ -1,0 +1,214 @@
+From 7c1d5b4feb241b2a0f90788c52b4ffa65400927f Mon Sep 17 00:00:00 2001
+From: Rodrigo Toste Gomes <rodrigo.toste.gomes@gmail.com>
+Date: Wed, 16 Sep 2026 23:07:22 -0700
+Subject: [PATCH 46/51] EXPERIMENT: Gate Lunar Lake HDMI VRR timing and
+ VTEM-over-GMP test
+
+Disabled by default. Requires native FRL and explicit nonzero HDMI VRR range. Use existing DIP RAM interface to test VTEM transport without guessed MMIO addresses. The modified objects compile, but receiver acceptance, packet timing, and complete VRR behavior are not validated. Not suitable for upstream or general deployment.
+---
+ .../drm/i915/display/intel_display_params.c   |  3 ++
+ .../drm/i915/display/intel_display_params.h   |  1 +
+ drivers/gpu/drm/i915/display/intel_hdmi.c     | 45 +++++++++++++++++++
+ drivers/gpu/drm/i915/display/intel_vrr.c      | 38 ++++++++++++----
+ 4 files changed, 78 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_display_params.c b/drivers/gpu/drm/i915/display/intel_display_params.c
+index 2aed110c5..d7741c95a 100644
+--- a/drivers/gpu/drm/i915/display/intel_display_params.c
++++ b/drivers/gpu/drm/i915/display/intel_display_params.c
+@@ -56,6 +56,9 @@ intel_display_param_named_unsafe(enable_dc, int, 0400,
+ 	"(-1=auto [default]; 0=disable; 1=up to DC5; 2=up to DC6; "
+ 	"3=up to DC5 with DC3CO; 4=up to DC6 with DC3CO)");
+ 
++intel_display_param_named_unsafe(experimental_hdmi_vrr, bool, 0400,
++	"K17 Lunar Lake FRL VRR packet experiment (default: false)");
++
+ intel_display_param_named_unsafe(enable_dpt, bool, 0400,
+ 	"Enable display page table (DPT) (default: true)");
+ 
+diff --git a/drivers/gpu/drm/i915/display/intel_display_params.h b/drivers/gpu/drm/i915/display/intel_display_params.h
+index b95ecf728..ff7a7c836 100644
+--- a/drivers/gpu/drm/i915/display/intel_display_params.h
++++ b/drivers/gpu/drm/i915/display/intel_display_params.h
+@@ -30,6 +30,7 @@ struct drm_printer;
+ 	param(int, vbt_sdvo_panel_type, -1, 0400) \
+ 	param(int, enable_dc, -1, 0400) \
+ 	param(bool, enable_dpt, true, 0400) \
++	param(bool, experimental_hdmi_vrr, false, 0400) \
+ 	param(bool, enable_dsb, true, 0600) \
+ 	param(bool, enable_flipq, false, 0600) \
+ 	param(bool, enable_sagv, true, 0600) \
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index e9643ce7a..47ca8d35e 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -1254,6 +1254,41 @@ void intel_hdmi_fastset_infoframes(struct intel_encoder *encoder,
+ 			      &crtc_state->infoframes.drm);
+ }
+ 
++static void intel_hdmi_write_vtem_experiment(struct intel_encoder *encoder,
++					     const struct intel_crtc_state *crtc_state)
++{
++	struct intel_display *display = to_intel_display(encoder);
++	const struct drm_display_mode *mode = &crtc_state->hw.adjusted_mode;
++	u32 packet[VIDEO_DIP_GMP_DATA_SIZE / sizeof(u32)] = {};
++	u8 *bytes = (u8 *)packet;
++	int refresh = drm_mode_vrefresh(mode);
++
++	if (!display->platform.lunarlake ||
++	    !display->params.experimental_hdmi_vrr ||
++	    !crtc_state->frl.enable || !crtc_state->vrr.enable)
++		return;
++
++	/* Single-packet VTEM, with the Intel reserved byte at offset 3. */
++	bytes[0] = 0x7f;
++	bytes[1] = 0xc0;
++	bytes[4] = 0x04; /* VFR */
++	bytes[6] = 1; /* HDMI organization */
++	bytes[8] = 1; /* VTEM data set */
++	bytes[10] = 4;
++	bytes[11] = 1; /* VRR_EN */
++	if (!drm_match_cea_mode(mode)) {
++		bytes[12] = mode->crtc_vsync_start - mode->crtc_vdisplay;
++		bytes[13] = (refresh >> 8) & 3;
++		bytes[14] = refresh & 0xff;
++	}
++
++	/* Experimental transport: verify actual receiver behavior, not just RAM. */
++	hsw_write_infoframe(encoder, crtc_state, HDMI_PACKET_TYPE_GAMUT_METADATA,
++			    packet, sizeof(packet));
++	drm_info(display->drm, "K17 VRR experiment: VTEM via GMP, %d Hz base\n",
++		 refresh);
++}
++
+ static void hsw_set_infoframes(struct intel_encoder *encoder,
+ 			       bool enable,
+ 			       const struct intel_crtc_state *crtc_state,
+@@ -1296,6 +1331,7 @@ static void hsw_set_infoframes(struct intel_encoder *encoder,
+ 	intel_write_infoframe(encoder, crtc_state,
+ 			      HDMI_INFOFRAME_TYPE_DRM,
+ 			      &crtc_state->infoframes.drm);
++	intel_hdmi_write_vtem_experiment(encoder, crtc_state);
+ }
+ 
+ void intel_dp_dual_mode_set_tmds_output(struct intel_hdmi *hdmi, bool enable)
+@@ -2648,6 +2684,11 @@ int intel_hdmi_compute_config(struct intel_encoder *encoder,
+ 	}
+ 
+ 	intel_vrr_compute_config(pipe_config, conn_state);
++	if (display->platform.lunarlake && display->params.experimental_hdmi_vrr &&
++	    pipe_config->frl.enable && pipe_config->vrr.enable)
++		pipe_config->infoframes.enable |=
++			intel_hdmi_infoframe_enable(HDMI_PACKET_TYPE_GAMUT_METADATA);
++
+ 
+ 	intel_hdmi_compute_gcp_infoframe(encoder, pipe_config,
+ 					 conn_state);
+@@ -2693,6 +2734,7 @@ intel_hdmi_unset_edid(struct drm_connector *_connector)
+ 	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
+ 
+ 	intel_hdmi->has_sink_hdmi_21 = false;
++	drm_connector_set_vrr_capable_property(&connector->base, false);
+ 
+ 	intel_hdmi->dp_dual_mode.type = DRM_DP_DUAL_MODE_NONE;
+ 	intel_hdmi->dp_dual_mode.max_tmds_clock = 0;
+@@ -2851,6 +2893,8 @@ intel_hdmi_set_edid(struct drm_connector *_connector)
+ 	drm_edid_connector_update(&connector->base, drm_edid);
+ 
+ 	connector->detect_edid = drm_edid;
++	drm_connector_set_vrr_capable_property(&connector->base,
++					       intel_vrr_is_capable(connector));
+ 
+ 	if (drm_edid_is_digital(drm_edid)) {
+ 		intel_hdmi_dp_dual_mode_detect(&connector->base);
+@@ -3002,6 +3046,7 @@ intel_hdmi_add_properties(struct intel_hdmi *intel_hdmi, struct drm_connector *_
+ 	struct intel_connector *connector = to_intel_connector(_connector);
+ 	struct intel_display *display = to_intel_display(intel_hdmi);
+ 
++	drm_connector_attach_vrr_capable_property(&connector->base);
+ 	intel_attach_force_audio_property(&connector->base);
+ 	intel_attach_broadcast_rgb_property(&connector->base);
+ 	intel_attach_aspect_ratio_property(&connector->base);
+diff --git a/drivers/gpu/drm/i915/display/intel_vrr.c b/drivers/gpu/drm/i915/display/intel_vrr.c
+index aa587be90..29414c027 100644
+--- a/drivers/gpu/drm/i915/display/intel_vrr.c
++++ b/drivers/gpu/drm/i915/display/intel_vrr.c
+@@ -47,6 +47,14 @@ bool intel_vrr_is_capable(struct intel_connector *connector)
+ 	 * Adaptive Sync or Variable Refresh Rate end user experience.
+ 	 */
+ 	switch (connector->base.connector_type) {
++	case DRM_MODE_CONNECTOR_HDMIA:
++		return display->platform.lunarlake &&
++			display->params.experimental_hdmi_vrr &&
++			info->hdmi.max_frl_rate_per_lane &&
++			info->hdmi.vrr_cap.supported &&
++			info->hdmi.vrr_cap.vrr_min &&
++			info->hdmi.vrr_cap.vrr_max > info->hdmi.vrr_cap.vrr_min;
++
+ 	case DRM_MODE_CONNECTOR_eDP:
+ 		if (!connector->panel.vbt.vrr)
+ 			return false;
+@@ -81,13 +89,25 @@ bool intel_vrr_is_capable(struct intel_connector *connector)
+ 	return info->monitor_range.max_vfreq - info->monitor_range.min_vfreq > 10;
+ }
+ 
+-bool intel_vrr_is_in_range(struct intel_connector *connector, int vrefresh)
++static int intel_vrr_min_refresh(const struct drm_connector *connector)
+ {
+-	const struct drm_display_info *info = &connector->base.display_info;
++	if (connector->connector_type == DRM_MODE_CONNECTOR_HDMIA)
++		return connector->display_info.hdmi.vrr_cap.vrr_min;
++	return connector->display_info.monitor_range.min_vfreq;
++}
++
++static int intel_vrr_max_refresh(const struct drm_connector *connector)
++{
++	if (connector->connector_type == DRM_MODE_CONNECTOR_HDMIA)
++		return connector->display_info.hdmi.vrr_cap.vrr_max;
++	return connector->display_info.monitor_range.max_vfreq;
++}
+ 
++bool intel_vrr_is_in_range(struct intel_connector *connector, int vrefresh)
++{
+ 	return intel_vrr_is_capable(connector) &&
+-		vrefresh >= info->monitor_range.min_vfreq &&
+-		vrefresh <= info->monitor_range.max_vfreq;
++		vrefresh >= intel_vrr_min_refresh(&connector->base) &&
++		vrefresh <= intel_vrr_max_refresh(&connector->base);
+ }
+ 
+ bool intel_vrr_possible(const struct intel_crtc_state *crtc_state)
+@@ -355,11 +375,10 @@ static
+ int intel_vrr_compute_vmax(struct intel_connector *connector,
+ 			   const struct drm_display_mode *adjusted_mode)
+ {
+-	const struct drm_display_info *info = &connector->base.display_info;
+ 	int vmax;
+ 
+ 	vmax = adjusted_mode->crtc_clock * 1000 /
+-		(adjusted_mode->crtc_htotal * info->monitor_range.min_vfreq);
++		(adjusted_mode->crtc_htotal * intel_vrr_min_refresh(&connector->base));
+ 	vmax = max_t(int, vmax, adjusted_mode->crtc_vtotal);
+ 
+ 	return vmax;
+@@ -422,8 +441,7 @@ intel_vrr_compute_config(struct intel_crtc_state *crtc_state,
+ 	struct intel_display *display = to_intel_display(crtc_state);
+ 	struct intel_connector *connector =
+ 		to_intel_connector(conn_state->connector);
+-	struct intel_dp *intel_dp = intel_attached_dp(connector);
+-	bool is_edp = intel_dp_is_edp(intel_dp);
++	bool is_edp = connector->base.connector_type == DRM_MODE_CONNECTOR_eDP;
+ 	struct drm_display_mode *adjusted_mode = &crtc_state->hw.adjusted_mode;
+ 	int vmin, vmax;
+ 
+@@ -444,7 +462,9 @@ intel_vrr_compute_config(struct intel_crtc_state *crtc_state,
+ 	 * correctly sequence transcoder level stuff vs. pipe level stuff
+ 	 * in the commit.
+ 	 */
+-	if (crtc_state->joiner_pipes)
++	if (crtc_state->joiner_pipes ||
++	    (connector->base.connector_type == DRM_MODE_CONNECTOR_HDMIA &&
++	     !crtc_state->frl.enable))
+ 		crtc_state->vrr.in_range = false;
+ 
+ 	vmin = intel_vrr_compute_vmin(crtc_state);

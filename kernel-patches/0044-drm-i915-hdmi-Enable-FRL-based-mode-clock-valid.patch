@@ -1,0 +1,65 @@
+From 53c1c264670924214ddd0cc090f62b6bd7665742 Mon Sep 17 00:00:00 2001
+From: Vandita Kulkarni <vandita.kulkarni@intel.com>
+Date: Fri, 7 Aug 2026 09:44:29 +0530
+Subject: [PATCH 44/51] drm/i915/hdmi: Enable FRL based mode clock valid
+
+Compute frl_mode based on the sink HDMI FRL capability and the maximum
+FRL rate, and pass it through intel_hdmi_mode_clock_valid() so that
+modes can be validated for FRL transmission.
+
+Higher resolution modes like 8K@60, 4K@120 need FRL support. Platforms
+before MTL do not support FRL, so allow modes requiring more than 600MHz
+dotclock to be enumerated only on MTL+ where FRL is supported.
+
+Signed-off-by: Vandita Kulkarni <vandita.kulkarni@intel.com>
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 9d3c27fb1..42c8a5cb1 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -2091,6 +2091,7 @@ intel_hdmi_mode_clock_valid(struct drm_connector *_connector, int clock,
+ 	struct intel_connector *connector = to_intel_connector(_connector);
+ 	struct intel_display *display = to_intel_display(connector);
+ 	struct intel_hdmi *hdmi = intel_attached_hdmi(connector);
++	bool frl_mode = hdmi->has_sink_hdmi_21 && hdmi->max_frl_rate;
+ 	enum drm_mode_status status = MODE_OK;
+ 	int bpc;
+ 
+@@ -2100,7 +2101,7 @@ intel_hdmi_mode_clock_valid(struct drm_connector *_connector, int clock,
+ 	 * least one color depth is accepted.
+ 	 */
+ 	for (bpc = 12; bpc >= 8; bpc -= 2) {
+-		int hdmi_clock = intel_hdmi_clock(clock, bpc, sink_format, false);
++		int hdmi_clock = intel_hdmi_clock(clock, bpc, sink_format, frl_mode);
+ 
+ 		if (!intel_hdmi_source_bpc_possible(display, bpc))
+ 			continue;
+@@ -2109,7 +2110,7 @@ intel_hdmi_mode_clock_valid(struct drm_connector *_connector, int clock,
+ 						  sink_format))
+ 			continue;
+ 
+-		status = hdmi_port_clock_valid(hdmi, hdmi_clock, true, has_hdmi_sink, false);
++		status = hdmi_port_clock_valid(hdmi, hdmi_clock, true, has_hdmi_sink, frl_mode);
+ 		if (status == MODE_OK)
+ 			return MODE_OK;
+ 	}
+@@ -2195,12 +2196,10 @@ intel_hdmi_mode_valid(struct drm_connector *_connector,
+ 	}
+ 
+ 	/*
+-	 * HDMI2.1 requires higher resolution modes like 8k60, 4K120 to be
+-	 * enumerated only if FRL is supported. Current platforms do not support
+-	 * FRL so prune the higher resolution modes that require doctclock more
+-	 * than 600MHz.
++	 * Platforms < MTL do not support FRL so prune the higher resolution
++	 * modes that require doctclock more than 600MHz.
+ 	 */
+-	if (clock > 600000)
++	if (!HAS_HDMI_FRL(display) && clock > 600000)
+ 		return MODE_CLOCK_HIGH;
+ 
+ 	if (drm_mode_is_420_only(info, mode)) {

@@ -1,0 +1,58 @@
+From 1ced262c326b81e1a8255dd0350570c63a86dadf Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:43:58 +0530
+Subject: [PATCH 13/51] drm/i915/hdmi: Add function to prepare registers for
+ FRL mode
+
+Add intel_hdmi_prepare_for_frl_mode() to arm the FRL function and reset
+the training pattern to the default LTP1 on all active lanes, before the
+Link training sequence starts.
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 22 ++++++++++++++++++++++
+ drivers/gpu/drm/i915/display/intel_hdmi.h |  1 +
+ 2 files changed, 23 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 387150262..b092e8914 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -3483,3 +3483,25 @@ intel_hdmi_dsc_get_bpp(int src_fractional_bpp, int slice_width, int num_slices,
+ 
+ 	return 0;
+ }
++
++void intel_hdmi_prepare_for_frl_mode(const struct intel_crtc_state *crtc_state)
++{
++	struct intel_display *display = to_intel_display(crtc_state);
++	enum transcoder trans = crtc_state->cpu_transcoder;
++	int num_lanes = crtc_state->frl.required_lanes;
++	u32 write_buf = 0;
++	int lane;
++
++	if (!crtc_state->frl.enable)
++		return;
++
++	intel_de_rmw(display, TRANS_HDMI_FRL_CFG(display, trans),
++		     TRANS_HDMI_FRL_TRAINING_COMPLETE,
++		     TRANS_HDMI_FRL_ENABLE);
++
++	/* Reset Training Pattern to default 0x1 */
++	for (lane = 0; lane < num_lanes; lane++)
++		write_buf |= TRANS_HDMI_FRL_LTP(0x1, lane);
++
++	intel_de_write(display, TRANS_HDMI_FRL_TRAIN(display, trans), write_buf);
++}
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.h b/drivers/gpu/drm/i915/display/intel_hdmi.h
+index 0fa366156..9d94815f2 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.h
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.h
+@@ -61,6 +61,7 @@ int intel_hdmi_dsc_get_num_slices(const struct intel_crtc_state *crtc_state,
+ 				  int hdmi_max_slices, int hdmi_throughput);
+ int intel_hdmi_dsc_get_slice_height(int vactive);
+ bool intel_hdmi_is_frl(u32 clock);
++void intel_hdmi_prepare_for_frl_mode(const struct intel_crtc_state *crtc_state);
+ 
+ void hsw_write_infoframe(struct intel_encoder *encoder,
+ 			 const struct intel_crtc_state *crtc_state,

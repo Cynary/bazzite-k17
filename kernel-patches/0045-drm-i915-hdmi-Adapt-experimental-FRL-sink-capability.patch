@@ -1,0 +1,42 @@
+From 1b5b88468683fbc266a5c94f846df6339b4792dc Mon Sep 17 00:00:00 2001
+From: Rodrigo Toste Gomes <rodrigo.toste.gomes@gmail.com>
+Date: Wed, 16 Sep 2026 22:47:13 -0700
+Subject: [PATCH 45/51] drm/i915/hdmi: Adapt experimental FRL sink capability
+ access to 7.2
+
+The older intel_hdmi_sink_*_max_frl_rate helpers no longer exist in this tree. Compute the same aggregate lane rate from drm_display_info HDMI fields. Remove the duplicate prepare_for_frl_mode declaration introduced by the series.
+---
+ drivers/gpu/drm/i915/display/intel_hdmi.c | 6 ++++--
+ drivers/gpu/drm/i915/display/intel_hdmi.h | 1 -
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 42c8a5cb1..e9643ce7a 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -2791,9 +2791,11 @@ intel_hdmi_init_frl_config(struct intel_connector *connector)
+ 	int max_src_frl_rate =
+ 		DIV_ROUND_UP(intel_bios_hdmi_max_frl_rate(encoder), 1000000) * 4;
+ 	int max_sink_dsc_frl_rate =
+-		intel_hdmi_sink_dsc_max_frl_rate(&connector->base);
++		(connector->base.display_info.hdmi.dsc_cap.max_lanes *
++		 connector->base.display_info.hdmi.dsc_cap.max_frl_rate_per_lane);
+ 	int max_sink_frl_rate =
+-		intel_hdmi_sink_max_frl_rate(&connector->base);
++		(connector->base.display_info.hdmi.max_lanes *
++		 connector->base.display_info.hdmi.max_frl_rate_per_lane);
+ 	int max_frl_rate, max_dsc_frl_rate;
+ 
+ 	intel_hdmi->has_sink_hdmi_21 = max_sink_frl_rate > 0;
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.h b/drivers/gpu/drm/i915/display/intel_hdmi.h
+index fbd7bf1cb..da1387fd6 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.h
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.h
+@@ -61,7 +61,6 @@ int intel_hdmi_dsc_get_num_slices(const struct intel_crtc_state *crtc_state,
+ 				  int hdmi_max_slices, int hdmi_throughput);
+ int intel_hdmi_dsc_get_slice_height(int vactive);
+ bool intel_hdmi_is_frl(u32 clock);
+-void intel_hdmi_prepare_for_frl_mode(const struct intel_crtc_state *crtc_state);
+ int intel_hdmi_start_frl(struct intel_encoder *encoder,
+ 			 const struct intel_crtc_state *crtc_state);
+ void intel_hdmi_disable_frl(struct intel_encoder *encoder,

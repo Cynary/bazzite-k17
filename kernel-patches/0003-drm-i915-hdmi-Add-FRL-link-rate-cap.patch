@@ -1,0 +1,95 @@
+From 4e1bf989a6950efee3693feea101d8813133bb6a Mon Sep 17 00:00:00 2001
+From: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+Date: Fri, 7 Aug 2026 09:43:48 +0530
+Subject: [PATCH 03/51] drm/i915/hdmi: Add FRL link rate cap
+
+Add a member rate_cap to store the highest FRL rate the link is believed
+to sustain. This is initially set based on the source and sink FRL
+capabilities, and updated only when the capabilities change. To achieve
+this, the reset is gated by a reset_rate_cap flag, so that rate_cap is
+left as is on a plain re-probe.
+
+Also reset the rate cap when the status changes to disconnected, so that
+a re-plug of the same sink starts again from the full capability.
+
+Later during a Link training failure at a specific rate, rate_cap can be
+lowered, and since it is retained across a re-probe, the next training
+attempt will honor the reduced cap. No user for now, this will be used
+in the later changes.
+
+Signed-off-by: Ankit Nautiyal <ankit.k.nautiyal@intel.com>
+---
+ .../drm/i915/display/intel_display_types.h    |  2 ++
+ drivers/gpu/drm/i915/display/intel_hdmi.c     | 33 ++++++++++++++++---
+ 2 files changed, 30 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/display/intel_display_types.h b/drivers/gpu/drm/i915/display/intel_display_types.h
+index 1194c837f..e71d240d2 100644
+--- a/drivers/gpu/drm/i915/display/intel_display_types.h
++++ b/drivers/gpu/drm/i915/display/intel_display_types.h
+@@ -1679,6 +1679,8 @@ struct intel_hdmi {
+ 		int lanes;
+ 		int rate_gbps;
+ 		int ffe_level;
++		int rate_cap;
++		bool reset_rate_cap;
+ 	} frl;
+ };
+ 
+diff --git a/drivers/gpu/drm/i915/display/intel_hdmi.c b/drivers/gpu/drm/i915/display/intel_hdmi.c
+index 3034d642b..8be54ab1a 100644
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -2567,14 +2567,30 @@ intel_hdmi_init_frl_config(struct intel_connector *connector)
+ 		intel_hdmi_sink_dsc_max_frl_rate(&connector->base);
+ 	int max_sink_frl_rate =
+ 		intel_hdmi_sink_max_frl_rate(&connector->base);
++	int max_frl_rate, max_dsc_frl_rate;
+ 
+ 	intel_hdmi->has_sink_hdmi_21 = max_sink_frl_rate > 0;
+ 
+-	intel_hdmi->max_frl_rate = min(max_sink_frl_rate,
+-				       max_src_frl_rate);
++	max_frl_rate = min(max_sink_frl_rate, max_src_frl_rate);
+ 
+-	intel_hdmi->max_dsc_frl_rate = min(max_sink_dsc_frl_rate,
+-					   max_src_frl_rate);
++	max_dsc_frl_rate = min(max_sink_dsc_frl_rate,
++			       max_src_frl_rate);
++	/*
++	 * Set the FRL rate cap on connect / capability change only.
++	 * Leaving it untouched on a plain re-probe lets a future
++	 * training-driven reduction persist across the retry.
++	 */
++	if (max_frl_rate != intel_hdmi->max_frl_rate ||
++	    max_dsc_frl_rate != intel_hdmi->max_dsc_frl_rate)
++		intel_hdmi->frl.reset_rate_cap = true;
++
++	intel_hdmi->max_frl_rate = max_frl_rate;
++	intel_hdmi->max_dsc_frl_rate = max_dsc_frl_rate;
++
++	if (intel_hdmi->frl.reset_rate_cap) {
++		intel_hdmi->frl.rate_cap = max(max_frl_rate, max_dsc_frl_rate);
++		intel_hdmi->frl.reset_rate_cap = false;
++	}
+ 
+ 	intel_hdmi_reset_frl_config(intel_hdmi);
+ }
+@@ -2656,9 +2672,16 @@ intel_hdmi_detect(struct drm_connector *_connector, bool force)
+ out:
+ 	intel_display_power_put(display, POWER_DOMAIN_GMBUS, wakeref);
+ 
+-	if (status != connector_status_connected)
++	if (status != connector_status_connected) {
+ 		cec_notifier_phys_addr_invalidate(intel_hdmi->cec_notifier);
+ 
++		/*
++		 * Reset the rate cap so that the next connect re-initializes
++		 * frl.rate_cap to the capability ceiling.
++		 */
++		intel_hdmi->frl.reset_rate_cap = true;
++	}
++
+ 	return status;
+ }
+ 

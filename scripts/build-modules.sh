@@ -1,11 +1,18 @@
 #!/bin/bash
 set -euo pipefail
-: "${KERNEL_RELEASE:?}" "${SOURCE_COMMIT:?}"
+: "${KERNEL_RELEASE:?}" "${SOURCE_COMMIT:?}" "${SOURCE_BASE_COMMIT:?}"
 mkdir -p /work/source /out
-curl --fail --location --retry 3 "https://codeload.github.com/Cynary/linux-k17-frl/tar.gz/${SOURCE_COMMIT}" -o /work/source.tar.gz
+curl --fail --location --retry 3 "https://codeload.github.com/OpenGamingCollective/linux/tar.gz/${SOURCE_BASE_COMMIT}" -o /work/source.tar.gz
 sha256sum /work/source.tar.gz > /out/source-archive.sha256
 tar -xzf /work/source.tar.gz -C /work/source --strip-components=1 --wildcards \
   'linux-*/drivers/gpu/drm/*' 'linux-*/include/drm/*' 'linux-*/scripts/extract-vmlinux'
+cd /work/source
+for patch in /work/patches/*.patch; do
+ git apply --check "$patch"
+ git apply "$patch"
+done
+(cd /work/patches && sha256sum *.patch) > /out/patches.sha256
+printf '%s\n' "$SOURCE_BASE_COMMIT" > /out/source-base-commit
 cp -a /work/source/drivers/gpu/drm/. /work/kernel/drivers/gpu/drm/
 cp -a /work/source/include/drm/. /work/kernel/include/drm/
 bash /work/source/scripts/extract-vmlinux /work/stock-vmlinuz > /work/kernel/vmlinux

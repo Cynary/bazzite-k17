@@ -2,3 +2,5 @@
 !Containerfile
 !scripts
 !scripts/**
+!kernel-patches
+!kernel-patches/**
