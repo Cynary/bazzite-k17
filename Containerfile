@@ -10,6 +10,11 @@ COPY --from=base /usr/lib/modules/${KERNEL_RELEASE}/vmlinuz /work/stock-vmlinuz
 COPY scripts/build-modules.sh /work/build-modules.sh
 COPY kernel-patches/ /work/patches/
 RUN /work/build-modules.sh
+ARG XONE_SOURCE_COMMIT=982cbcb019ae4d2bee5ae69385223409ee555c88
+COPY --from=base /usr/lib/modules/${KERNEL_RELEASE}/extra/xone/xone_gip.ko.xz /work/stock-xone-gip.ko.xz
+COPY scripts/build-xone.sh /work/build-xone.sh
+COPY xone-patches/ /work/xone-patches/
+RUN /work/build-xone.sh
 FROM base AS final
 ARG BASE_IMAGE
 ARG SOURCE_COMMIT=a5a7dbdf33954095909d0ad53d953a993c31b09c

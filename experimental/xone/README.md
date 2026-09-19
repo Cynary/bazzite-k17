@@ -93,3 +93,9 @@ Rollback: disable/remove k17-xone-test.service, remove
 /etc/modprobe.d/99-k17-xone-test.conf, unload/reload xone_dongle or reboot;
 remove the loader, module directory and its semanage fcontext rule afterward.
 Do not disable SELinux.
+
+User confirmed delayed connection after that warm reboot without unplugging;
+one real controller and one client verified. A single GIP "already initialized
+(in)" warning was logged, but input device registration succeeded. Do not claim
+a completely warning-free log or validated suspend/resume. The patch is now
+being packaged under xone-patches; image deployment validation remains pending.
