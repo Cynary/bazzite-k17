@@ -23,7 +23,9 @@ for mod in xe drm_display_helper; do
 done
 # Xe loads early; include its GSC proxy companion before the initramfs timeout.
 for mod in mei_me mei_gsc_proxy; do
- grep -q "/$mod.ko" /usr/share/k17-frl/build/initramfs-files.txt
+ # Module names may use underscores while their filenames use hyphens.
+ module_file=$(basename "$(modinfo -k "$kver" -n "$mod")")
+ grep -Fq "/$module_file" /usr/share/k17-frl/build/initramfs-files.txt
 done
 # Record that the stock kernel and third-party module package set are retained.
 rpm -qa 'kernel*' '*xone*' '*xpadneo*' | sort > /usr/share/k17-frl/build/kernel-packages.txt
