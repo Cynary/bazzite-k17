@@ -89,6 +89,8 @@ After waking the chain and rebooting into the published image, link training and
 VRR tests passed. This does **not** certify recovery after receiver/TV standby:
 off/on, cable hotplug, and suspend/resume remain separate tests.
 
+A subsequent [failure-path audit](https://github.com/Cynary/linux-k17-frl/blob/k17-frl-vrr-test/k17/FRL-RECOVERY.md) reproduced the TV-off failure, traced the relevant early return to the original Intel FRL series, and recovered 4K120/30-bpp HDR/VRR by restarting Gaming Mode without rebooting the OS. Power-on alone did not recover that run; robust automatic recovery remains unresolved. The audit intentionally generated kernel warnings on that boot; it made no driver changes.
+
 ## Recovery and remaining qualification
 
 Pinned recovery deployments remain:
