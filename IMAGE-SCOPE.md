@@ -13,9 +13,12 @@ Release scope agreed on 2026-09-19.
   Establish which behavior needs correction and package that correction; expose
   an explicit setting if a workaround necessarily overrides those preferences.
 - Target for a subsequent image: Moonlight with the required VRR support,
-  Gamescope Flatpak extension, Decky and MoonDeck, with clean initial settings.
+  Gamescope Flatpak extension, Decky and **upstream MoonDeck**, with clean initial settings.
   Use public, pinned source/releases and record their provenance. Do not ship
   the owner's private launcher-support build as a hidden dependency.
+  The public image must not install Cynary's MoonDeck fork or require a forked
+  Windows Buddy. Existing personal fork installations must be preserved during
+  updates; upstream preinstallation is the default for a clean setup only.
 
 ## Local only
 
