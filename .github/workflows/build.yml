@@ -38,7 +38,7 @@ jobs:
           podman push --digestfile image.digest "$image:sha-$GITHUB_SHA"
           digest=$(cat image.digest)
           curl --fail --silent --show-error -H "Authorization: Bearer $REGISTRY_TOKEN" "$package_api" | jq -e '.visibility == "private"'
-          cosign sign --yes --key env://COSIGN_PRIVATE_KEY --tlog-upload=false "$image@$digest"
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY --use-signing-config=false --tlog-upload=false "$image@$digest"
           podman tag "$image:sha-$GITHUB_SHA" "$image:candidate"
           podman push "$image:candidate"
           printf 'Private candidate: `%s@%s`\n\nNo stable promotion or client update was performed.\n' "$image" "$digest" >> "$GITHUB_STEP_SUMMARY"
