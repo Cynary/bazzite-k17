@@ -1,5 +1,7 @@
 # Association retry diagnosis (2026-09-18)
 
+**2026-09-19 update:** The combined adapter-specific startup reset and retry fix passed five warm restarts. See [the current investigation and limits](probe-reset-investigation.md). Earlier failures below remain part of the test history.
+
 A demonstrated defect, distinct from the still-unresolved USB overflow and
 command-stall observations. No claim that all restart failures are fixed.
 

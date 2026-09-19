@@ -1,5 +1,7 @@
 # Xbox adapter diagnostic candidate, 2026-09-18
 
+**2026-09-19 update:** The combined adapter-specific startup reset and retry fix passed five warm restarts. See [the current investigation and limits](probe-reset-investigation.md). Earlier failures below remain part of the test history.
+
 **Latest finding:** a separate association-retry bug has been demonstrated
 with controlled fault injection and fixed experimentally. See
 [the investigation](association-retry-investigation.md). The earlier USB

@@ -111,7 +111,7 @@ operation was not exercised. No stable tag or unattended updates were enabled.
 
 ## Xbox association retry correction — 2026-09-18
 
-The current source recipe replaces the unqualified restart-poweroff workaround
+The September 18 source revision replaced the unqualified restart-poweroff workaround
 with a focused association-retry patch. It reuses an existing client slot but
 answers repeated association requests instead of silently dropping them. The
 stock firmware, GIP modules, USB-reset behavior, and shutdown behavior remain.
@@ -120,3 +120,21 @@ See [the controlled test and limits](experimental/xone/association-retry-investi
 This source change is not a completed image release. Existing image validation
 above describes earlier revisions. The separate USB command-stall/overflow
 failure is unresolved; do not claim comprehensive controller reliability.
+
+## Xbox startup reset and retry — 2026-09-19
+
+Version comparison implicated removal of the probe USB reset on `045e:02e6`.
+The source recipe now combines the existing association-retry correction with
+a reset restored only for that adapter product. No firmware, GIP module,
+shutdown-poweroff workaround, added sleep, or USB power override is included.
+
+The exact combined module `79D993360F2FB22DB547715` passed five consecutive
+settled warm restarts: correct controller input registration, one client slot,
+continuing controller traffic, no unexpected USB errors or Xbox-driver error
+messages. See [the comparison, scope, and limits](experimental/xone/probe-reset-investigation.md).
+
+This validates the transport module on the test machine, not a rebuilt image.
+The live temporary loader persists across reboots on the current kernel.
+No new image build/deployment or stable promotion was performed for this change.
+Suspend/resume, multiple controllers, other revisions, and long-term reliability
+remain unvalidated by this five-restart test.
