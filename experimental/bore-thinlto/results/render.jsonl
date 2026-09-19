@@ -1,0 +1,4 @@
+{"config": 0, "result": {"n": 2176, "median_ms": 11.219, "p99_ms": 13.162, "max_ms": 14.558, "over_16_667ms": 0}}
+{"config": 1, "result": {"n": 2175, "median_ms": 11.416, "p99_ms": 13.066, "max_ms": 13.463, "over_16_667ms": 0}}
+{"config": 1, "result": {"n": 2190, "median_ms": 11.206, "p99_ms": 13.081, "max_ms": 14.101, "over_16_667ms": 0}}
+{"config": 0, "result": {"n": 2169, "median_ms": 11.221, "p99_ms": 13.247, "max_ms": 14.79, "over_16_667ms": 0}}

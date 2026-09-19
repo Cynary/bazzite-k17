@@ -1,0 +1,4 @@
+{"bore": 0, "result": {"wake_p99_ms": 1.677, "finish_p95_ms": 1.914, "finish_p99_ms": 2.938, "finish_max_ms": 6.249, "misses": 0, "samples": 1800}, "max_temp": 63.0}
+{"bore": 1, "result": {"wake_p99_ms": 0.114, "finish_p95_ms": 3.084, "finish_p99_ms": 3.11, "finish_max_ms": 3.519, "misses": 0, "samples": 1800}, "max_temp": 66.0}
+{"bore": 1, "result": {"wake_p99_ms": 0.063, "finish_p95_ms": 3.061, "finish_p99_ms": 3.083, "finish_max_ms": 3.143, "misses": 0, "samples": 1800}, "max_temp": 68.0}
+{"bore": 0, "result": {"wake_p99_ms": 1.648, "finish_p95_ms": 2.018, "finish_p99_ms": 3.032, "finish_max_ms": 5.348, "misses": 0, "samples": 1800}, "max_temp": 69.0}
