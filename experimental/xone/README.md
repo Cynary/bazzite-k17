@@ -64,3 +64,32 @@ User confirmed connection; one real controller input device and one client
 were verified, with no xone errors since the final replug. Temporary modprobe
 configuration, loader script, module copy and SELinux file-context rule were
 removed. Restart reliability remains unresolved.
+
+## Receive parser investigation (next candidate)
+
+Code comparison with medusalix/xow identified missing packet-type validation.
+xow checks the WLAN-port header is80211 bit (bit 19) before parsing RXWI and
+802.11, and checks the destination address before dispatch. xone did neither
+(the first failed experiment checked only association destinations). xone also
+checked command sequence bits before distinguishing the port, even though
+WLAN packets use those bits for other fields. Captured failing header
+22 20 04 00 has port 0 and is80211 clear.
+
+receive-header-validation-test.patch adds the native-802.11 check, restricts
+command-response handling to CPU_RX, and validates the destination before all
+frame dispatch. Firmware initialization is pristine upstream.
+Module srcversion: 70B2B8BF8270C75A1BE533E.
+
+The candidate booted with controller off and stayed at zero clients with no
+packet errors for more than a minute, including expiration of pairing mode.
+Delayed controller connection is awaiting user validation. Not release-qualified.
+
+A temporary kernel-version-guarded modprobe override loads the root-owned
+module /var/lib/k17-xone-test/xone_dongle.ko, labelled modules_object_t.
+The loader is /usr/local/sbin/k17-xone-test-load. A temporary service
+k17-xone-test.service retries after local-fs because /var is not available at
+the initial udev probe. This is test scaffolding, not final image packaging.
+Rollback: disable/remove k17-xone-test.service, remove
+/etc/modprobe.d/99-k17-xone-test.conf, unload/reload xone_dongle or reboot;
+remove the loader, module directory and its semanage fcontext rule afterward.
+Do not disable SELinux.
