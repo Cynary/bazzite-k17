@@ -99,3 +99,20 @@ one real controller and one client verified. A single GIP "already initialized
 (in)" warning was logged, but input device registration succeeded. Do not claim
 a completely warning-free log or validated suspend/resume. The patch is now
 being packaged under xone-patches; image deployment validation remains pending.
+
+## A/B retest: causal claim remains unproven
+
+The user requested reproducing on the old driver and switching live into the
+patched driver before reboot. Packaged srcversion 228407C6EB982C5BA099BF0
+was booted with the same delayed loader and reconnected after idle. Then the
+loader override was disabled and two normal early-loading stock-driver boots
+with controller off stayed at zero clients and no packet errors for >60 s.
+Thus the failure could not be reproduced in this round. Delayed load timing
+was a potential confound, but normal loading also did not reproduce.
+
+The parser differences are supported by code and a captured non-802.11 header;
+the claim that this fixes the intermittent restart failure is NOT established.
+Recovery by live swap from the failed state remains untested. Do not label
+this candidate a confirmed restart fix, or infer a firmware fault. Logs in
+~/k17-option1/xone-restart/ab. Restore patched candidate after comparison;
+keep image on candidate track pending stronger validation.
