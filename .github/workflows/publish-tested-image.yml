@@ -1,0 +1,53 @@
+name: Publish tested full-kernel image
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Release containing image.oci.tar.part-* and SHA256SUMS
+        required: true
+        type: string
+      digest:
+        description: Hardware-tested OCI manifest digest (sha256:...)
+        required: true
+        type: string
+permissions:
+  contents: read
+  packages: write
+concurrency:
+  group: k17-full-kernel-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
+      - uses: sigstore/cosign-installer@828df1e55de306ba29db814d6057ddae71883cda
+      - name: Verify and publish the exact tested artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE: ${{ inputs.release }}
+          DIGEST: ${{ inputs.digest }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE" =~ ^bore-[0-9]{8}\.[0-9]+$ ]]
+          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          sudo apt-get update -qq
+          sudo apt-get install -y skopeo
+          mkdir assets image
+          gh release download "$RELEASE" --repo "$GITHUB_REPOSITORY" --pattern 'image.oci.tar.part-*' --pattern 'IMAGE-SHA256SUMS' --dir assets
+          (cd assets && sha256sum -c IMAGE-SHA256SUMS)
+          cat assets/image.oci.tar.part-* | tar --no-same-owner -xf - -C image
+          actual=$(skopeo inspect --raw oci:image | sha256sum | cut -d' ' -f1)
+          test "sha256:$actual" = "$DIGEST"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          export DOCKER_CONFIG="$RUNNER_TEMP/registry-auth"
+          mkdir -p "$DOCKER_CONFIG"
+          printf '%s' "$GH_TOKEN" | skopeo login --authfile "$DOCKER_CONFIG/config.json" --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          skopeo copy --preserve-digests --dest-authfile "$DOCKER_CONFIG/config.json" oci:image "docker://$image:$RELEASE"
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY --use-signing-config=false --tlog-upload=false "$image@$DIGEST"
+          cosign verify --key cosign.pub --insecure-ignore-tlog=true "$image@$DIGEST" > /dev/null
+          printf 'Published exact tested image: `%s@%s`\nVersion: `%s`\nNo stable-channel promotion.\n' "$image" "$DIGEST" "$RELEASE" >> "$GITHUB_STEP_SUMMARY"
