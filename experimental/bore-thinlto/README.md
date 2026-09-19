@@ -78,3 +78,14 @@ Local OCI image `/var/lib/k17-images/bore2`, manifest digest `sha256:e12799860cc
 Final image lint: 13 passed, 1 skipped, zero warnings. All four dynamically requested Xbox firmware files were verified in the initramfs. Second hardware boot passed health checks with BORE=1 and sched_ext disabled, zero failed services, 4K120 and bpp=30 reported by Xe, and no early xone firmware-load failure. No BUG/Oops, underrun or flip timeout appeared in the checks. Startup to graphical target was 29.294 seconds (firmware 10.348, loader 4.144, kernel 0.662, initrd 4.740, userspace 9.397). The new deployment and original known-good stock-kernel deployment are pinned; the one-shot recovery timer was disarmed after success.
 
 The final image is a local hardware-test deployment, not a promoted public stable release. TV-side visual HDR/VRR and controller-button confirmation remain outstanding. No additional kernel rebuild occurred between the measured candidate and the final firmware-packaging correction.
+
+## Public experimental release
+
+The identical tested OCI digest is now published as `bore-20260919.1` at
+`ghcr.io/cynary/bazzite-k17`, signed with the repository key and anonymously
+downloadable. The K17 verified the signature, switched to the public digest, and
+rebooted successfully in 29.951 seconds. Boot verifier passed, zero failed services,
+no observed BUG/Oops, underrun or flip timeout. The public deployment is pinned.
+See [installation and update instructions](../../RELEASES.md). This is an
+experimental prerelease; it does not promote the stock `candidate` tag or create
+an automatically advancing full-kernel channel.

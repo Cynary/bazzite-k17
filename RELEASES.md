@@ -21,6 +21,14 @@ Secure Boot is unsupported. Rust kernel modules and several optional third-party
 specialty modules are absent. Existing firmware ACPI warnings remain.
 TV-side validation of this full-kernel candidate is still required before stable promotion.
 
+Publication validation: [workflow 35473358558](https://github.com/Cynary/bazzite-k17/actions/runs/35473358558)
+verified the archive checksums/digest, pushed without rebuilding and signed the
+image. Anonymous registry access and on-device Cosign verification passed. The
+K17 then switched from local OCI to this public digest and rebooted successfully:
+29.951 seconds to graphical target, boot verifier passed, no failed services,
+no observed BUG/Oops, underrun or flip timeout. The public deployment and previous
+working deployments are pinned. These checks do not replace TV-side qualification.
+
 ## Existing Bazzite installation
 
 Back up important data, keep a known-good deployment pinned, and verify the
