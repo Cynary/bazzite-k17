@@ -1,0 +1,10 @@
+{
+  "tv_address": "192.0.2.20",
+  "tv_mac": "02:00:00:00:00:20",
+  "receiver_url": "http://192.0.2.30:8080",
+  "tv_input": "HDMI_2",
+  "tv_app": "com.webos.app.hdmi2",
+  "receiver_input": "AUX2",
+  "broadcast_address": "192.0.2.255",
+  "unicast_wake": false
+}
