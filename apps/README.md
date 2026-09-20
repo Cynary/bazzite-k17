@@ -55,3 +55,16 @@ The proposed FIFO fix is [Gamescope PR #24](https://github.com/OpenGamingCollect
 It restores full-rate Moonlight presentation in the K17 test with uncapped
 scheduling enabled. The image continues to use the convar default above;
 it does not replace Gamescope with the diagnostic test binary.
+
+## Intel 4:4:4 import
+
+`patches/libplacebo/0001-import-packed-vaapi-444.patch` adds import mappings for
+Intel's packed Y410 (10-bit) and XYUV8888 (8-bit) decoder surfaces. The GPU samples
+these through compatible RGB texture layouts; the component mapping restores
+Y, Cb and Cr before colour conversion. Frames remain on the GPU.
+
+The patch is applied before installing libplacebo's headers and compiling
+Moonlight, because the FFmpeg import helper is header-defined. Its pinned
+libplacebo revision and application order are in `build.sh`.
+See [the offline test](../tests/hardware/chroma/README.md) and
+[validation results](../docs/CHROMA-VALIDATION.md).
