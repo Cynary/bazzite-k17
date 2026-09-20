@@ -1,12 +1,13 @@
 # Moonmachine
 
-A little PC under the TV, a controller on the couch, and your Steam library ready
-when you sit down. Moonmachine is a version of [Bazzite](https://bazzite.gg/)
-built for that setup on the **GMKtec K17**.
+Moonmachine is a modification of [Bazzite](https://bazzite.gg/) for a Steam
+Machine-like experience, with a focus on streaming without compromising display
+quality: **4K120, HDR, 10-bit colour, 4:4:4 and VRR**. It's validated specifically
+on the **GMKtec K17**. Other Intel machines with a native HDMI 2.1 FRL output may
+work too; compatibility depends on the GPU and how the port is wired.
 
-Play games on the mini PC itself, or stream them from a more powerful gaming PC
-with Moonlight. MoonDeck puts a streaming button in Steam so you can launch games
-without leaving the controller-friendly interface.
+Moonlight handles streaming, and MoonDeck lets you launch games on your gaming PC
+straight from Steam's Gaming Mode. You can also install and play games locally.
 
 ## What you get
 
@@ -29,9 +30,10 @@ This is an experimental community project, not an official Bazzite release.
 Tested on the K17 with Intel Arc 130V graphics. Other PCs are untested.
 Secure Boot must be disabled.
 
-For 4K120, use the K17's HDMI 2.1 output, a suitable HDMI cable, and a TV that
-supports the mode. The two HDMI ports do not have the same capabilities. Any
-receiver between the PC and TV must also support the signal.
+Only one of the K17's two HDMI ports supports **HDMI 2.1 FRL**, the link mode
+needed for this output. If 4K120 isn't available, try the other port. Use a
+suitable HDMI cable and TV; any receiver between the PC and TV must also support
+the signal.
 
 The main missing console convenience is **CEC**—the HDMI feature that turns on a
 TV and selects its input. The K17 does not expose usable CEC control in this setup.

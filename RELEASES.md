@@ -3,6 +3,13 @@
 Start with a normal Bazzite installation, then switch it to Moonmachine. You don't
 need to build a kernel or make a special installer USB.
 
+## Connect your TV
+
+Only one of the K17's two HDMI ports supports **HDMI 2.1 FRL**, which is needed
+for 4K120 with 10-bit colour and 4:4:4. If that mode isn't available after
+installing Moonmachine, try the other HDMI port. The cable, TV and any receiver
+in between also need to support it.
+
 ## 1. Install Bazzite
 
 Use the [Bazzite download page](https://bazzite.gg/) to choose the Intel-compatible
