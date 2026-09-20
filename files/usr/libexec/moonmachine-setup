@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """Prepare bundled Decky and MoonDeck for the first regular login account."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import pwd
@@ -9,11 +10,21 @@ import subprocess
 import uuid
 
 
+def plugin_digest(directory):
+    digest = hashlib.sha256()
+    for path in sorted(directory.rglob('*')):
+        if not path.is_file() or '__pycache__' in path.parts or path.suffix in ('.pyc', '.pyo'):
+            continue
+        digest.update(str(path.relative_to(directory)).encode() + b'\0')
+        digest.update(path.read_bytes())
+    return digest.hexdigest()
+
+
 def seed(account, share, service_dir):
     home = Path(account.pw_dir)
     brew = home / 'homebrew'
     unit = service_dir / 'plugin_loader.service'
-    # Never replace a working loader, plugins or settings on an OS update.
+    # Adopt only installations created by this setup, not user-installed plugins.
     existing_loader = unit.exists()
     if not existing_loader and brew.exists():
         print('An unmanaged homebrew directory exists; leaving it unchanged.')
@@ -53,13 +64,25 @@ WantedBy=multi-user.target
     elif f'UNPRIVILEGED_PATH={brew}' not in unit.read_text():
         return False
     plugin = brew / 'plugins/moondeck'
-    if not plugin.exists():
+    marker = brew / '.moonmachine-moondeck-sha256'
+    bundled = plugin_digest(share / 'moondeck')
+    managed = (plugin.exists() and marker.exists()
+               and plugin_digest(plugin) == marker.read_text().strip())
+    if not plugin.exists() or (managed and marker.read_text().strip() != bundled):
         plugin.parent.mkdir(parents=True, exist_ok=True)
         staging = plugin.with_name('.moondeck-new')
         if staging.exists():
             shutil.rmtree(staging)
         shutil.copytree(share / 'moondeck', staging)
+        backup = brew / 'moonmachine-backups/moondeck-previous'
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        if backup.exists():
+            shutil.rmtree(backup)
+        if plugin.exists():
+            plugin.rename(backup)
         staging.rename(plugin)
+        marker.write_text(bundled + '\n')
+        os.chown(marker, account.pw_uid, account.pw_gid)
         for p in [plugin.parent, plugin, *plugin.rglob('*')]:
             os.chown(p, account.pw_uid, account.pw_gid, follow_symlinks=False)
     settings = home / '.config/moondeck/settings.json'
@@ -90,7 +113,8 @@ def main():
         subprocess.run(['restorecon', '-RF', account.pw_dir + '/homebrew'], check=True)
         subprocess.run(['chcon', '-t', 'bin_t', account.pw_dir + '/homebrew/services/PluginLoader'], check=True)
         subprocess.run(['systemctl', 'daemon-reload'], check=True)
-        subprocess.run(['systemctl', 'enable', '--now', 'plugin_loader.service'], check=True)
+        # The loader is ordered after this service, so don't wait for it here.
+        subprocess.run(['systemctl', 'enable', '--now', '--no-block', 'plugin_loader.service'], check=True)
 
 if __name__ == '__main__':
     main()

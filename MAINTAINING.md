@@ -18,17 +18,18 @@ RPM_DIR=/path/to/kernel-rpms IMAGE_CONTEXT=/path/to/empty-context \
 podman build -t localhost/moonmachine:test /path/to/empty-context
 ```
 
-The context includes the kernel RPMs, boot defaults and application installer.
-`apps/sources.json` records application versions, source links and SHA256 checksums.
-Downloads must match those checksums. MoonDeck's upstream download is a moving
-nightly asset even for its numbered plugin version: when it changes, review the
-new source and archive before updating the pinned checksum. The build rejects archives whose checksums differ.
+The context includes the kernel RPMs, boot defaults and application sources/patches.
+The first build stage compiles patched Moonlight and MoonDeck. See
+[the application patch notes](apps/README.md) for version pins, patch removal,
+and how installed plugins receive updates. Decky and the Python dependency bundle
+are checksum-verified downloads. MoonDeck's dependency archive is a moving
+nightly asset; review and update its checksum if upstream replaces it.
+Compilation uses all available CPU cores by default.
 
-The build extracts Moonlight's AppImage into `/usr/lib/moonmachine`, bundles
-Decky/MoonDeck under `/usr/share/moonmachine`, and enables the first-boot setup.
-It generates MoonDeck defaults from its upstream schema. The setup creates a
-fresh client identity and does not overwrite installed plugins or settings.
-It performs no network downloads and should not delay the Steam startup screen.
+The image installs Moonlight under `/usr/lib/moonmachine` and bundles
+Decky/MoonDeck under `/usr/share/moonmachine`. First-boot setup creates a unique
+client identity. Later boots update image-managed MoonDeck code without replacing
+settings or independently installed plugins. Setup needs no network access.
 
 ## Update the base or kernel
 

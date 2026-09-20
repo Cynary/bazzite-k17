@@ -5,5 +5,8 @@ test results and limitations. See the [kernel build notes](experimental/bore-thi
 for compilation and scheduler measurements, and [graphics notes](kernel-notes/README.md)
 for the original HDMI experiments.
 
+See [streaming patch validation](docs/STREAMING-VALIDATION.md) for Gamescope
+measurements and the application build/install checks.
+
 A successful boot or a clean kernel log does not prove that the TV has no visible
 flicker. TV-side HDR/VRR checks are recorded separately from automated checks.

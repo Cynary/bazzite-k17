@@ -1,7 +1,7 @@
 [Unit]
 Description=Prepare Moonmachine streaming apps
 After=local-fs.target
-Before=display-manager.service
+Before=display-manager.service plugin_loader.service
 ConditionPathExists=!/etc/moonmachine/disable-app-setup
 
 [Service]

@@ -1,0 +1,256 @@
+diff --git a/defaults/python/lib/plugin/settings.py b/defaults/python/lib/plugin/settings.py
+index 0ae2a12..191fe24 100644
+--- a/defaults/python/lib/plugin/settings.py
++++ b/defaults/python/lib/plugin/settings.py
+@@ -123,7 +123,7 @@ class ButtonStyleSettings(TypedDict):
+ 
+ 
+ class UserSettings(TypedDict):
+-    version: Literal[42]
++    version: Literal[43]
+     clientId: str
+     currentHostId: Optional[str]
+     gameSession: GameSessionSettings
+@@ -133,6 +133,7 @@ class UserSettings(TypedDict):
+     enableMoondeckButtonPrompt: bool
+     hostSettings: Dict[str, HostSettings]
+     runnerDebugLogs: bool
++    pauseUnfocusedSplash: bool
+     useMoonlightExec: bool
+     moonlightExecPath: str
+     pythonExecPath: str
+@@ -169,6 +170,7 @@ class UserSettingsManager(SettingsManager[UserSettings]):
+             "enableMoondeckButtonPrompt": False,
+             "hostSettings": {},
+             "runnerDebugLogs": False,
++            "pauseUnfocusedSplash": False,
+             "useMoonlightExec": False,
+             "moonlightExecPath": "",
+             "pythonExecPath": ""
+@@ -399,3 +401,7 @@ class UserSettingsManager(SettingsManager[UserSettings]):
+             data["version"] = 42
+             for host in data["hostSettings"].keys():
+                 data["hostSettings"][host]["wolSettings"]["sendOnce"] = False
++
++        if data["version"] == 42:
++            data["version"] = 43
++            data["pauseUnfocusedSplash"] = False
+diff --git a/defaults/python/lib/runner/settingsparser.py b/defaults/python/lib/runner/settingsparser.py
+index 9ebf7fe..f5d0f9f 100644
+--- a/defaults/python/lib/runner/settingsparser.py
++++ b/defaults/python/lib/runner/settingsparser.py
+@@ -39,6 +39,7 @@ class MoonDeckAppRunnerSettings(TypedDict):
+     app_id: str
+     steam_user: Optional[SteamUser]
+     debug_logs: bool
++    pause_unfocused_splash: bool
+     runner_type: Literal[RunnerType.MoonDeck]
+ 
+ 
+@@ -58,6 +59,7 @@ class MoonlightOnlyRunnerSettings(TypedDict):
+     custom_wol_exec_path: Optional[str]
+     wol_port: int
+     debug_logs: bool
++    pause_unfocused_splash: bool
+     runner_type: Literal[RunnerType.MoonlightOnly]
+ 
+ 
+@@ -205,6 +207,7 @@ async def parse_settings() -> MoonDeckAppRunnerSettings | MoonlightOnlyRunnerSet
+             "app_id": env_settings["app_id"],
+             "steam_user": SteamUser(id=env_settings["user_id"], name=env_settings["username"]),
+             "debug_logs": user_settings["runnerDebugLogs"],
++            "pause_unfocused_splash": user_settings["pauseUnfocusedSplash"],
+             "runner_type": RunnerType.MoonDeck
+         })
+     else:
+@@ -227,5 +230,6 @@ async def parse_settings() -> MoonDeckAppRunnerSettings | MoonlightOnlyRunnerSet
+             "custom_wol_exec_path": host_settings["wolSettings"]["customWolExecPath"] if host_settings["wolSettings"]["useCustomWolExec"] else None,
+             "wol_port": host_settings["wolSettings"]["port"],
+             "debug_logs": user_settings["runnerDebugLogs"],
++            "pause_unfocused_splash": user_settings["pauseUnfocusedSplash"],
+             "runner_type": RunnerType.MoonlightOnly
+         })
+diff --git a/defaults/python/lib/splashscreen/canvas.py b/defaults/python/lib/splashscreen/canvas.py
+index 9797990..a64d036 100644
+--- a/defaults/python/lib/splashscreen/canvas.py
++++ b/defaults/python/lib/splashscreen/canvas.py
+@@ -5,7 +5,9 @@ from .overlay import Overlay, OverlayStack
+ 
+ 
+ class Canvas(pyglet.window.Window, OverlayStack):
+-    def __init__(self):
++    def __init__(self, pause_when_unfocused: bool = False):
++        self.__pause_when_unfocused = pause_when_unfocused
++        self.__redraw_enabled = True
+         super().__init__(fullscreen=True, visible=False, resizable=True, caption="MoonDeck")
+         self.__overlays: list[Overlay] = []
+         self.__last_size = {}
+@@ -24,6 +26,19 @@ class Canvas(pyglet.window.Window, OverlayStack):
+     def on_show(self):
+         self.handle_resize(width=self.width, height=self.height)
+ 
++    def on_activate(self):
++        self.__redraw_enabled = True
++
++    def on_deactivate(self):
++        self.__redraw_enabled = False
++
++    def draw(self, dt: float) -> None:
++        # Pyglet swaps buffers after on_draw, even if on_draw does nothing.
++        # Skip the whole draw while Moonlight or another window has focus so
++        # background splash frames cannot trigger extra Gamescope refreshes.
++        if not self.__pause_when_unfocused or self.__redraw_enabled:
++            super().draw(dt)
++
+     def on_draw(self):
+         overlay_size = len(self.__overlays)
+         last_overlay = self.__overlays[overlay_size - 1] if overlay_size > 0 else None
+diff --git a/defaults/python/lib/splashscreen/splashscreen.py b/defaults/python/lib/splashscreen/splashscreen.py
+index 6c685a7..7a48b99 100644
+--- a/defaults/python/lib/splashscreen/splashscreen.py
++++ b/defaults/python/lib/splashscreen/splashscreen.py
+@@ -49,7 +49,8 @@ class AsyncEventLoop(pyglet.app.EventLoop):
+ 
+ 
+ class SplashScreen:
+-    def __init__(self):
++    def __init__(self, pause_when_unfocused: bool = False):
++        self.__pause_when_unfocused = pause_when_unfocused
+         script_dir = pathlib.Path(__file__).parent.resolve()
+         pyglet.font.add_file(str(script_dir.joinpath("./IBM_Plex_Sans/IBMPlexSans-VariableFont_wdth,wght.ttf")))
+ 
+@@ -60,7 +61,7 @@ class SplashScreen:
+         pyglet.app.event_loop = AsyncEventLoop()
+         self.__async_loop = pyglet.app.event_loop.run()
+ 
+-        self.canvas = Canvas() # Added to pyglet.app.windows
++        self.canvas = Canvas(pause_when_unfocused=self.__pause_when_unfocused) # Added to pyglet.app.windows
+         return self
+ 
+     async def __aexit__(self, exc_type, exc, tb):
+diff --git a/defaults/python/moondeckrun.py b/defaults/python/moondeckrun.py
+index 93ede0b..d480d49 100644
+--- a/defaults/python/moondeckrun.py
++++ b/defaults/python/moondeckrun.py
+@@ -50,7 +50,7 @@ async def run_with_suspend_resume(settings: MoonDeckAppRunnerSettings | Moonligh
+     loop.add_signal_handler(signal.SIGUSR1, suspend_requested.set)
+     loop.add_signal_handler(signal.SIGUSR2, resume_requested.set)
+ 
+-    async with SplashScreen() as screen:
++    async with SplashScreen(pause_when_unfocused=settings["pause_unfocused_splash"]) as screen:
+         async with MainScreenRunning(screen.canvas):
+             while True:
+                 suspend_requested.clear()
+diff --git a/src/components/runnersettingsview/runnersettingsview.tsx b/src/components/runnersettingsview/runnersettingsview.tsx
+index d62c2d0..e220c0a 100644
+--- a/src/components/runnersettingsview/runnersettingsview.tsx
++++ b/src/components/runnersettingsview/runnersettingsview.tsx
+@@ -34,6 +34,12 @@ export const RunnerSettingsView: FC = () => {
+           value={userSettings.runnerDebugLogs}
+           setValue={(value) => settingsManager.update((userSettings) => { userSettings.runnerDebugLogs = value; })}
+         />
++        <ToggleField
++          label="Pause splash rendering when unfocused"
++          description="Stops the background splash from drawing while Moonlight has focus. This can prevent extra refreshes with VRR in Gaming Mode. Applies on the next launch."
++          value={userSettings.pauseUnfocusedSplash}
++          setValue={(value) => settingsManager.update((userSettings) => { userSettings.pauseUnfocusedSplash = value; })}
++        />
+         <PythonExecutableSection />
+       </DialogControlsSection>
+       <DialogControlsSection>
+diff --git a/src/lib/settingsmanager.ts b/src/lib/settingsmanager.ts
+index 83a17d2..d213f74 100644
+--- a/src/lib/settingsmanager.ts
++++ b/src/lib/settingsmanager.ts
+@@ -164,6 +164,7 @@ export interface UserSettings {
+   enableMoondeckButtonPrompt: boolean;
+   hostSettings: { [key: string]: HostSettings };
+   runnerDebugLogs: boolean;
++  pauseUnfocusedSplash: boolean;
+   useMoonlightExec: boolean;
+   moonlightExecPath: string;
+   pythonExecPath: string;
+diff --git a/tests/splash-focus.py b/tests/splash-focus.py
+new file mode 100644
+index 0000000..34e81aa
+--- /dev/null
++++ b/tests/splash-focus.py
+@@ -0,0 +1,42 @@
++"""Check background splash rendering without requiring a display server."""
++import sys
++import types
++import unittest
++from pathlib import Path
++
++class FakeWindow:
++    def __init__(self, **kwargs):
++        self.frames = []
++    def set_mouse_visible(self, value):
++        pass
++    def draw(self, dt):
++        self.frames.append(dt)
++
++sys.modules['pyglet'] = types.SimpleNamespace(window=types.SimpleNamespace(Window=FakeWindow))
++sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'defaults/python'))
++from lib.splashscreen.canvas import Canvas
++
++class SplashFocusTest(unittest.TestCase):
++    def test_first_frame_background_and_return(self):
++        window = Canvas(pause_when_unfocused=True)
++        window.draw(1 / 60)
++        self.assertEqual(len(window.frames), 1, 'First draw must show the splash')
++        window.on_deactivate()
++        for _ in range(120):
++            window.draw(1 / 60)
++        self.assertEqual(len(window.frames), 1, 'Background window must not swap buffers')
++        window.on_activate()
++        window.draw(1 / 60)
++        self.assertEqual(len(window.frames), 2, 'Splash must render again when focused')
++
++    def test_disabled_preserves_background_draws(self):
++        window = Canvas()
++        window.on_deactivate()
++        window.draw(1 / 60)
++        self.assertEqual(len(window.frames), 1)
++        window.on_activate()
++        window.draw(1 / 60)
++        self.assertEqual(len(window.frames), 2)
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests/splash-settings.py b/tests/splash-settings.py
+new file mode 100644
+index 0000000..b18f1ba
+--- /dev/null
++++ b/tests/splash-settings.py
+@@ -0,0 +1,30 @@
++import asyncio
++import json
++from pathlib import Path
++import sys
++import tempfile
++
++sys.path.insert(0, str(Path('defaults/python').resolve()))
++sys.path.insert(0, str(Path('defaults/python/externals').resolve()))
++from lib.plugin.settings import UserSettingsManager
++
++async def main():
++    with tempfile.TemporaryDirectory() as directory:
++        manager = UserSettingsManager(Path(directory) / 'settings.json')
++        initial = manager._default_settings()
++        assert initial['pauseUnfocusedSplash'] is False
++        initial['version'] = 42
++        del initial['pauseUnfocusedSplash']
++        initial['gameSession']['resumeAfterSuspend'] = True
++        manager.filepath.write_text(json.dumps(initial))
++        migrated = await manager.read_or_update()
++        assert migrated['version'] == 43
++        assert migrated['pauseUnfocusedSplash'] is False
++        assert migrated['gameSession']['resumeAfterSuspend'] is True
++        assert migrated['clientId'] == initial['clientId']
++        migrated['pauseUnfocusedSplash'] = True
++        await manager.write(migrated)
++        assert (await manager.read_or_update())['pauseUnfocusedSplash'] is True
++        print('PASS: default off, migration preserves preferences/identity, enabled setting persists')
++
++asyncio.run(main())

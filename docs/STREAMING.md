@@ -29,7 +29,8 @@ can also open Moonlight directly when you want to stream the whole desktop.
 
 Start at a resolution and frame rate your network and host can sustain. Then
 increase to 4K120 and enable HDR if the complete path supports it. Enable VRR in
-Steam's display settings and in Moonlight. To check VRR, run a stable frame-rate test below the TV's maximum refresh rate
+Steam's display settings and in Moonlight, with Moonlight's V-sync enabled.
+To check VRR, run a stable frame-rate test below the TV's maximum refresh rate
 and watch its refresh-rate display follow the stream.
 
 Quit through the game's own menu to close it on the host and finish the session.
@@ -37,11 +38,18 @@ Disconnecting the stream can leave the game running on the host.
 
 ## Included versions
 
-The image bundles Decky 3.2.9, upstream MoonDeck 1.12.2, and
+The image bundles Decky 3.2.9, MoonDeck 1.12.2, and
 [Nonary's Moonlight 6.1.0-vrr17.1](https://github.com/Nonary/moonlight-qt/releases/tag/v6.1.0-vrr17.1),
-which adds VRR support. Moonlight is packaged in the OS so its libraries are
+which adds VRR support. Moonlight and MoonDeck include the
+[patches described here](../apps/README.md). Moonlight is packaged in the OS so its libraries are
 available immediately, without downloading a Flatpak runtime on first boot.
-Decky and MoonDeck retain their normal upstream update controls.
+MoonDeck's “Pause splash rendering when unfocused” option is enabled by default
+to avoid extra display refreshes during a stream. It can be changed under
+**MoonDeck → Settings → Runner Settings**.
+
+System updates include Moonlight and image-managed MoonDeck updates. Installing
+a different MoonDeck version through Decky replaces the patched plugin and opts
+that installation out of image-managed plugin updates.
 
 If you remove Decky or MoonDeck and want them to stay removed, create
 `/etc/moonmachine/disable-app-setup` before uninstalling. That disables the

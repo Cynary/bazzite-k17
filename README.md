@@ -15,7 +15,8 @@ straight from Steam's Gaming Mode. You can also install and play games locally.
 - Experimental HDMI support for **4K at 120 Hz, HDR, 10-bit colour and variable
   refresh rate (VRR)** on the K17. VRR lets the TV follow the game's frame rate
   instead of refreshing at a fixed speed.
-- Moonlight with VRR support, Decky (Steam's plugin menu), and upstream MoonDeck.
+- Moonlight with VRR support, Decky (Steam's plugin menu), and MoonDeck, with
+  [streaming fixes carried as patches](apps/README.md).
 - A custom kernel with BORE, which schedules CPU work with responsiveness in mind,
   and ThinLTO, which lets the compiler optimise across source files.
 - Graphical boot and updates through Bazzite's normal system-update controls.
