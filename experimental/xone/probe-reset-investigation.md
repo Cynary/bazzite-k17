@@ -1,7 +1,7 @@
 # Xbox adapter startup reset regression — 2026-09-19
 
-Status: the exact combined fix passed five consecutive settled warm restarts
-on this setup. This is not a general guarantee for every Xbox adapter.
+Status: the combined fix passed five consecutive settled warm restarts
+with the Xbox Wireless Adapter `045e:02e6` on the K17.
 
 ## Controlled version comparison
 

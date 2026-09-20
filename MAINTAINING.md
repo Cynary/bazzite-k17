@@ -22,8 +22,7 @@ The context includes the kernel RPMs, boot defaults and application installer.
 `apps/sources.json` records application versions, source links and SHA256 checksums.
 Downloads must match those checksums. MoonDeck's upstream download is a moving
 nightly asset even for its numbered plugin version: when it changes, review the
-new source and archive before updating the pinned checksum. A changed archive
-must fail the build rather than silently changing the release.
+new source and archive before updating the pinned checksum. The build rejects archives whose checksums differ.
 
 The build extracts Moonlight's AppImage into `/usr/lib/moonmachine`, bundles
 Decky/MoonDeck under `/usr/share/moonmachine`, and enables the first-boot setup.
@@ -35,8 +34,7 @@ It performs no network downloads and should not delay the Steam startup screen.
 
 Check upstream Bazzite changes before advancing the base digest. Compare the
 kernel, firmware, graphics stack and boot integration. Rebase the carried patches
-and rebuild the kernel and out-of-tree modules when needed. Matching a version
-number alone is not proof of compatibility.
+and rebuild the kernel and out-of-tree modules when needed. Verify compatibility by building and booting the updated image.
 
 The full kernel is necessary for BORE and ThinLTO. DKMS, which rebuilds additional
 modules after a kernel update, cannot replace those changes. Rust kernel modules

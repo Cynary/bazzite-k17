@@ -3,7 +3,7 @@
 **2026-09-19 update:** The combined adapter-specific startup reset and retry fix passed five warm restarts. See [the current investigation and limits](probe-reset-investigation.md). Earlier failures below remain part of the test history.
 
 A demonstrated defect, distinct from the still-unresolved USB overflow and
-command-stall observations. No claim that all restart failures are fixed.
+command-stall observations. The separate restart failure still needs investigation.
 
 Current OGC xonedo 982cbcb silently returns from add_client when the source MAC
 already has a client slot. That avoids allocating duplicate WCIDs, but it also

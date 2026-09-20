@@ -160,16 +160,14 @@ The examples were checked with aiohttp 3.14.3 and aiowebostv 0.10.0.
 
 The wake script contacts the receiver, sends TV wake packets, and tries LG's
 `tv/switchInput` command as soon as the TV accepts a connection. It doesn't wait
-for a Home Assistant state update before selecting HDMI 2. This approach reduced
-input-selection latency in testing, but can't eliminate Ethernet link startup
-or the TV's own standby recovery time. An input command alone is not a reliable
-way to wake a sleeping TV.
+for a Home Assistant state update before selecting HDMI 2. This reduced
+input-selection latency in testing. The PC still needs its network connection, and the TV needs time to wake before it can accept commands.
 
 The standby script checks the TV and receiver twice, then sends standby only if
 both are active and still select the configured inputs. An unreachable device,
 missing pairing key, or unknown input means **do nothing**. The checks have a
-three-second deadline. They aren't an atomic transaction: someone can still
-change input in the small interval between the final check and the commands.
+three-second deadline. Someone can still change input in the small interval
+between the final check and the commands.
 
 ### Install and pair
 
@@ -373,5 +371,4 @@ MOONMACHINE_AV_CONFIG="$PWD/examples/tv-control/av.example.json" \
 Check an adapter's video specifications before placing it in the video path:
 older models can prevent 4K120, HDR or VRR from passing through. A separate HDMI
 control connection may be possible, but routing to the PC's other input depends
-on the receiver and needs testing. It isn't a tested plug-and-play option for
-this image.
+on the receiver. This arrangement has not been tested with Moonmachine.

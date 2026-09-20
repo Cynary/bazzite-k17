@@ -1,8 +1,8 @@
 # Performance and boot measurements
 
 Moonmachine uses BORE and ThinLTO. See the [kernel measurements](experimental/bore-thinlto/README.md#checks-and-measurements)
-for the comparison, including results that did not improve. Synthetic latency
-measurements are not a promise of higher game FPS or lower streaming latency.
+for the scheduler latency comparison. Game FPS and end-to-end streaming latency
+have not been measured.
 
 ## Measured boot improvement
 
@@ -40,5 +40,4 @@ Btrfs remains the filesystem. The test system uses zstd:1 compression; compressi
 applies to new writes. No filesystem migration or whole-disk recompression is
 required by the image. Alternate filesystem performance has not been measured.
 
-Earlier scheduler comparisons are retained in [tuning results](experimental/tuning/README.md).
-Those results describe experiments, not additional image variants.
+Earlier scheduler comparisons are recorded in [tuning results](experimental/tuning/README.md).

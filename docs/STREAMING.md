@@ -27,13 +27,11 @@ can also open Moonlight directly when you want to stream the whole desktop.
 
 Start at a resolution and frame rate your network and host can sustain. Then
 increase to 4K120 and enable HDR if the complete path supports it. Enable VRR in
-Steam's display settings and in Moonlight. A TV displaying “VRR on” alone is not
-proof that its refresh rate is following the stream; use a stable frame-rate test
-and check the TV's refresh-rate display.
+Steam's display settings and in Moonlight. To check VRR, run a stable frame-rate test below the TV's maximum refresh rate
+and watch its refresh-rate display follow the stream.
 
-Quitting a game through its own menu is the straightforward way to finish a
-session. Disconnecting a stream and stopping a host game are different operations;
-don't assume a disconnect has closed the game on the host.
+Quit through the game's own menu to close it on the host and finish the session.
+Disconnecting the stream can leave the game running on the host.
 
 ## Included versions
 
