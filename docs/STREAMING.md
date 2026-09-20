@@ -6,17 +6,19 @@ you choose. MoonDeck Buddy runs on the gaming PC and handles launching it.
 
 ## On your gaming PC
 
-1. Install [Sunshine](https://docs.lizardbyte.dev/projects/sunshine/latest/) and
-   finish its setup. It captures and streams your games.
+1. Install [Vibepollo](https://github.com/Nonary/Vibepollo), or your preferred
+   Sunshine fork, and finish its setup. This is the streaming server that captures
+   video and audio from your gaming PC.
 2. Install [MoonDeck Buddy](https://github.com/FrogTheFrog/moondeck-buddy/releases)
    and let it run in the background. Follow its setup instructions, including
-   adding the **MoonDeckStream** application to Sunshine.
+   adding the **MoonDeckStream** application to your streaming server.
 3. Sign into Steam. A wired network connection is a good starting point for both PCs.
 
 ## On Moonmachine
 
 1. Open Moonlight from the desktop application menu. Select your gaming PC and
-   enter the displayed pairing PIN in Sunshine's web interface on that PC.
+   enter the displayed pairing PIN in your streaming server's web interface on
+   that PC.
 2. Return to Gaming Mode. Open the quick-access menu, select Decky, then MoonDeck.
 3. Add your host in MoonDeck and pair with Buddy, following the prompts. This is
    a separate pairing from Moonlight's.
