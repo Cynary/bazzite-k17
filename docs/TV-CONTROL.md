@@ -173,16 +173,29 @@ change input in the small interval between the final check and the commands.
 
 ### Install and pair
 
-Run these commands from a checkout of this repository. They install only the
-example scripts, not any credentials. Python 3.11 or newer is required.
+No Git checkout is needed. Download the two scripts and example configuration
+with `wget`, then install them locally. Python 3.11 or newer is required. The URL
+is pinned to a revision so all three files come from the same version.
 
 ```sh
+(
+set -eu
+av_download_dir=$(mktemp -d)
+trap 'rm -rf "$av_download_dir"' EXIT
+av_source='https://raw.githubusercontent.com/Cynary/bazzite-k17/78a94aa31c0a2c1308c79604052d9313d5b506c2/examples/tv-control'
+for file in direct_av.py sleep_av.py av.example.json; do
+  wget -O "$av_download_dir/$file" "$av_source/$file"
+done
 sudo install -d -m 700 /var/lib/moonmachine-av
 sudo install -d /etc/moonmachine
-sudo install -m 644 examples/tv-control/direct_av.py examples/tv-control/sleep_av.py /var/lib/moonmachine-av/
-sudo install -m 600 examples/tv-control/av.example.json /etc/moonmachine/av.json
+sudo install -m 644 "$av_download_dir/direct_av.py" "$av_download_dir/sleep_av.py" /var/lib/moonmachine-av/
+# Keep an existing configuration when updating the scripts.
+if ! sudo test -e /etc/moonmachine/av.json; then
+  sudo install -m 600 "$av_download_dir/av.example.json" /etc/moonmachine/av.json
+fi
 sudo python3 -m venv /var/lib/moonmachine-av/venv
 sudo /var/lib/moonmachine-av/venv/bin/pip install 'aiohttp>=3.11,<4' 'aiowebostv>=0.4,<1'
+)
 sudoedit /etc/moonmachine/av.json
 ```
 
