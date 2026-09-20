@@ -366,9 +366,43 @@ MOONMACHINE_AV_CONFIG="$PWD/examples/tv-control/av.example.json" \
   python3 -m unittest discover -s examples/tv-control -p 'test_*.py'
 ```
 
-## Using a USB CEC adapter instead
+## USB CEC adapters and HDMI 2.1
 
-Check an adapter's video specifications before placing it in the video path:
-older models can prevent 4K120, HDR or VRR from passing through. A separate HDMI
-control connection may be possible, but routing to the PC's other input depends
-on the receiver. This arrangement has not been tested with Moonmachine.
+Keep a Pulse-Eight USB CEC adapter out of the main video path. Its manufacturer
+specifies a maximum of **4K60 4:2:0** when connected inline, below the bandwidth
+needed for Moonmachine's 4K120 10-bit 4:4:4 output. See
+[Pulse-Eight's bandwidth limits](https://support.pulse-eight.com/support/solutions/articles/30000053070/thumbs_up).
+
+As of September 19, 2026, we haven't found a standalone USB CEC adapter with
+manufacturer-confirmed HDMI 2.1 FRL passthrough for this setup. Products that
+advertise CEC *passthrough* may simply pass existing CEC messages along; the PC
+also needs a way to send commands.
+
+One option to experiment with is a separate control connection:
+
+- Connect the PC's HDMI 2.1 FRL output directly to the TV or receiver for video.
+- Connect the USB CEC adapter to the PC over USB and to a spare HDMI input for
+  control, following the adapter manufacturer's wiring instructions.
+
+[Pulse-Eight describes this separate-input arrangement](https://www.pulse-eight.com/p/104/usb-hdmi-cec-adapter).
+The input routing needs extra work: announcing the adapter as the active source
+can select its own HDMI input, leaving you with no picture from the PC. Your
+startup script needs to select the **main video connection's input**, including
+the receiver input when applicable. For example, with video on receiver AUX2
+and the receiver connected to TV HDMI2, the target remains AUX2 + HDMI2 even
+if the CEC adapter is plugged into another socket. This requires routing commands
+for that HDMI topology, or network input-selection commands like those above.
+Disable automatic active-source announcements that would switch back to the
+adapter's input. This arrangement still needs testing with Moonmachine.
+
+There are also video converters with CEC support. The
+[Club3D CAC-2505](https://www.club-3d.com/shop/cac-2505-1879) advertises HDMI 2.1
+output and CEC through a firmware update. It takes DisplayPort video over USB-C,
+so it replaces the native HDMI output path. Linux CEC access and the full
+4K120/HDR/VRR combination need testing with the GPU, driver and adapter firmware.
+
+Professional controllers are another category: the
+[Crestron HD-CTL-101](https://www.crestron.com/getmedia/e5ec8200-37bc-47f7-a4c5-d4847481d4af/ss_HD-CTL-101)
+lists HDMI 2.1, 8K60 and CEC control over a network-managed device. Its datasheet
+doesn't specify VRR or FRL rates, so those specifications alone don't establish
+compatibility with this setup.

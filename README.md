@@ -37,8 +37,8 @@ the signal.
 
 The main missing console convenience is **CEC**—the HDMI feature that turns on a
 TV and selects its input. The K17 does not expose usable CEC control in this setup.
-You can add similar behaviour over your network, or investigate a USB CEC adapter.
-See [TV and receiver control](docs/TV-CONTROL.md) for an example you can adapt.
+You can add similar behaviour over your network. See
+[TV and receiver control](docs/TV-CONTROL.md) for setup examples.
 
 ## Start streaming
 
