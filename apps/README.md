@@ -7,7 +7,10 @@ longer applies stops the build.
 * **Moonlight:** reuse the DRM PRIME mapping created when waiting for a VAAPI
   frame. This avoids synchronizing the same Intel decoder surface again after
   later frames have started reading it. The change is carried against Nonary's
-  VRR fork, version 6.1.0-vrr17.1.
+  VRR fork, version 6.1.0-vrr17.1. Buffer release now uses attributable
+  readiness misses and preserves clean evidence across skipped frames.
+  Gamescope WSI FIFO is recognized as protected presentation, removing the
+  extra software spacing floor that capped a 116 FPS stream near 115.4 FPS.
 * **MoonDeck:** the pinned upstream commit includes host-game closing and
   pausing the splash while it is unfocused. Both changes are now upstream, so
   the image no longer carries a MoonDeck patch. The upstream splash behavior
@@ -55,9 +58,14 @@ The default remains until uncapped scheduling has broader presentation-mode
 validation. The diagnostic Gamescope binary and local tracing settings are not
 part of the image.
 
-The separate investigation into inaccurate Gamescope presentation timestamps is
-not yet a completed patch. It must preserve early application-progress
-notifications while reporting actual output timing for the corresponding frame.
+Gamescope WSI now reports the first measured DRM page flip for each displayed
+commit. Early Wayland application-progress notifications remain unchanged.
+Repeated scanout does not overwrite a frame's timestamp, and discarded commits
+do not receive an invented display time. The change currently covers the DRM
+backend; other backends retain their existing behavior.
+
+See [the timing validation](../docs/TIMING-VALIDATION.md) for measurements and
+remaining test limits.
 
 ## Intel 4:4:4 import
 

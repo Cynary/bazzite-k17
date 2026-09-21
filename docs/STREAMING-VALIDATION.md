@@ -92,3 +92,6 @@ scrubs passed, including one after the build. The SSD short self-test and a
 120-second memory verification workload passed. No further unexpected reset or
 checksum error occurred during these checks, but their cause remains unknown.
 Existing firmware ACPI warnings and Intel Ethernet PTM timeout messages remain.
+
+The subsequent [timing investigation](TIMING-VALIDATION.md) corrected the queue
+backlog and Gamescope presentation feedback.
