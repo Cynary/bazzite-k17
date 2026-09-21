@@ -6,7 +6,7 @@ Propeller are not enabled. Image publishing is described in [MAINTAINING.md](../
 ## Inputs
 
 - Kernel source: https://github.com/Cynary/linux-k17-frl/tree/k17-bore-thinlto
-- Exact source commit: `8cff674dac5e46b6452d4349ed3f3483d6cff1bc`.
+- Exact source commit: `b6a571d6677f23a2893d95a30d102cc44abc888a`.
 - OGC base: `43d13ad09df8a544c032f75dc84fddd2aefe8f76`.
 - BORE source: `firelzrd/bore-scheduler`, commit `076b60f7b147827e89da77601662751a36c57831`.
 - Xone: `982cbcb019ae4d2bee5ae69385223409ee555c88` plus the two patches in `xone-patches/`.

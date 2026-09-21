@@ -1,0 +1,192 @@
+Subject: [PATCH] drm/intel/hdmi: monitor and recover lost FRL sink state
+
+An AVR can retain HPD and EDID while its downstream TV is unavailable,
+or lose its FRL configuration when powering up. Gamescope can keep the
+same active mode while the receiver reports FRL disabled and no lane lock.
+The cached source-side trained flag alone does not establish link health.
+
+Use the encoder delayed link-check worker to inspect sink readiness,
+configuration, lane locks and retraining requests while FRL is active.
+Retry a full modeset for a lost link once the sink is ready. Stop checking
+when the output is disabled; existing work cancellation handles suspend.
+
+Do not lower the FRL rate cap on transport errors or training timeouts;
+only an explicit sink rate-change request should lower it.
+
+Developed with Codex. Validated on a K17 with five receiver power cycles
+and two sleep/resume cycles; see docs/DISPLAY-RECOVERY.md for limits.
+
+
+Keep the FRL timing engine enabled on early training failure so that
+vblank and subsequent recovery commits can complete.
+
+---
+
+--- a/drivers/gpu/drm/i915/display/intel_ddi.c
++++ b/drivers/gpu/drm/i915/display/intel_ddi.c
+@@ -49,6 +49,7 @@
+ #include "intel_ddi.h"
+ #include "intel_ddi_buf_trans.h"
+ #include "intel_de.h"
++#include "intel_display_driver.h"
+ #include "intel_display_power.h"
+ #include "intel_display_regs.h"
+ #include "intel_display_types.h"
+@@ -3596,10 +3597,12 @@
+ 			 * The atomic commit still needs a running transcoder and
+ 			 * vblank events even if the sink cannot receive the stream.
+ 			 * Leave FRL configured until the normal disable sequence
+-			 * and let userspace retry the failed link.
++			 * and retry the link after the sink becomes ready.
+ 			 */
+ 			schedule_work(&intel_connector->modeset_retry_work);
+ 		}
++		if (crtc_state->frl.enable)
++			intel_encoder_link_check_queue_work(encoder, 2000);
+ 		intel_hdmi_frl_cfg_write(crtc_state);
+ 		intel_hdmi_frl_dfm_write(crtc_state);
+ 		intel_ddi_enable_transcoder_and_vblank(state, encoder, crtc_state);
+@@ -4879,15 +4882,100 @@
+ 	return intel_modeset_commit_pipes(display, BIT(crtc->pipe), ctx);
+ }
+ 
++/* Check the sink as receivers can lose FRL state without dropping HPD. */
++static int intel_hdmi_recover_frl(struct intel_encoder *encoder,
++				struct drm_modeset_acquire_ctx *ctx)
++{
++	struct intel_display *display = to_intel_display(encoder);
++	struct intel_hdmi *hdmi = enc_to_intel_hdmi(encoder);
++	struct drm_connector_state *conn_state;
++	struct intel_crtc_state *crtc_state;
++	struct intel_crtc *crtc;
++	u8 status, config, update, lock_mask;
++	int ret;
++
++	ret = drm_modeset_lock(&display->drm->mode_config.connection_mutex, ctx);
++	if (ret)
++		return ret;
++
++	conn_state = hdmi->attached_connector->base.state;
++	crtc = to_intel_crtc(conn_state->crtc);
++	if (!crtc)
++		return 0;
++	ret = drm_modeset_lock(&crtc->base.mutex, ctx);
++	if (ret)
++		return ret;
++
++	crtc_state = to_intel_crtc_state(crtc->base.state);
++	if (!crtc_state->hw.active ||
++	    !intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI) ||
++	    !crtc_state->frl.enable)
++		return 0;
++
++	if (hdmi->attached_connector->base.status != connector_status_connected)
++		goto retry;
++
++	if (conn_state->commit &&
++	    !try_wait_for_completion(&conn_state->commit->hw_done))
++		goto retry;
++
++	/* A receiver may retain HPD/EDID while the downstream TV is asleep. */
++	ret = drm_scdc_readb(hdmi->attached_connector->base.ddc,
++			     SCDC_STATUS_FLAGS_0, &status);
++	if (ret < 0 || !(status & SCDC_FLT_READY))
++		goto retry;
++
++	ret = drm_scdc_readb(hdmi->attached_connector->base.ddc,
++			     SCDC_CONFIG_1, &config);
++	if (ret < 0)
++		goto retry;
++	ret = drm_scdc_readb(hdmi->attached_connector->base.ddc,
++			     SCDC_UPDATE_0, &update);
++	if (ret < 0)
++		goto retry;
++
++	lock_mask = SCDC_CH_LOCK_MASK;
++	if (crtc_state->frl.required_lanes == 4)
++		lock_mask |= SCDC_LANE3_LOCKED;
++	if (hdmi->frl.trained && (config & SCDC_FRL_RATE_MASK) &&
++	    (status & lock_mask) == lock_mask && !(update & SCDC_FLT_UPDATE))
++		goto retry;
++
++	drm_info(display->drm,
++		 "FRL sink state lost: status=%#x config=%#x update=%#x bpp=%d rate=%d\n",
++		 status, config, update, crtc_state->pipe_bpp,
++		 crtc_state->frl.required_rate * crtc_state->frl.required_lanes);
++	drm_info(display->drm, "[CONNECTOR:%d:%s] retrying failed FRL link\n",
++		 hdmi->attached_connector->base.base.id,
++		 hdmi->attached_connector->base.name);
++	ret = intel_modeset_commit_pipes(display, BIT(crtc->pipe), ctx);
++	if (ret == -EDEADLK)
++		return ret;
++	if (!ret && hdmi->frl.trained)
++		drm_info(display->drm, "FRL link recovery completed\n");
++
++retry:
++	intel_encoder_link_check_queue_work(encoder, 2000);
++	return 0;
++}
++
+ static void intel_ddi_link_check(struct intel_encoder *encoder)
+ {
+ 	struct intel_display *display = to_intel_display(encoder);
+ 	struct intel_digital_port *dig_port = enc_to_dig_port(encoder);
+ 
+-	/* TODO: Move checking the HDMI link state here as well. */
+-	drm_WARN_ON(display->drm, !dig_port->dp.attached_connector);
+-
+-	intel_dp_link_check(encoder);
++	struct drm_modeset_acquire_ctx ctx;
++	int ret;
++
++	if (!intel_display_driver_check_access(display))
++		return;
++
++	if (dig_port->hdmi.attached_connector) {
++		intel_modeset_lock_ctx_retry(&ctx, NULL, 0, ret)
++			ret = intel_hdmi_recover_frl(encoder, &ctx);
++	}
++	if (dig_port->dp.attached_connector)
++		intel_dp_link_check(encoder);
+ }
+ 
+ static enum intel_hotplug_state
+--- a/drivers/gpu/drm/i915/display/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/display/intel_hdmi.c
+@@ -4114,7 +4114,7 @@
+ 			    intel_hdmi->frl.rate_gbps);
+ 		return 0;
+ 	case FRL_TRAIN_STOP:
+-		next_rate = 0;
++		/* A timeout or absent sink does not reduce its link capability. */
+ 		break;
+ 	case FRL_CHANGE_RATE:
+ 		next_rate = get_next_frl_rate(req_rate);
+@@ -4131,18 +4131,21 @@
+ ltsl_tmds_mode:
+ 	if (crtc_state->frl.enable && !intel_hdmi->frl.trained)
+ 		drm_err(display->drm,
+-			"[CONNECTOR:%d:%s] FRL Training Failed with rate=%d\n",
++			"[CONNECTOR:%d:%s] FRL Training Failed: rate=%d state=%d cfg=%#x\n",
+ 			connector->base.id, connector->name,
+-			req_rate);
++			req_rate, status,
++			intel_de_read(display, TRANS_HDMI_FRL_CFG(display,
++							 crtc_state->cpu_transcoder)));
+ 
+ 	/*
+-	 * Stop sending training patterns so that the transcoder can run while
+-	 * userspace recovers the failed link. This does not mark the sink link
+-	 * as trained; the failure is still returned to the caller.
++	 * Keep the FRL timing engine running even if preparation failed before
++	 * LTS3 enabled it. Otherwise the transcoder cannot generate vblank and
++	 * subsequent recovery commits time out. Stop sending training patterns
++	 * without marking the sink as trained; return the failure to the caller.
+ 	 */
+ 	intel_de_rmw(display,
+ 		     TRANS_HDMI_FRL_CFG(display, crtc_state->cpu_transcoder),
+-		     0, TRANS_HDMI_FRL_TRAINING_COMPLETE);
++		     0, TRANS_HDMI_FRL_ENABLE | TRANS_HDMI_FRL_TRAINING_COMPLETE);
+ 
+ 	return -EINVAL;
+ }

@@ -9,3 +9,6 @@ sign-off has been added by the agent.
 The current complete kernel source, including subsequent fixes and BORE, is
 [Cynary/linux-k17-frl](https://github.com/Cynary/linux-k17-frl/tree/k17-bore-thinlto).
 See [kernel build notes](../experimental/bore-thinlto/README.md) for pinned inputs.
+
+Patch 0053 adds active FRL link monitoring and recovery after receiver state loss.
+See [display recovery](../docs/DISPLAY-RECOVERY.md) for behavior and validation.

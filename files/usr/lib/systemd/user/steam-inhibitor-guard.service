@@ -1,0 +1,10 @@
+[Unit]
+Description=Keep Steam suspend UI consistent with system sleep inhibitors
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/libexec/steam-inhibitor-guard.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

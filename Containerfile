@@ -19,7 +19,7 @@ RUN bash /build-input/build.sh
 FROM ${BASE_IMAGE}
 LABEL org.opencontainers.image.title="Moonmachine" \
       org.opencontainers.image.description="Experimental full kernel with K17 FRL/VRR, BORE 6.8.0 and ThinLTO; no AutoFDO" \
-      io.cynary.k17.source-commit="8cff674dac5e46b6452d4349ed3f3483d6cff1bc"
+      io.cynary.k17.source-commit="b6a571d6677f23a2893d95a30d102cc44abc888a"
 COPY files/ /
 COPY channel/cosign.pub /etc/pki/containers/cynary-k17.pub
 COPY channel/cynary-k17.yaml /etc/containers/registries.d/cynary-k17.yaml
@@ -32,7 +32,7 @@ RUN /tmp/k17-bore-install.sh && rm -rf /tmp/k17-bore-rpms /tmp/k17-bore-install.
 COPY apps/ /tmp/moonmachine-apps/
 COPY --from=applications --chown=0:0 /out/ /tmp/moonmachine-built/
 RUN dnf5 install -y qt6-qtbase qt6-qtdeclarative qt6-qtsvg SDL2_ttf sdl2-compat \
-    libdav1d libshaderc lcms2 xxhash-libs
+    libdav1d libshaderc lcms2 xxhash-libs python3-gobject libsoup3
 RUN python3 /tmp/moonmachine-apps/install.py && rm -rf /tmp/moonmachine-apps
 COPY tests/test_app_setup.py /tmp/test_app_setup.py
 RUN python3 /tmp/test_app_setup.py && rm /tmp/test_app_setup.py

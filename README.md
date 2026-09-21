@@ -19,6 +19,7 @@ straight from Steam's Gaming Mode. You can also install and play games locally.
   [streaming fixes carried as patches](apps/README.md).
 - A custom kernel with BORE, which schedules CPU work with responsiveness in mind,
   and ThinLTO, which lets the compiler optimise across source files.
+- [HDMI recovery and Steam sleep handling](docs/DISPLAY-RECOVERY.md).
 - Graphical boot and updates through Bazzite's normal system-update controls.
 - [MediaTek Wi-Fi and Xbox Wireless Adapter fixes](docs/HARDWARE-FIXES.md)
   for firmware loading and controller reconnection after restarting.
