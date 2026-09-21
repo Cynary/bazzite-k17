@@ -19,8 +19,9 @@ zero repeated base frames. Presentation calls had a median of 0.607 ms, p99 of
 
 The runtime test binary included diagnostic counters, which are excluded from
 the PR. Other GPUs, multiple outputs, and uncapped mailbox/immediate games were
-not tested. The image therefore retains the convar workaround rather than
-shipping this experimental Gamescope binary.
+not tested. The image retains the convar workaround as its default. The September 21
+recipe also builds the FIFO patch without the diagnostic counters. Hardware
+validation of that assembled image is recorded with its release.
 
 ## Application packaging
 

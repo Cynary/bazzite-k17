@@ -35,21 +35,21 @@ To check VRR, run a stable frame-rate test below the TV's maximum refresh rate
 and watch its refresh-rate display follow the stream.
 
 Quit through the game's own menu to close it on the host and finish the session.
-Disconnecting the stream can leave the game running on the host.
+To also close the host game when you exit from local Steam, enable **Close Steam
+app on host on user game exit** in MoonDeck's game-session settings. This applies
+after the game has launched; it does not cancel an installation or update.
 
 ## Included versions
 
 The image bundles Decky 3.2.9, MoonDeck 1.12.2, and
 [Nonary's Moonlight 6.1.0-vrr17.1](https://github.com/Nonary/moonlight-qt/releases/tag/v6.1.0-vrr17.1),
-which adds VRR support. Moonlight and MoonDeck include the
-[patches described here](../apps/README.md). Moonlight is packaged in the OS so its libraries are
+which adds VRR support. See [application versions and patches](../apps/README.md). Moonlight is packaged in the OS so its libraries are
 available immediately, without downloading a Flatpak runtime on first boot.
-MoonDeck's “Pause splash rendering when unfocused” option is enabled by default
-to avoid extra display refreshes during a stream. It can be changed under
-**MoonDeck → Settings → Runner Settings**.
+The bundled upstream MoonDeck pauses its background splash automatically while
+Moonlight has focus, avoiding extra display refreshes during the stream.
 
 System updates include Moonlight and image-managed MoonDeck updates. Installing
-a different MoonDeck version through Decky replaces the patched plugin and opts
+a different MoonDeck version through Decky replaces the bundled plugin and opts
 that installation out of image-managed plugin updates.
 
 If you remove Decky or MoonDeck and want them to stay removed, create

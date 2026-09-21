@@ -11,7 +11,7 @@ longer applies stops the build.
 * **MoonDeck:** the pinned upstream commit includes host-game closing and
   pausing the splash while it is unfocused. Both changes are now upstream, so
   the image no longer carries a MoonDeck patch. The upstream splash behavior
-  is automatic; the earlier experimental toggle is not needed.
+  is automatic.
 * **Gamescope:** carry the small FIFO scheduling fix from
   [PR #24](https://github.com/OpenGamingCollective/gamescope/pull/24).
   Build the compositor and its Vulkan WSI layer together from the pinned OGC

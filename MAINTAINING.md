@@ -19,7 +19,7 @@ podman build -t localhost/moonmachine:test /path/to/empty-context
 ```
 
 The context includes the kernel RPMs, boot defaults and application sources/patches.
-The first build stage compiles patched Moonlight and MoonDeck. See
+The first build stage compiles patched Moonlight, MoonDeck and Gamescope. See
 [the application patch notes](apps/README.md) for version pins, patch removal,
 and how installed plugins receive updates. Decky and the Python dependency bundle
 are checksum-verified downloads. MoonDeck's dependency archive is a moving

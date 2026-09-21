@@ -8,7 +8,6 @@ export LD_LIBRARY_PATH="$PREFIX/lib:$PREFIX/lib64"
 export HOME=/tmp/moonmachine-build-home
 mkdir -p "$HOME"
 mkdir -p /build "$PREFIX"
-python3 "$here/checkout.py" /build
 
 # Build the compositor and its matching WSI layer from the same pinned revision.
 cd /build/gamescope
@@ -65,7 +64,9 @@ export CPATH="$PREFIX/include"
 CPATH="$PREFIX/include" qmake6 ../tests/tests.pro CONFIG+=tests
 make -j"$JOBS"
 export QT_QPA_PLATFORM=offscreen
-for test in tst_vrrtimingcontroller tst_vrrratepolicy tst_vrrpacingworker tst_vrrreplayconfig; do
+for test in tst_vrrtimingcontroller tst_vrrratepolicy tst_vrrpacingworker tst_vrrreplayconfig \
+    tst_vulkantiming tst_plvkpresentation tst_plvkswapchain tst_gamescopecomposition \
+    tst_waylandfeedback tst_incomingframetiming tst_gamescoperepaint; do
     binary=$(find . -type f -executable -name "$test" -print -quit)
     test -n "$binary"
     "$binary"

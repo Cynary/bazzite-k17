@@ -12,18 +12,21 @@ RUN dnf5 install -y gcc gcc-c++ git make cmake meson ninja-build nasm \
     libX11-devel libxcb-devel nodejs npm python3 curl tar xz \
     libXdamage-devel libXcomposite-devel libXcursor-devel libXrender-devel libXext-devel \
     libXfixes-devel libXxf86vm-devel libXtst-devel libXres-devel libXmu-devel libXi-devel \
-    libxkbcommon-devel libcap-devel pixman-devel systemd-devel libinput-devel luajit-devel \
+    libxkbcommon-devel libcap-devel pixman-devel systemd-devel libinput-devel luajit-devel catch-devel \
     libdisplay-info-devel libliftoff-devel libei-devel libdecor-devel pipewire-devel \
     xcb-util-wm-devel xcb-util-errors-devel xcb-util-renderutil-devel xcb-util-image-devel \
     xcb-util-keysyms-devel hwdata libseat-devel libXrandr-devel xorg-x11-server-Xwayland-devel \
     spirv-headers-devel spirv-tools-devel
 RUN npm install --global --prefix /usr/lib/moonmachine-build-tools --cache /tmp/npm-cache pnpm@11.24.0
 ENV PATH="/usr/lib/moonmachine-build-tools/bin:${PATH}"
-COPY apps/ /build-input/
+COPY apps/sources.json apps/checkout.py /build-input/
+COPY apps/patches/ /build-input/patches/
 # Separate build processes from the logged-in user's process-kill shortcuts.
 RUN mkdir -p /build /out /usr/lib/moonmachine /tmp/moonmachine-build-home \
     && chown 1001:1001 /build /out /usr/lib/moonmachine /tmp/moonmachine-build-home
 USER 1001:1001
+RUN python3 /build-input/checkout.py /build
+COPY apps/ /build-input/
 RUN bash /build-input/build.sh
 FROM ${BASE_IMAGE}
 LABEL org.opencontainers.image.title="Moonmachine" \
