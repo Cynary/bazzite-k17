@@ -15,6 +15,11 @@ between captures; no bandwidth or buffer-cap setting was lowered.
 | Median client-added interval error | 334 us | 37 us |
 | Mean client-added interval error | 601 us | 653 us |
 
+Correlating decoder output with measured DRM display timestamps gave a mean
+29.42 ms before and 24.01 ms after the change. This is not network-to-photon
+latency: it excludes the host/network portion and panel response. It also shows
+that the smaller queue statistic was not just a transfer of waiting elsewhere.
+
 The application's whole-session statistic, including startup, reported **1.92 ms
 average frame queue delay** with the fix. Occasional timing variation remains;
 the mean interval error did not improve in this capture. This was an automated
