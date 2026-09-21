@@ -11,7 +11,7 @@ import zipfile
 here = Path(__file__).resolve().parent
 sources = json.loads((here / 'sources.json').read_text())
 root = Path(sys.argv[1])
-for name in ('moonlight', 'moondeck'):
+for name in ('moonlight', 'moondeck', 'gamescope'):
     source = sources[name]
     dest = root / name
     subprocess.run(['git', 'init', str(dest)], check=True)

@@ -10,6 +10,14 @@ mkdir -p "$HOME"
 mkdir -p /build "$PREFIX"
 python3 "$here/checkout.py" /build
 
+# Build the compositor and its matching WSI layer from the same pinned revision.
+cd /build/gamescope
+meson setup build --prefix=/usr --libdir=lib64 --buildtype=release \
+    -Denable_openvr_support=false -Davif_screenshots=disabled -Dsdl2_backend=disabled
+ninja -C build -j"$JOBS"
+meson test -C build --print-errorlogs
+DESTDIR=/out/gamescope meson install -C build
+
 # Match the codecs and libplacebo revision used by Nonary's AppImage build.
 # Qt, SDL and graphics-loader libraries come from the same Bazzite base as the OS.
 fetch() {
@@ -67,8 +75,7 @@ cd /build/moondeck
 pnpm install --frozen-lockfile
 pnpm run build
 pnpm run test
-python3 tests/splash-focus.py
-python3 tests/splash-settings.py
+python3 -m compileall -q defaults/python
 # checkout.py supplies the checksum-pinned upstream Python dependency bundle;
 # the frontend and backend themselves both come from the patched checkout.
 mkdir -p /out/moondeck
@@ -85,5 +92,5 @@ chmod +x /out/moonlight/AppRun
 # Preserve corresponding patched sources and build inputs with the artifact.
 mkdir -p /out/sources
 tar --exclude=.git --exclude=node_modules --exclude=build --exclude=build-native --exclude=test-native \
-    -C /build -cJf /out/sources/applications.tar.xz moonlight moondeck ffmpeg libplacebo
+    -C /build -cJf /out/sources/applications.tar.xz moonlight moondeck ffmpeg libplacebo gamescope
 cp -a "$here" /out/sources/build

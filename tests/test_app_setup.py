@@ -30,7 +30,7 @@ class SetupTests(unittest.TestCase):
                 self.assertFalse(migrated)
                 self.assertTrue(data['useMoonlightExec'])
                 self.assertEqual(data['moonlightExecPath'], '/usr/bin/moonlight')
-                self.assertTrue(data['pauseUnfocusedSplash'])
+                self.assertIn('closeHostAppOnExit', data['gameSession'])
                 identities.append(data['clientId'])
                 self.assertTrue((home / '.local/share/Steam/.cef-enable-remote-debugging').exists())
                 self.assertTrue((home / 'homebrew/services/PluginLoader').stat().st_mode & 0o111)

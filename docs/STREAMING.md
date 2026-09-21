@@ -10,7 +10,8 @@ you choose. MoonDeck Buddy runs on the gaming PC and handles launching it.
    Sunshine fork, and finish its setup. This is the streaming server that captures
    video and audio from your gaming PC.
 2. Install [MoonDeck Buddy](https://github.com/FrogTheFrog/moondeck-buddy/releases)
-   and let it run in the background. Follow its setup instructions, including
+   **1.11.0 or newer** (currently a prerelease), which supplies the protocol used
+   by the bundled MoonDeck. Let it run in the background. Follow its setup instructions, including
    adding the **MoonDeckStream** application to your streaming server.
 3. Sign into Steam. A wired network connection is a good starting point for both PCs.
 

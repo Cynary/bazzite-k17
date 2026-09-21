@@ -23,6 +23,7 @@ with tempfile.TemporaryDirectory() as tmp:
         raise RuntimeError('Decky checksum mismatch')
     shutil.copy2(dest, share / 'PluginLoader')
     (share / 'PluginLoader').chmod(0o755)
+shutil.copytree(built / 'gamescope', '/', dirs_exist_ok=True)
 shutil.copytree(built / 'moonlight', '/usr/lib/moonmachine/moonlight')
 shutil.copytree(built / 'moondeck', share / 'moondeck')
 shutil.copytree(built / 'sources', share / 'sources')
@@ -33,7 +34,6 @@ defaults = UserSettingsManager('/unused')._default_settings()
 defaults['clientId'] = ''  # Unique identity is generated at first boot.
 defaults['useMoonlightExec'] = True
 defaults['moonlightExecPath'] = '/usr/bin/moonlight'
-defaults['pauseUnfocusedSplash'] = True
 (share / 'moondeck-defaults.json').write_text(json.dumps(defaults, indent=2) + '\n')
 shutil.rmtree(built)
 subprocess.run(['systemctl', 'enable', 'moonmachine-setup.service'], check=True)

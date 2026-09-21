@@ -2,12 +2,21 @@
 ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite-deck@sha256:050572c864322f567a223741922f70932d2a888f34f6b839f12e06ebd8e08f64
 FROM ${BASE_IMAGE} AS applications
 RUN sed -i '/^exclude=/d' /etc/dnf/repos.override.d/*.repo
+# The build needs Fedora's Xwayland headers; the runtime keeps Bazzite's Xwayland.
+RUN dnf5 versionlock delete xorg-x11-server-Xwayland
 RUN dnf5 install -y gcc gcc-c++ git make cmake meson ninja-build nasm \
     qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtsvg-devel \
     SDL2-devel SDL2_ttf-devel openssl-devel opus-devel libva-devel libvdpau-devel \
     libdrm-devel vulkan-loader-devel vulkan-headers libshaderc-devel glslang-devel \
     lcms2-devel xxhash-devel libdav1d-devel wayland-devel wayland-protocols-devel \
-    libX11-devel libxcb-devel nodejs npm python3 curl tar xz
+    libX11-devel libxcb-devel nodejs npm python3 curl tar xz \
+    libXdamage-devel libXcomposite-devel libXcursor-devel libXrender-devel libXext-devel \
+    libXfixes-devel libXxf86vm-devel libXtst-devel libXres-devel libXmu-devel libXi-devel \
+    libxkbcommon-devel libcap-devel pixman-devel systemd-devel libinput-devel luajit-devel \
+    libdisplay-info-devel libliftoff-devel libei-devel libdecor-devel pipewire-devel \
+    xcb-util-wm-devel xcb-util-errors-devel xcb-util-renderutil-devel xcb-util-image-devel \
+    xcb-util-keysyms-devel hwdata libseat-devel libXrandr-devel xorg-x11-server-Xwayland-devel \
+    spirv-headers-devel spirv-tools-devel
 RUN npm install --global --prefix /usr/lib/moonmachine-build-tools --cache /tmp/npm-cache pnpm@11.24.0
 ENV PATH="/usr/lib/moonmachine-build-tools/bin:${PATH}"
 COPY apps/ /build-input/
@@ -40,7 +49,10 @@ RUN LD_LIBRARY_PATH=/usr/lib/moonmachine/moonlight/usr/lib:/usr/lib/moonmachine/
     ldd /usr/lib/moonmachine/moonlight/usr/bin/moonlight > /tmp/moonlight-libraries \
     && cat /tmp/moonlight-libraries && ! grep -q 'not found' /tmp/moonlight-libraries \
     && rm /tmp/moonlight-libraries
+RUN ldd /usr/bin/gamescope > /tmp/gamescope-libraries \
+    && cat /tmp/gamescope-libraries && ! grep -q 'not found' /tmp/gamescope-libraries \
+    && rm /tmp/gamescope-libraries
 RUN dnf5 clean all && rm -rf /var/cache/libdnf5 /var/cache/ldconfig/aux-cache /var/lib/dnf/repos && rm -f /var/log/dnf5.log
 RUN --mount=type=tmpfs,target=/run --network=none bootc container lint
 LABEL org.opencontainers.image.source="https://github.com/Cynary/bazzite-k17" \
-      io.cynary.k17.release="moonmachine-20260919.3"
+      io.cynary.k17.release="moonmachine-20260921.1"

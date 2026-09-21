@@ -8,13 +8,11 @@
   "moondeck": {
     "version": "1.12.2",
     "url": "https://github.com/FrogTheFrog/moondeck/releases/download/nightly/moondeck.zip",
-    "sha256": "99c28c22149201b9c92313416f076f6f60bc0fe7ed266db4404020962e5144d1",
-    "source": "https://github.com/FrogTheFrog/moondeck/tree/aebfbd6",
+    "sha256": "73f3010fd22cee74d5f0cb2060cf2d83705ecafd90a659732343eb2fc70c7424",
+    "source": "https://github.com/FrogTheFrog/moondeck/tree/7c256cf1e40995615c21b57618e90d7e8b760ce0",
     "repository": "https://github.com/FrogTheFrog/moondeck.git",
-    "commit": "aebfbd6a283cc7c9a7ba58737bee935789ecaa0c",
-    "patches": [
-      "0001-pause-unfocused-splash.patch"
-    ]
+    "commit": "7c256cf1e40995615c21b57618e90d7e8b760ce0",
+    "patches": []
   },
   "moonlight": {
     "version": "6.1.0-vrr17.1-moonmachine.1",
@@ -25,5 +23,14 @@
       "0002-document-vaapi-mapping-lifetime.patch"
     ],
     "source": "https://github.com/Nonary/moonlight-qt/tree/1ccefb6e981880bef6d6d114dba6459c7be28878"
+  },
+  "gamescope": {
+    "version": "ogc-0ef725a-moonmachine.1",
+    "repository": "https://github.com/OpenGamingCollective/gamescope.git",
+    "commit": "0ef725a8754b3480fb52d2493c4b3af3b845659b",
+    "patches": [
+      "0001-preserve-paced-vrr-for-fifo.patch"
+    ],
+    "source": "https://github.com/OpenGamingCollective/gamescope/pull/24"
   }
 }
