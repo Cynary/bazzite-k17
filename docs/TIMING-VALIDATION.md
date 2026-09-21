@@ -77,3 +77,15 @@ The recorded baseline reproduced controller decisions, but failed the replay
 utility's full-fidelity gate. These results therefore use live A/B captures and
 deterministic tests, not a claim of exact counterfactual replay. No new kernel
 errors or unexpected reboot occurred during these captures.
+
+## Packaged image check
+
+The image built from `8492b41e3e665f9ea21088b8a997b81dd584fd24` booted with
+manifest `sha256:e906b5cdf88232ea7dd85336c84e9c4c2ec17c3338b56e81e53ea86d393b3481`.
+Gamescope and Moonlight hashes matched the build artifact; no temporary binary
+mount was used. A further 134-second stream reported 1.67 ms whole-session queue
+delay. After the first minute, it submitted 116.02 FPS with no omitted frame
+numbers and 1.74 ms mean queue waiting. Exiting the stream closed Overcooked 2 on
+the host. The display state remained 3840×2160 at 120 Hz with 30-bit RGB output.
+Existing firmware ACPI warnings remain; no new graphics or storage errors were
+observed. The historical Btrfs corruption counter remained unchanged.
