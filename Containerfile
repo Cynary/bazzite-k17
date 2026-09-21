@@ -46,6 +46,8 @@ COPY --from=applications --chown=0:0 /out/ /tmp/moonmachine-built/
 RUN dnf5 install -y qt6-qtbase qt6-qtdeclarative qt6-qtsvg SDL2_ttf sdl2-compat \
     libdav1d libshaderc lcms2 xxhash-libs python3-gobject libsoup3
 RUN python3 /tmp/moonmachine-apps/install.py && rm -rf /tmp/moonmachine-apps
+# Preserve the scheduling capability carried by Bazzite's Gamescope package.
+RUN setcap cap_sys_nice=eip /usr/bin/gamescope
 COPY tests/test_app_setup.py /tmp/test_app_setup.py
 RUN python3 /tmp/test_app_setup.py && rm /tmp/test_app_setup.py
 RUN LD_LIBRARY_PATH=/usr/lib/moonmachine/moonlight/usr/lib:/usr/lib/moonmachine/moonlight/usr/lib64 \
