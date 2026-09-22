@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="864pt" height="388.8pt" viewBox="0 0 864 388.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-22T15:29:12.477357</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 388.8
+L 864 388.8
+L 864 0
+L 0 0
+z
+" style="fill: #fafbfe"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 49.462018 155.472585
+L 235.737248 155.472585
+L 235.737248 133.092878
+L 49.462018 133.092878
+z
+" clip-path="url(#p04ad1b25bd)" style="fill: #3579b8"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 94.168073 217.01678
+L 496.522569 217.01678
+L 496.522569 194.637073
+L 94.168073 194.637073
+z
+" clip-path="url(#p04ad1b25bd)" style="fill: #148a84"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 287.894312 278.560976
+L 496.522569 278.560976
+L 496.522569 256.181268
+L 287.894312 256.181268
+z
+" clip-path="url(#p04ad1b25bd)" style="fill: #e39b45"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 496.522569 278.560976
+L 772.209908 278.560976
+L 772.209908 256.181268
+L 496.522569 256.181268
+z
+" clip-path="url(#p04ad1b25bd)" style="fill: #148a84"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 235.737248 284.155902
+L 235.737248 119.105561
+" clip-path="url(#p04ad1b25bd)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #626b7c"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 496.522569 284.155902
+L 496.522569 119.105561
+" clip-path="url(#p04ad1b25bd)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #626b7c"/>
+   </g>
+   <g id="text_1">
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #ffffff" x="58.403229" y="147.140583" transform="rotate(-0 58.403229 147.140583)">CPU: enqueue → handle</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #ffffff" x="109.070092" y="208.684778" transform="rotate(-0 109.070092 208.684778)">GPU: decode continues after the handle is returned</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="392.20844" y="269.969169" transform="rotate(-0 392.20844 269.969169)">Worker waits for readiness</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="634.366239" y="270.228544" transform="rotate(-0 634.366239 270.228544)">Export → pace → present</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'" transform="translate(176.480763 93.766511)">Decode statistic ends</text>
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'" transform="translate(165.063107 106.969518)">(pixels may not be ready)</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'" transform="translate(425.239131 93.766511)">GPU completion observed</text>
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'" transform="translate(425.888819 106.969518)">(pixels can be consumed)</text>
+   </g>
+   <g id="patch_6">
+    <path d="M 51.459554 298.14322
+Q 429.46322 298.14322 806.348851 298.14322
+" style="fill: none; stroke: #626b7c; stroke-linecap: round"/>
+    <path d="M 801.948851 295.94322
+L 806.348851 298.14322
+L 801.948851 300.34322
+" style="fill: none; stroke: #626b7c; stroke-linecap: round"/>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #626b7c" x="422.012477" y="312.130537" transform="rotate(-0 422.012477 312.130537)">Time →   schematic only, not to scale</text>
+   </g>
+  </g>
+  <g id="text_8">
+   <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans'; text-anchor: start" x="34.56" y="20.693344" transform="rotate(-0 34.56 20.693344)">The decode statistic stops before the GPU necessarily does</text>
+  </g>
+  <g id="text_9">
+   <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start" x="34.56" y="361.584" transform="rotate(-0 34.56 361.584)">A frame handle identifies a GPU surface. It does not certify that decoding into that surface has finished.</text>
+  </g>
+  <g id="text_10">
+   <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="34.56" y="379.08" transform="rotate(-0 34.56 379.08)">Our worker synchronizes before using the pixels. Other pipelines can enforce the dependency without blocking the CPU.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p04ad1b25bd">
+   <rect x="34.56" y="85.536" width="812.16" height="229.392"/>
+  </clipPath>
+ </defs>
+</svg>

@@ -17,7 +17,8 @@ straight from Steam's Gaming Mode. You can also install and play games locally.
   instead of refreshing at a fixed speed.
 - Moonlight with VRR support, Decky (Steam's plugin menu), and MoonDeck, with
   [streaming fixes carried as patches](apps/README.md).
-- Direct GPU video presentation and frame-timing fixes for lower streaming latency.
+- Optimized Moonlight + Gamescope for extremely low latency from receiving a frame
+  to presenting it on the TV.
   [How we reached 6.08 ms client latency, with graphs](docs/LATENCY.md).
 - A custom kernel with BORE, which schedules CPU work with responsiveness in mind,
   and ThinLTO, which lets the compiler optimise across source files.

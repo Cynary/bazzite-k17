@@ -17,11 +17,59 @@ the occasional slow frames without turning off HDR, VRR or V-sync.
 
 ## First, make the measurements mean something
 
-Moonlight's decode statistic does not necessarily include all hardware decode
-work. FFmpeg can return a GPU surface while the hardware is still writing it.
-Waiting for that surface later can look like rendering or queue delay, even
-though it is still decode work. That explains how a sub-millisecond decode
-statistic can coexist with several milliseconds waiting for the GPU.
+### A frame handle is not a finished frame
+
+Yes, this is a consequence of asynchronous processing. The CPU submits decoding
+work to the GPU and can continue before the GPU finishes. FFmpeg can return an
+`AVFrame` containing a reference to a GPU surface—a handle identifying where the
+picture will be—while decoding into that surface is still in progress. This lets
+CPU work and GPU work overlap instead of forcing the CPU to wait at every step.
+
+In the Moonlight FFmpeg path we tested, the **decode-time statistic stops shortly
+after `avcodec_receive_frame()` returns a frame**, before it is handed to the
+pacing/rendering worker. It accumulates the elapsed time since the decode unit's
+`enqueueTimeUs`, then averages that over decoded frames. It is neither a timer
+around the GPU's actual execution nor proof that the pixels are ready. It can
+include time queued before decoder output while excluding GPU work that finishes
+later.
+
+![Why the decode statistic ends before the GPU is finished](latency/figures/async-decode.svg)
+
+The statistic is therefore misleading if read as “time until decoding is fully
+complete.” It measures a real interval, but its endpoint is too early for that
+interpretation on this asynchronous hardware path. A sub-millisecond value in
+the overlay can coexist with several more milliseconds before the surface is
+usable. Different drivers may block at different points, so comparing that
+number between Intel and AMD does not establish which GPU finishes first.
+
+Before anything **reads the pixels**, decoding must have completed. That includes
+CPU readback, a shader sampling the surface, colour conversion and direct display
+scanout. Reading the handle or metadata does not require finished pixels. The
+consumer can wait explicitly, or the GPU/display pipeline can enforce a dependency
+using synchronization objects, often called fences. The CPU does not inherently
+have to block, but the consumer cannot safely ignore that dependency.
+
+Our current VAAPI direct path explicitly calls `vaSyncSurface()` in the worker,
+then exports and retains the surface. It never copies those pixels to the CPU.
+The late wait is outside Moonlight's original decode statistic; our trace records
+CPU decoder output and observed GPU readiness separately. In the published 4:4:4
+run, that later interval averaged about **4.60 ms**. It includes when the worker
+observed readiness, so it is not an exact measurement of pure GPU execution time.
+Nor should it simply be added to a decode statistic from a different session.
+
+This distinction also explains why we kept asynchronous decoding. Making FFmpeg
+block just to make the overlay number look complete would move the wait and could
+reduce useful overlap. We needed better measurement and correctly placed
+synchronization, not a serialized pipeline.
+
+The relevant code is in the release's
+[FFmpeg statistics path](https://github.com/Cynary/moonlight-qt/blob/1de7ea05/app/streaming/video/ffmpeg.cpp)
+and [direct renderer](https://github.com/Cynary/moonlight-qt/blob/1de7ea05/app/streaming/video/ffmpeg-renderers/directwayland.cpp).
+This describes the tested Linux/VAAPI implementation; other decoder backends can
+account for completion differently. The diagram shows ordering, not measured
+durations.
+
+### Matching frames to actual display times
 
 We added per-frame tracing around reception, decoder output, GPU synchronization,
 preparation, pacing and submission. Frames were matched by submission ID to
