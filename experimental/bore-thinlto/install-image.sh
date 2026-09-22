@@ -45,6 +45,10 @@ depmod -a "$kver"
 for mod in xe drm_display_helper mt7921_common xone_dongle xone_gip xone_gip_gamepad; do
  test "$(modinfo -k "$kver" -F vermagic "$mod" | cut -d' ' -f1)" = "$kver"
 done
+# Kernel RPMs are supplied separately from the source tree. Reject stale artifacts.
+xe_module=$(modinfo -k "$kver" -n xe)
+python3 /usr/libexec/k17-verify-frl-module "$xe_module"
+sha256sum "$xe_module" > /usr/share/k17-bore/build/xe.sha256
 # Xone requests firmware dynamically, so dracut cannot infer these names from modinfo.
 xone_firmware=$(printf '%s ' /usr/lib/firmware/xone_dongle_*.bin.xz)
 dracut --install "$xone_firmware" --no-hostonly --kver "$kver" --reproducible --zstd --add ostree --add fido2 --add-drivers 'xe drm_display_helper xone_dongle mei_me mei_gsc_proxy' -f "/usr/lib/modules/$kver/initramfs.img"

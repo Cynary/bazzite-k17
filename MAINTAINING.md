@@ -26,6 +26,13 @@ are checksum-verified downloads. MoonDeck's dependency archive is a moving
 nightly asset; review and update its checksum if upstream replaces it.
 Compilation uses all available CPU cores by default.
 
+Kernel RPMs must include the current kernel patches; copying a newer source tree
+does not update prebuilt RPMs. The image build checks the installed graphics
+module for the HDMI recovery code and records its checksum. Run
+`sudo /usr/libexec/k17-verify-bore` after booting the image to check those artifacts.
+Also test starting Gaming Mode with the TV off, then turning it on: a normal boot
+with the TV already on does not exercise failed-link recovery.
+
 The image installs Moonlight under `/usr/lib/moonmachine` and bundles
 Decky/MoonDeck under `/usr/share/moonmachine`. First-boot setup creates a unique
 client identity. Later boots update image-managed MoonDeck code without replacing

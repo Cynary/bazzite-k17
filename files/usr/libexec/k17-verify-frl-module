@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+"""Reject kernel artifacts that predate the HDMI recovery patch."""
+import gzip
+import lzma
+from pathlib import Path
+import subprocess
+import sys
+
+path = Path(sys.argv[1])
+data = path.read_bytes()
+if path.suffix == ".xz":
+    data = lzma.decompress(data)
+elif path.suffix == ".gz":
+    data = gzip.decompress(data)
+elif path.suffix == ".zst":
+    data = subprocess.check_output(["zstd", "-q", "-d", "-c", str(path)])
+if b"FRL link recovery completed" not in data:
+    sys.exit(f"{path}: HDMI recovery patch is missing; rebuild the kernel artifacts")
+print(f"HDMI recovery code found in {path}")
