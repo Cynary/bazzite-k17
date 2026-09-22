@@ -56,3 +56,21 @@ Live checks cover selecting YUV/RGB/Vulkan, reconnecting streams, statistics,
 screenshots, and returning from composition to direct scanout. Screenshots have
 been visually inspected; quantitative HDR colour accuracy, other display modes,
 and wider hardware compatibility still need validation.
+
+## Candidate: direct 4:2:0 and overlay handoff
+
+The next application build adds native-resolution HEVC Main10 P010 (10-bit
+4:2:0) to Direct YUV. It also keeps a Vulkan renderer ready alongside the direct
+renderer. Statistics and Steam overlays select Vulkan; closing them restores
+direct presentation after a short debounce. The decoder stays running throughout.
+The Vulkan renderer is warmed with the first real HDR frame at stream startup.
+
+On the K17, the September 22 comparison measured 6.30 ms mean / 7.61 ms p95 for
+P010 and 6.91 ms mean / 11.36 ms p95 for XV30 (4:4:4), from complete frame receipt
+to DRM flip. Neither steady measurement window recorded dropped frames. These
+are separate runs of the same game, not identical encoded frames.
+
+Opening statistics still produced a 55 ms gap between reported display flips;
+closing them produced a 25 ms gap. There was no decoder reset or new keyframe
+request at either transition. These changes are under validation and are not
+in the published image yet. P010 colours still need visual confirmation on the TV.

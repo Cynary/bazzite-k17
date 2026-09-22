@@ -1,0 +1,308 @@
+diff --git a/src/Backends/DRMBackend.cpp b/src/Backends/DRMBackend.cpp
+index 5fbb58d..a4bf57b 100644
+--- a/src/Backends/DRMBackend.cpp
++++ b/src/Backends/DRMBackend.cpp
+@@ -2452,7 +2452,7 @@ LiftoffStateCacheEntry FrameInfoToLiftoffStateCacheEntry( struct drm_t *drm, con
+ 		entry.layerState[i].crtcH = crtcH;
+ 		entry.layerState[i].opacity = frameInfo->layers.get( i ).opacity * 0xffff;
+ 		entry.layerState[i].ycbcr = frameInfo->layers.get( i ).isYcbcr();
+-		if (frameInfo->layers.get(i).tex && frameInfo->layers.get(i).tex->isPackedYuv444())
++		if (frameInfo->layers.get(i).tex && frameInfo->layers.get(i).tex->isHdrYuv())
+ 		{
+ 			entry.layerState[i].ycbcr = true;
+ 			entry.layerState[i].colorEncoding = DRM_COLOR_YCBCR_BT2020;
+@@ -3263,7 +3263,7 @@ drm_prepare_liftoff( struct drm_t *drm, const struct FrameInfo_t *frameInfo, boo
+ 					amdgpu_transfer_function degamma_tf = colorspace_to_plane_degamma_tf( entry.layerState[i].colorspace );
+ 					amdgpu_transfer_function shaper_tf = colorspace_to_plane_shaper_tf( entry.layerState[i].colorspace );
+ 
+-					if ( bYCbCr && !frameInfo->layers.get(i).tex->isPackedYuv444() )
++					if ( bYCbCr && !frameInfo->layers.get(i).tex->isHdrYuv() )
+ 					{
+ 						// JoshA: Based on the Steam In-Home Streaming Shader,
+ 						// it looks like Y is actually sRGB, not HDTV G2.4
+diff --git a/src/rendervulkan.cpp b/src/rendervulkan.cpp
+index d482753..af1c3bc 100644
+--- a/src/rendervulkan.cpp
++++ b/src/rendervulkan.cpp
+@@ -222,6 +222,7 @@ struct {
+ 	{ DRM_FORMAT_ABGR8888, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_SRGB, 4, true, false },
+ 	{ DRM_FORMAT_XBGR8888, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_SRGB, 4, false, false },
+ 	{ DRM_FORMAT_RGB565, VK_FORMAT_R5G6B5_UNORM_PACK16, VK_FORMAT_R5G6B5_UNORM_PACK16, 1, false, false },
++	{ DRM_FORMAT_P010, VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16, VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16, 0, false, false },
+ 	{ DRM_FORMAT_NV12, VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, 0, false, false },
+ 	{ DRM_FORMAT_ABGR16161616F, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT, 8, true, false },
+ 	{ DRM_FORMAT_XBGR16161616F, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT, 8, false, false },
+@@ -797,7 +798,7 @@ bool CVulkanDevice::createLayouts()
+ 	for (auto& sampler : ycbcrSamplers)
+ 		sampler = m_ycbcrSampler;
+ 
+-	std::array<VkDescriptorSetLayoutBinding, 7 > layoutBindings = {
++	std::array<VkDescriptorSetLayoutBinding, 8 > layoutBindings = {
+ 		VkDescriptorSetLayoutBinding {
+ 			.binding = 0,
+ 			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+@@ -841,6 +842,12 @@ bool CVulkanDevice::createLayouts()
+ 			.descriptorCount = VKR_LUT3D_COUNT,
+ 			.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+ 		},
++        VkDescriptorSetLayoutBinding {
++            .binding = 7,
++            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
++            .descriptorCount = VKR_SAMPLER_SLOTS,
++            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
++        },
+ 	};
+ 
+ 	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo =
+@@ -931,7 +938,7 @@ bool CVulkanDevice::createPools()
+ 		},
+ 		{
+ 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+-			uint32_t(m_descriptorSets.size()) * (((ycbcrProps.combinedImageSamplerDescriptorCount + 1) * VKR_SAMPLER_SLOTS) + (2 * VKR_LUT3D_COUNT)),
++			uint32_t(m_descriptorSets.size()) * (((ycbcrProps.combinedImageSamplerDescriptorCount + 2) * VKR_SAMPLER_SLOTS) + (2 * VKR_LUT3D_COUNT)),
+ 		},
+ 	};
+ 	
+@@ -1207,20 +1214,22 @@ void CVulkanDevice::compileAllPipelines(std::stop_token st)
+ {
+ 	pthread_setname_np( pthread_self(), "gamescope-shdr" );
+ 
+-	// Packed HDR YUV bypasses composition until an overlay or screenshot is
++	// HDR YUV bypasses composition until an overlay or screenshot is
+ 	// requested. Compile these common variants off the presentation thread so
+ 	// that first use does not stop buffer releases for hundreds of milliseconds.
+-	for (uint32_t layerCount = 1; layerCount <= 3; ++layerCount) {
+-		for (uint32_t videoLayer = 0; videoLayer < layerCount; ++videoLayer) {
+-			for (uint32_t outputEotf : { uint32_t(EOTF_Gamma22), uint32_t(EOTF_PQ) }) {
+-				if (st.stop_requested()) return;
+-				PipelineInfo_t key = { SHADER_TYPE_BLIT, layerCount, 1u << (16 + videoLayer), 0, 0,
+-					GAMESCOPE_APP_TEXTURE_COLORSPACE_HDR10_PQ << (videoLayer * GamescopeAppTextureColorspace_Bits), outputEotf, false };
+-				VkPipeline compiled = compilePipeline(layerCount, key.ycbcrMask, key.shaderType,
+-					key.blurLayerCount, key.compositeDebug, key.colorspaceMask, key.outputEOTF, key.itmEnable);
+-				std::lock_guard<std::mutex> lock(m_pipelineMutex);
+-				if (!m_pipelineMap.emplace(key, compiled).second)
+-					vk.DestroyPipeline(device(), compiled, nullptr);
++	for (uint32_t formatShift : { 8u, 16u }) {
++		for (uint32_t layerCount = 1; layerCount <= 3; ++layerCount) {
++			for (uint32_t videoLayer = 0; videoLayer < layerCount; ++videoLayer) {
++				for (uint32_t outputEotf : { uint32_t(EOTF_Gamma22), uint32_t(EOTF_PQ) }) {
++					if (st.stop_requested()) return;
++					PipelineInfo_t key = { SHADER_TYPE_BLIT, layerCount, 1u << (formatShift + videoLayer), 0, 0,
++						GAMESCOPE_APP_TEXTURE_COLORSPACE_HDR10_PQ << (videoLayer * GamescopeAppTextureColorspace_Bits), outputEotf, false };
++					VkPipeline compiled = compilePipeline(layerCount, key.ycbcrMask, key.shaderType,
++						key.blurLayerCount, key.compositeDebug, key.colorspaceMask, key.outputEOTF, key.itmEnable);
++					std::lock_guard<std::mutex> lock(m_pipelineMutex);
++					if (!m_pipelineMap.emplace(key, compiled).second)
++						vk.DestroyPipeline(device(), compiled, nullptr);
++				}
+ 			}
+ 		}
+ 	}
+@@ -1733,9 +1742,10 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
+ 
+ 	VkDescriptorSet descriptorSet = m_device->descriptorSet( this );
+ 
+-	std::array<VkWriteDescriptorSet, 7> writeDescriptorSets;
++	std::array<VkWriteDescriptorSet, 8> writeDescriptorSets;
+ 	std::array<VkDescriptorImageInfo, VKR_SAMPLER_SLOTS> imageDescriptors = {};
+ 	std::array<VkDescriptorImageInfo, VKR_SAMPLER_SLOTS> ycbcrImageDescriptors = {};
++    std::array<VkDescriptorImageInfo, VKR_SAMPLER_SLOTS> p010ChromaDescriptors = {};
+ 	std::array<VkDescriptorImageInfo, VKR_TARGET_SLOTS> targetDescriptors = {};
+ 	std::array<VkDescriptorImageInfo, VKR_LUT3D_COUNT> shaperLutDescriptor = {};
+ 	std::array<VkDescriptorImageInfo, VKR_LUT3D_COUNT> lut3DDescriptor = {};
+@@ -1811,6 +1821,15 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
+ 		.pImageInfo = lut3DDescriptor.data(),
+ 	};
+ 
++    writeDescriptorSets[7] = {
++        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
++        .dstSet = descriptorSet,
++        .dstBinding = 7,
++        .descriptorCount = p010ChromaDescriptors.size(),
++        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
++        .pImageInfo = p010ChromaDescriptors.data(),
++    };
++
+ 	scratchDescriptor.buffer = m_device->m_uploadBuffer;
+ 	scratchDescriptor.offset = m_renderBufferOffset;
+ 	scratchDescriptor.range = VK_WHOLE_SIZE;
+@@ -1823,6 +1842,14 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
+ 		if (m_boundTextures[i] == nullptr)
+ 			continue;
+ 
++
++        if (m_boundTextures[i]->isP010()) {
++            SamplerState chromaState = m_samplerState[i];
++            chromaState.bUnnormalized = false;
++            p010ChromaDescriptors[i].sampler = m_device->sampler(chromaState);
++            p010ChromaDescriptors[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
++            p010ChromaDescriptors[i].imageView = m_boundTextures[i]->chromaView();
++        }
+ 		VkImageView view = m_useSrgb[i] ? m_boundTextures[i]->srgbView() : m_boundTextures[i]->linearView();
+ 
+ 		if (m_boundTextures[i]->format() == VK_FORMAT_G8_B8R8_2PLANE_420_UNORM)
+@@ -2198,6 +2225,8 @@ bool CVulkanTexture::BInit( uint32_t width, uint32_t height, uint32_t depth, uin
+ 		.pViewFormats = formats.data(),
+ 	};
+ 
++	if (drmFormat == DRM_FORMAT_P010)
++        imageInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+ 	if ( formats[0] != formats[1] )
+ 	{
+ 		formatList.pNext = std::exchange(imageInfo.pNext, &formatList);
+@@ -2606,6 +2635,11 @@ bool CVulkanTexture::BInit( uint32_t width, uint32_t height, uint32_t depth, uin
+ 			},
+ 		};
+ 
++        if (isP010()) {
++            createInfo.format = VK_FORMAT_R16_UNORM;
++            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT;
++        }
++
+ 		res = g_device.vk.CreateImageView(g_device.device(), &createInfo, nullptr, &m_srgbView);
+ 		if ( res != VK_SUCCESS ) {
+ 			vk_errorf( res, "vkCreateImageView failed" );
+@@ -2619,7 +2653,7 @@ bool CVulkanTexture::BInit( uint32_t width, uint32_t height, uint32_t depth, uin
+ 				.usage = usage & ~VK_IMAGE_USAGE_STORAGE_BIT,
+ 			};
+ 			createInfo.pNext = &viewUsageInfo;
+-			createInfo.format = DRMFormatToVulkan(drmFormat, true);
++			createInfo.format = isP010() ? VK_FORMAT_R16_UNORM : DRMFormatToVulkan(drmFormat, true);
+ 			res = g_device.vk.CreateImageView(g_device.device(), &createInfo, nullptr, &m_linearView);
+ 			if ( res != VK_SUCCESS ) {
+ 				vk_errorf( res, "vkCreateImageView failed" );
+@@ -2628,6 +2662,14 @@ bool CVulkanTexture::BInit( uint32_t width, uint32_t height, uint32_t depth, uin
+ 		}
+ 
+ 
++        if (isP010()) {
++            createInfo.pNext = nullptr;
++            createInfo.format = VK_FORMAT_R16G16_UNORM;
++            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT;
++            res = g_device.vk.CreateImageView(g_device.device(), &createInfo, nullptr, &m_chromaView);
++            if (res != VK_SUCCESS) { vk_errorf(res, "P010 chroma view failed"); return false; }
++        }
++
+ 		if ( isYcbcr() )
+ 		{
+ 			createInfo.pNext = NULL;
+@@ -2789,6 +2831,9 @@ CVulkanTexture::~CVulkanTexture( void )
+ 		m_linearView = VK_NULL_HANDLE;
+ 	}
+ 
++    if (isP010() && m_chromaView != VK_NULL_HANDLE)
++        g_device.vk.DestroyImageView(g_device.device(), m_chromaView, nullptr);
++
+ 	if ( m_pBackendFb != nullptr )
+ 		m_pBackendFb = nullptr;
+ 
+@@ -4417,7 +4462,7 @@ std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamesco
+ 		if ( oTimingSlot )
+ 			CompositeTimingMid( cmdBuffer.get(), *oTimingSlot );
+ 
+-		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_RCAS, frameInfo->layers.count(), frameInfo->ycbcrMask() & ~1, 0u, frameInfo->colorspaceMask(), outputTF ));
++		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_RCAS, frameInfo->layers.count(), frameInfo->ycbcrMask() & ~0x00010101u, 0u, frameInfo->colorspaceMask(), outputTF ));
+ 		bind_all_layers(cmdBuffer.get(), frameInfo);
+ 		cmdBuffer->bindTexture(0, g_output.tmpOutput);
+ 		cmdBuffer->setTextureSrgb(0, true);
+@@ -4484,7 +4529,7 @@ std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamesco
+ 		if (frameInfo->layers.count() >= 2 && frameInfo->layers.get( 1 ).zpos == g_zposOverride)
+ 			blur_layer_count++;
+ 
+-		cmdBuffer->bindPipeline(g_device.pipeline(type, blur_layer_count, frameInfo->ycbcrMask() & 0x00030003u, 0, frameInfo->colorspaceMask(), outputTF ));
++		cmdBuffer->bindPipeline(g_device.pipeline(type, blur_layer_count, frameInfo->ycbcrMask() & 0x00030303u, 0, frameInfo->colorspaceMask(), outputTF ));
+ 		cmdBuffer->bindTarget(g_output.tmpOutput);
+ 		for (uint32_t i = 0; i < blur_layer_count; i++)
+ 		{
+diff --git a/src/rendervulkan.hpp b/src/rendervulkan.hpp
+index dc9a861..d33f56d 100644
+--- a/src/rendervulkan.hpp
++++ b/src/rendervulkan.hpp
+@@ -204,6 +204,9 @@ public:
+ 		return drmFormat() == DRM_FORMAT_XVYU2101010;
+ 	}
+ 
++	inline bool isP010() const { return drmFormat() == DRM_FORMAT_P010; }
++	inline bool isHdrYuv() const { return isPackedYuv444() || isP010(); }
++
+ 	inline bool isYcbcr() const
+ 	{
+ 		return format() == VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+@@ -434,7 +437,9 @@ struct FrameInfo_t
+ 		{
+ 			if (layers.get( i ).isYcbcr())
+ 				result |= 1 << i;
+-			// Upper bits distinguish packed YUV sampled through ordinary RGB views.
++			if (layers.get(i).tex && layers.get(i).tex->isP010())
++                result |= 1u << (8 + i);
++            // Upper bits distinguish packed YUV sampled through ordinary RGB views.
+ 			if (layers.get(i).tex && layers.get(i).tex->isPackedYuv444())
+ 				result |= 1u << (16 + i);
+ 		}
+diff --git a/src/shaders/composite.h b/src/shaders/composite.h
+index e8ca201..6888c60 100644
+--- a/src/shaders/composite.h
++++ b/src/shaders/composite.h
+@@ -182,7 +182,19 @@ vec4 sampleLayerEx(sampler2D layerSampler, uint offsetLayerIdx, uint colorspaceL
+ 
+     uint colorspace = get_layer_colorspace(colorspaceLayerIdx);
+     vec4 color;
+-    if ((c_ycbcrMask & (1u << (16u + colorspaceLayerIdx))) != 0u) {
++    if ((c_ycbcrMask & (1u << (8u + colorspaceLayerIdx))) != 0u) {
++        // P010 stores ten-bit limited-range samples in the high bits of R16/RG16.
++        float yCode = textureLod(layerSampler, coord, 0.0).r * (65535.0 / 64.0);
++        vec2 chromaCoord = unnormalized ? coord / texSize : coord;
++        vec2 uvCode = textureLod(s_p010_chroma[colorspaceLayerIdx], chromaCoord, 0.0).rg * (65535.0 / 64.0);
++        float y = (yCode - 64.0) / 876.0;
++        vec2 cbcr = (uvCode - vec2(512.0)) / 896.0;
++        vec3 rgb = vec3(y + 1.4746 * cbcr.y,
++                       y - 0.164553 * cbcr.x - 0.571353 * cbcr.y,
++                       y + 1.8814 * cbcr.x);
++        color = vec4(colorspace_plane_degamma_tf(max(rgb, vec3(0.0)), colorspace), 1.0);
++    }
++    else if ((c_ycbcrMask & (1u << (16u + colorspaceLayerIdx))) != 0u) {
+         // The diagnostic XV30 client supplies BT.2020 NCL, limited-range PQ.
+         vec3 uyv = textureLod(layerSampler, coord, 0.0).rgb * 1023.0;
+         float y = (uyv.g - 64.0) / 876.0;
+diff --git a/src/shaders/descriptor_set.h b/src/shaders/descriptor_set.h
+index f2b8527..8e909ac 100644
+--- a/src/shaders/descriptor_set.h
++++ b/src/shaders/descriptor_set.h
+@@ -54,3 +54,5 @@ layout(binding = 4) uniform sampler2D s_ycbcr_samplers[VKR_SAMPLER_SLOTS];
+ 
+ layout(binding = 5) uniform sampler1D s_shaperLut[VKR_LUT3D_COUNT];
+ layout(binding = 6) uniform sampler3D s_lut3D[VKR_LUT3D_COUNT];
++
++layout(binding = 7) uniform sampler2D s_p010_chroma[VKR_SAMPLER_SLOTS];
+diff --git a/src/steamcompmgr.cpp b/src/steamcompmgr.cpp
+index 1802f8e..c82172b 100644
+--- a/src/steamcompmgr.cpp
++++ b/src/steamcompmgr.cpp
+@@ -3121,6 +3121,27 @@ paint_all( global_focus_t *pFocus, bool async )
+ 	notification = pFocus->notificationWindow;
+ 	override = pFocus->overrideWindow;
+ 	input = pFocus->inputFocusWindow;
++    // Tell streaming clients when a visible compositor overlay requires RGB
++    // composition. Update only on transitions; clients may use this to choose
++    // their rendering path without changing their saved preference.
++    const bool compositionOverlay =
++        (overlay && overlay->opacity && cv_paint_steam_overlay_plane) ||
++        (externalOverlay && externalOverlay->opacity && cv_paint_external_overlay_plane) ||
++        (notification && notification->opacity) ||
++        (override && override != w && override->opacity && cv_paint_override_redirect_plane);
++    static int lastCompositionOverlay = -1;
++    if (lastCompositionOverlay != int(compositionOverlay)) {
++        lastCompositionOverlay = compositionOverlay;
++        unsigned long visible = compositionOverlay;
++        gamescope_xwayland_server_t* server;
++        for (size_t i = 0; (server = wlserver_get_xwayland_server(i)); ++i) {
++            Atom property = XInternAtom(server->ctx->dpy, "GAMESCOPE_COMPOSITION_OVERLAY", False);
++            XChangeProperty(server->ctx->dpy, server->ctx->root, property, XA_CARDINAL,
++                32, PropModeReplace, reinterpret_cast<unsigned char*>(&visible), 1);
++            XFlush(server->ctx->dpy);
++        }
++    }
++
+ 	// Decide the fit target once so the window planes and the cursor plane agree.
+ 	fit = override;
+ 
