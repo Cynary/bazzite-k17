@@ -27,8 +27,9 @@ confirmed visually. They validate that setup, not every receiver or cable.
 The overhead of periodic healthy-link checks has not been benchmarked.
 
 The source patch is [0053](../kernel-patches/0053-drm-intel-hdmi-recover-lost-frl-sink-state.patch).
-These results were obtained with the locally installed driver; a new image must
-repeat recovery and HDR/VRR streaming checks before release.
+The corrected `frl4` module is included in `moonmachine-20260922.2`; its installed
+checksum and recovery marker were verified. Assembled-image recovery checks
+are recorded in [streaming validation](STREAMING-VALIDATION.md).
 
 ## Steam's blocked-sleep overlay
 

@@ -1,0 +1,62 @@
+{
+  "before-clock-fix": {
+    "n": 8467,
+    "mean_ms": 6.954107830400378,
+    "p99_ms": 13.962,
+    "max_ms": 14.658,
+    "stage_means_ms": {
+      "decode_wait_ms": 4.550777961497579,
+      "prepare_ms": 0.09917396952875872,
+      "other_ms": 1.0802425888744538,
+      "submit_to_flip_ms": 1.2239133104995865
+    }
+  },
+  "release-yuv444": {
+    "n": 8453,
+    "mean_ms": 6.082792972909027,
+    "p99_ms": 7.092,
+    "max_ms": 7.717,
+    "stage_means_ms": {
+      "decode_wait_ms": 4.600247131196025,
+      "prepare_ms": 0.08604590086359873,
+      "other_ms": 0.4212202768247959,
+      "submit_to_flip_ms": 0.9752796640246068
+    }
+  },
+  "release-vulkan444": {
+    "n": 3818,
+    "mean_ms": 8.261350183342064,
+    "p99_ms": 9.56,
+    "max_ms": 10.587,
+    "stage_means_ms": {
+      "decode_wait_ms": 4.585393923520168,
+      "prepare_ms": 1.801909376636983,
+      "other_ms": 0.38099135673127293,
+      "submit_to_flip_ms": 1.4930555264536405
+    }
+  },
+  "release-rgb444": {
+    "n": 3825,
+    "mean_ms": 9.169136993464054,
+    "p99_ms": 10.266,
+    "max_ms": 11.093,
+    "stage_means_ms": {
+      "decode_wait_ms": 4.647946666666667,
+      "prepare_ms": 3.136601568627451,
+      "other_ms": 0.492321568627451,
+      "submit_to_flip_ms": 0.8922671895424836
+    }
+  },
+  "release-yuv420": {
+    "n": 967,
+    "mean_ms": 4.417849017580144,
+    "p99_ms": 5.54,
+    "max_ms": 5.893,
+    "stage_means_ms": {
+      "decode_wait_ms": 2.367260599793175,
+      "prepare_ms": 0.08050568769389864,
+      "other_ms": 1.091399172699069,
+      "submit_to_flip_ms": 0.878683557394002
+    }
+  }
+}

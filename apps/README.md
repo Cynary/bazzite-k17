@@ -94,7 +94,7 @@ and packed-YUV import to Gamescope. YUV can avoid Moonlight's colour-conversion
 render pass when the display supports direct scanout. The settings retain Vulkan
 as an explicit choice and as the fallback for unsupported direct presentation.
 See [Direct video presentation](../docs/DIRECT-VIDEO.md) for requirements,
-measurements, and the remaining overlay performance limitation.
+measurements, and the automatic Vulkan handoff while overlays are visible.
 
 ### Linux source-clock and GPU readiness
 

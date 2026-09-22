@@ -1,5 +1,9 @@
 # Intel 4:4:4 import validation
 
+These are the original offline test notes. The patch is now packaged and live
+4:4:4 streaming has been validated in the [September 22 release](STREAMING-VALIDATION.md#2026-09-22-permanent-clockreadiness-policy).
+Historical candidate status below describes the time of each test.
+
 Tested on the K17 / Arc 130V on September 20, 2026 with Intel media-driver
 26.3.3, libva 2.24.1 and the image's libplacebo revision
 `2d0979fb54e025e904c7372666fffbf5dae40f66`. Tests used the GPU directly through

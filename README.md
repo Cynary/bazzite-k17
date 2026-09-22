@@ -17,6 +17,8 @@ straight from Steam's Gaming Mode. You can also install and play games locally.
   instead of refreshing at a fixed speed.
 - Moonlight with VRR support, Decky (Steam's plugin menu), and MoonDeck, with
   [streaming fixes carried as patches](apps/README.md).
+- Direct GPU video presentation and frame-timing fixes for lower streaming latency.
+  [How we reached 6.08 ms client latency, with graphs](docs/LATENCY.md).
 - A custom kernel with BORE, which schedules CPU work with responsiveness in mind,
   and ThinLTO, which lets the compiler optimise across source files.
 - [HDMI recovery and Steam sleep handling](docs/DISPLAY-RECOVERY.md).
@@ -25,6 +27,19 @@ straight from Steam's Gaming Mode. You can also install and play games locally.
   for firmware loading and controller reconnection after restarting.
 
 **[Install Moonmachine →](RELEASES.md)**
+
+## Streaming latency
+
+On the K17, the current release averaged **6.08 ms from complete frame receipt
+to the display driver’s timestamp**, at 4K HDR, 4:4:4 and about 116 FPS. The
+99th percentile was **7.09 ms** across 8,453 measured frames. Host processing,
+network transit and TV processing are outside that measurement.
+
+We traced and fixed queueing, presentation feedback, extra rendering passes and
+late GPU-surface exports. Read [the investigation](docs/LATENCY.md) for the
+breakdown, comparison graphs, test settings and downloadable data. The
+[release audit](docs/RELEASE-AUDIT-20260922.md) records what is included and the
+Xbox suspend candidate that still needs packaging.
 
 ## Before you start
 

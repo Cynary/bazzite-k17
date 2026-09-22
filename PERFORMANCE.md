@@ -1,8 +1,8 @@
 # Performance and boot measurements
 
 Moonmachine uses BORE and ThinLTO. See the [kernel measurements](experimental/bore-thinlto/README.md#checks-and-measurements)
-for the scheduler latency comparison. Game FPS and end-to-end streaming latency
-have not been measured.
+for the scheduler latency comparison. Client streaming latency is covered in the [latency analysis](docs/LATENCY.md).
+Game FPS and physical end-to-end input-to-photon latency have not been measured.
 
 ## Measured boot improvement
 

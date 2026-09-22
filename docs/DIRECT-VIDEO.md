@@ -9,12 +9,15 @@ picture. Direct RGB first converts the surface with VAAPI video processing.
 Vulkan uses Moonlight's existing libplacebo renderer.
 
 The direct paths currently target native-resolution, limited-range BT.2020 PQ
-HEVC 10-bit 4:4:4 decoded through VAAPI in Gamescope. Unsupported formats or a
+HEVC 10-bit 4:4:4 and 4:2:0 decoded through VAAPI in Gamescope. Unsupported formats or a
 failed direct renderer fall back to Vulkan. The validation below covers the
 K17's Intel Arc 130V in Gaming Mode; it does not establish support on other GPUs
 or desktop compositors.
 
-## Measurements
+## Earlier direct-path measurements
+
+The tables in this section predate the final clock/readiness fix. For the
+published release, see [the latency analysis](LATENCY.md#where-the-time-goes-now).
 
 At 3840×2160, 116 FPS, HDR and 4:4:4, measurements from complete frame reception
 to the reported DRM display flip were:
@@ -37,7 +40,8 @@ motion-to-photon measurement or a guarantee that every frame takes less than
 Statistics and Steam overlays can force Gamescope to compose the video and
 interface together. In the sustained statistics test, Direct YUV rose to
 19.16 ms on average, with 12 recorded drops in that measured window. Closing
-statistics restored a 7.01 ms average. The overlay overhead remains unresolved.
+statistics restored a 7.01 ms average. This prompted the automatic Vulkan handoff described below; the published
+release no longer intentionally stays on this slow direct-composition path.
 
 The compositor skips unnecessary colour processing for fully transparent overlay
 pixels. It also precompiles common packed-YUV HDR overlay and screenshot shaders

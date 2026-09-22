@@ -15,3 +15,8 @@ and continuing input traffic verified each time. Other adapter revisions,
 multiple controllers and suspend/resume still need testing. See the
 [Xbox adapter investigation](../experimental/xone/probe-reset-investigation.md)
 for the findings and test results.
+
+The later radio-before-receive suspend candidate is **not included in
+`moonmachine-20260922.2`**. Its five short sleep tests used a local module. See
+the [release audit](RELEASE-AUDIT-20260922.md#omission-xbox-suspend-candidate) for
+the packaging gap and required follow-up.
