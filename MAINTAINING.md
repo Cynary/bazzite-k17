@@ -15,7 +15,8 @@ Prepare an empty build directory with the matching kernel RPMs:
 ```sh
 RPM_DIR=/path/to/kernel-rpms IMAGE_CONTEXT=/path/to/empty-context \
   ./experimental/bore-thinlto/prepare-image.sh
-podman build -t localhost/moonmachine:test /path/to/empty-context
+podman build --build-arg SOURCE_COMMIT="$(git rev-parse HEAD)" \
+  -t localhost/moonmachine:test /path/to/empty-context
 ```
 
 The context includes the kernel RPMs, boot defaults and application sources/patches.

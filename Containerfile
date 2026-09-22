@@ -29,9 +29,10 @@ RUN python3 /build-input/checkout.py /build
 COPY apps/ /build-input/
 RUN bash /build-input/build.sh
 FROM ${BASE_IMAGE}
+ARG SOURCE_COMMIT=unknown
 LABEL org.opencontainers.image.title="Moonmachine" \
       org.opencontainers.image.description="Experimental full kernel with K17 FRL/VRR, BORE 6.8.0 and ThinLTO; no AutoFDO" \
-      io.cynary.k17.source-commit="b6a571d6677f23a2893d95a30d102cc44abc888a"
+      io.cynary.k17.source-commit="${SOURCE_COMMIT}"
 COPY files/ /
 COPY channel/cosign.pub /etc/pki/containers/cynary-k17.pub
 COPY channel/cynary-k17.yaml /etc/containers/registries.d/cynary-k17.yaml
