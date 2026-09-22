@@ -116,3 +116,83 @@ A separate 10-second trace matched 1,160 commits: ready-frame dispatch averaged
 overlay switched to composition, and closing it returned to native HDR scanout.
 No new kernel errors were logged during that test. The new patches have been
 validated locally; this entry alone does not indicate a published image release.
+
+## Normal Steam launch with the Low Latency preset (2026-09-21)
+
+Launched Overcooked 2 through its existing Steam library shortcut, without manually
+changing window focus or hiding MoonDeck. The candidate Gamescope retained normal
+Steam overlays, HDR and VRR. Moonlight used its existing Low Latency preset (2),
+compared with Balanced (1) in the preceding tests. GPU frequency minimums remained
+at their defaults, 800 MHz graphics and 400 MHz media.
+
+After excluding the first minute, 7,904 matched presentation records averaged
+9.790 ms from decoder output to display flip (median 9.740 ms, p99 11.421 ms).
+Submission rate was 116.005 FPS. The trace had 7,907 presented frames and no stale
+frame drops after warm-up; the one interrupted frame was at stream shutdown.
+Submission intervals had a median of 8.338 ms and p99 of 10.879 ms. These short
+captures do not establish behavior under network congestion or long gameplay.
+
+Mean stages: queue 0.342 ms, decode synchronization 5.273 ms, preparation 2.215 ms,
+pacing after preparation 0.235 ms, and submission-to-flip 1.725 ms. Starting the
+worker earlier shifts time from queue residence into waiting for decode completion;
+the larger decode-wait number does not by itself mean decoding became slower.
+TV processing and pixel response remain outside this measurement.
+
+Raw evidence: `steam-low.csv`. The normal Steam launch and both Gamescope fixes
+have now been exercised together. Low Latency is an experimental local setting,
+not a changed image default. A subsequent controlled clock comparison is pending.
+
+### Low Latency clock comparison
+
+The normal Steam launch was repeated with four 30-second phases. Excluding the
+first five and final one seconds of each phase gave roughly 2,789 matched frames:
+
+| Minimum clocks | Mean client latency | p99 |
+| --- | ---: | ---: |
+| Default graphics 800 / media 400 MHz | 9.721 ms | 11.342 ms |
+| Media 1200 MHz | 8.988 ms | 10.515 ms |
+| Graphics 1850 / media 1200 MHz | 8.839 ms | 10.211 ms |
+| Defaults restored | 9.898 ms | 11.309 ms |
+
+Every measured phase had only presented frames and no drops. Minimum clocks were
+restored to 800/400 MHz and verified after the stream closed gracefully. This was
+a short sequential experiment, not a permanent power policy or overclock; these
+are the GPU's existing maximum clock limits. Most benefit came from the media
+engine. Raw results: `steam-low-clocks.csv`, `steam-low-clocks.json`, and
+`steam-low-clocks-summary.json`. No power-limit changes were made.
+
+### Package power-limit comparison with higher GPU clocks
+
+Linux accepted and read back 35 W sustained / 37 W burst limits. With graphics
+and media minimums at 1850/1200 MHz, mean latency was 8.886 ms at 25/25 W,
+8.804 ms at 35/37 W, and 8.838 ms after restoring 25/25 W. Corresponding p99s
+were 10.316, 10.439 and 10.695 ms. Each phase contained roughly 2,790 matched
+frames after transition exclusion and no dropped frames. Decode and preparation
+times did not improve meaningfully.
+
+Measured package power averaged 6.90–6.96 W, peaked at 8.01 W, and the highest
+sampled CPU temperature was 55 C. The workload was not package-power limited.
+Power limits were restored and verified at 25/25 W; higher GPU minimum clocks
+remain active at the user's request. They are currently runtime settings, not
+yet a persistent boot/resume policy. Evidence: `steam-power.csv`,
+`steam-power.json`, `steam-power-summary.json` in the local investigation folder.
+
+## Longer CPU performance validation
+
+With CPU EPP `performance`, GPU minimums 1850/1200 MHz, and package limits 35/37 W,
+the three-minute phase produced 20,218 matched frames after transition exclusion:
+8.513 ms mean, 9.817 ms p99, and no dropped frames. Its final minute contained
+6,960 matches: 8.388 ms mean, 9.664 ms p99. The final minute's stages averaged
+0.037 ms queue, 4.596 ms decode synchronization, 1.799 ms preparation, 0.687 ms
+pacing, and 1.270 ms submission-to-flip. These are client timings; TV response
+and preceding host/network time remain unmeasured. The average target of 8.33 ms
+has not been consistently achieved. This remains a title-screen workload.
+
+CPU performance and GPU minimums are saved in a local TuneD profile inheriting
+Bazzite's balanced profile. Package power limits remain a separate local service;
+neither policy was added to the shared image. CPU/GPU settings verified correctly.
+TuneD's overall verification reports the inherited boost knob as unavailable;
+Intel's `no_turbo` is 0 (turbo enabled), so this is not evidence of disabled boost.
+No kernel warnings/errors appeared in the test period. The ordinary synchronous
+Moonlight path remains installed; the asynchronous diagnostic was not retained.
+Evidence: steam-epp-long.csv, steam-epp-long.json, steam-epp-long-summary.json.
