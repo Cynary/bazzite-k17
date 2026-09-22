@@ -1,0 +1,35 @@
+diff --git a/src/Backends/DRMBackend.cpp b/src/Backends/DRMBackend.cpp
+index 1496dd8..887796f 100644
+--- a/src/Backends/DRMBackend.cpp
++++ b/src/Backends/DRMBackend.cpp
+@@ -4219,7 +4219,11 @@ namespace gamescope
+ 
+ 			if ( g_bOutputHDREnabled )
+ 			{
+-				bNeedsFullComposite |= g_bHDRItmEnable;
++				// Inverse tone mapping is for SDR content. A single native HDR10
++				// layer needs no conversion just because the option is enabled.
++				bNeedsFullComposite |= g_bHDRItmEnable &&
++					( pFrameInfo->layers.count() != 1 ||
++					  pFrameInfo->layers.get( 0 ).colorspace != GAMESCOPE_APP_TEXTURE_COLORSPACE_HDR10_PQ );
+ 				if ( !SupportsColorManagement() )
+ 				{
+ 					bNeedsFullComposite |= ( pFrameInfo->layers.count() > 1 || pFrameInfo->layers.get( 0 ).colorspace != GAMESCOPE_APP_TEXTURE_COLORSPACE_HDR10_PQ );
+diff --git a/src/steamcompmgr.cpp b/src/steamcompmgr.cpp
+index 04a5e74..1bf66e5 100644
+--- a/src/steamcompmgr.cpp
++++ b/src/steamcompmgr.cpp
+@@ -3312,7 +3312,12 @@ paint_all( global_focus_t *pFocus, bool async )
+ 			if ( overlay == pFocus->inputFocusWindow && pFocus == GetCurrentMouseFocus() )
+ 				update_touch_scaling( &frameInfo );
+ 		}
+-		else if ( !GetBackend()->UsesVulkanSwapchain() && GetBackend()->IsSessionBased() )
++		// A blank SDR overlay prevents native HDR scanout on backends without
++		// per-plane color management. Add real overlays normally, but keep a
++		// single HDR10 layer eligible for direct scanout.
++		else if ( !GetBackend()->UsesVulkanSwapchain() && GetBackend()->IsSessionBased() &&
++		          !( g_bOutputHDREnabled && frameInfo.layers.count() == 1 &&
++		             frameInfo.layers.get( 0 ).colorspace == GAMESCOPE_APP_TEXTURE_COLORSPACE_HDR10_PQ ) )
+ 		{
+ 			auto tex = vulkan_get_hacky_blank_texture();
+ 			if ( tex != nullptr && frameInfo.layers.count() < k_nMaxLayers )

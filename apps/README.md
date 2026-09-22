@@ -19,6 +19,11 @@ longer applies stops the build.
   [PR #24](https://github.com/OpenGamingCollective/gamescope/pull/24).
   Build the compositor and its Vulkan WSI layer together from the pinned OGC
   revision, rather than relying on a locally compiled binary.
+  Native HDR10 streams can scan out directly when no real overlay is visible:
+  the transparent Steam overlay placeholder and the SDR conversion option no
+  longer force an extra rendering pass. Frames whose GPU work has already
+  finished also wake the compositor immediately, as asynchronously completed
+  frames already do. Real Steam overlays still use composition when needed.
 
 Moonlight is a native build, with Wayland, Gamescope WSI, Vulkan and VAAPI
 support. Its private FFmpeg and libplacebo libraries live beside the executable;
