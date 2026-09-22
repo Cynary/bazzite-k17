@@ -15,7 +15,7 @@
     "patches": []
   },
   "moonlight": {
-    "version": "6.1.0-vrr17.1-moonmachine.4",
+    "version": "6.1.0-vrr17.1-moonmachine.5",
     "repository": "https://github.com/Nonary/moonlight-qt.git",
     "commit": "1ccefb6e981880bef6d6d114dba6459c7be28878",
     "patches": [
@@ -24,7 +24,8 @@
       "0003-release-attributable-buffer.patch",
       "0004-gamescope-fifo-latch-protection.patch",
       "0005-direct-wayland-video.patch",
-      "0006-direct-p010-overlay-handoff.patch"
+      "0006-direct-p010-overlay-handoff.patch",
+      "0007-separate-clock-from-readiness.patch"
     ],
     "source": "https://github.com/Nonary/moonlight-qt/tree/1ccefb6e981880bef6d6d114dba6459c7be28878"
   },

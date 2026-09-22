@@ -57,9 +57,9 @@ screenshots, and returning from composition to direct scanout. Screenshots have
 been visually inspected; quantitative HDR colour accuracy, other display modes,
 and wider hardware compatibility still need validation.
 
-## Candidate: direct 4:2:0 and overlay handoff
+## Direct 4:2:0 and overlay handoff
 
-The next application build adds native-resolution HEVC Main10 P010 (10-bit
+The application patch set adds native-resolution HEVC Main10 P010 (10-bit
 4:2:0) to Direct YUV. It also keeps a Vulkan renderer ready alongside the direct
 renderer. Statistics and Steam overlays select Vulkan; closing them restores
 direct presentation after a short debounce. The decoder stays running throughout.
@@ -74,3 +74,24 @@ Opening statistics still produced a 55 ms gap between reported display flips;
 closing them produced a 25 ms gap. There was no decoder reset or new keyframe
 request at either transition. These changes are under validation and are not
 in the published image yet. P010 colours still need visual confirmation on the TV.
+
+## Frame timing and early export
+
+The Linux player estimates the host clock from the decoder's CPU-output timestamp,
+then separately checks when the GPU frame is ready. GPU waits no longer move the
+clock estimate. Direct YUV exports each surface immediately after synchronizing
+it, avoiding a later wait for the next frame to read that surface as a reference.
+The normal pacing rules remain active, and a frame cannot be presented before
+its observed readiness. Existing calibration is kept separate from the new policy.
+
+Two 4K HDR 4:4:4 runs on the K17 measured 5.93–5.95 ms average and 6.93–6.97 ms
+at the 99th percentile, compared with 6.95 ms average and 13.96 ms at the 99th
+percentile before these changes. None of the roughly 17,000 measured candidate
+frames exceeded 8.33 ms; neither run recorded drops. These are separate live
+streams, measuring complete frame receipt to the DRM display timestamp, excluding
+host work, network transit, and TV processing. They are not a latency guarantee.
+The display was also checked visually and reported smooth.
+
+The short 4:2:0 regression run averaged 4.14 ms with a 5.43 ms 99th percentile.
+Statistics switched to Vulkan and back while retaining the decoder. Longer
+4:2:0 and cross-hardware testing remain useful.

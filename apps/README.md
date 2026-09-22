@@ -95,3 +95,12 @@ render pass when the display supports direct scanout. The settings retain Vulkan
 as an explicit choice and as the fallback for unsupported direct presentation.
 See [Direct video presentation](../docs/DIRECT-VIDEO.md) for requirements,
 measurements, and the remaining overlay performance limitation.
+
+### Linux source-clock and GPU readiness
+
+Moonlight patch `0007` exports Direct YUV surfaces before the next decoder job
+can add a reference-read dependency. It also estimates the source clock from
+CPU decoder output, keeping GPU readiness as a separate presentation constraint.
+This is enabled by default on Linux and uses a new calibration key; older trace
+parameters retain the previous behavior for replay. See
+[direct video measurements](../docs/DIRECT-VIDEO.md#frame-timing-and-early-export).
