@@ -183,7 +183,7 @@ index 4f31c70c..de77b0bf 100644
      X(size_t, playout_offset_warmup_samples, playoutOffsetWarmupSamples, 64) \
      X(uint64_t, playout_delay_adaptive, playoutDelayAdaptive, 0) \
 diff --git a/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp b/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp
-index 579c4c7a..1ea5a92c 100644
+index 579c4c7a..542707ca 100644
 --- a/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp
 +++ b/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp
 @@ -161,6 +161,15 @@ bool isUncPath(const char* path)
@@ -231,6 +231,15 @@ index 579c4c7a..1ea5a92c 100644
              // The wait can overlap time already spent in the pacing queue.
              // Keep that queue residence out of the readiness model by adding
              // only the blocking fence cost to immutable decoder output.
+@@ -1220,7 +1239,7 @@ void VrrPacingWorker::writeTraceRow(const TraceRow& row)
+     // this row's policy from immutable session settings and its captured mode.
+     auto traceConfig = m_Config;
+     traceConfig.latencyMode = row.latencyMode;
+-    const VrrTimingParameters parameters = vrrTimingParametersForSession(traceConfig);
++    const VrrTimingParameters parameters = workerTimingParameters(traceConfig);
+     const VrrPresentFeedback& feedback = row.feedback;
+     const FrameTelemetry& telemetry = row.telemetry;
+     const uint64_t nativePresentDurationUs =
 diff --git a/architecture.md b/architecture.md
 index a67117a0..860e4ada 100644
 --- a/architecture.md
@@ -257,10 +266,27 @@ index a67117a0..860e4ada 100644
 +4.5 ms versus intermittently 11 ms readiness observations and requires unchanged
 +clock mapping with targets at or after readiness.
 diff --git a/tests/vrr/tst_vrrpacingworker.cpp b/tests/vrr/tst_vrrpacingworker.cpp
-index c4675572..e8dc2f6c 100644
+index c4675572..1c14b643 100644
 --- a/tests/vrr/tst_vrrpacingworker.cpp
 +++ b/tests/vrr/tst_vrrpacingworker.cpp
-@@ -1725,8 +1725,14 @@ void testDeepTraceRequestsNativeObservationsWithoutChangingMode()
+@@ -608,11 +608,15 @@ void testLatencyFixQueueAgeIncludesDecodeWait()
+         const uint64_t decodeCompleteUs = fields.value(decodeCompleteColumn).toULongLong();
+         const uint64_t decodeWaitUs = fields.value(decodeWaitColumn).toULongLong();
+         verifiedDecodeBoundary = decoderOutputUs != 0 && decodeWaitUs == 21000 &&
++#ifdef Q_OS_LINUX
++            decodeCompleteUs - decoderOutputUs == 26000;
++#else
+             decodeCompleteUs - decoderOutputUs == decodeWaitUs;
++#endif
+         break;
+     }
+     expect(verifiedDecodeBoundary,
+-           "GPU readiness must add only the blocking fence wait and exclude pacing-queue residence");
++           "readiness must follow the platform policy while preserving the measured fence wait");
+     SDL_setenv("MOONLIGHT_VRR_TRACE", "", 1);
+ }
+ 
+@@ -1725,8 +1729,14 @@ void testDeepTraceRequestsNativeObservationsWithoutChangingMode()
      Vrr13::Reserve cachedHistory(20);
      for (int i = 0; i < 256; ++i)
          cachedHistory.observe(4000000, 8000000, Vrr13::Reserve::Second + int64_t(i) * 16667000);
@@ -276,7 +302,7 @@ index c4675572..e8dc2f6c 100644
      {
          VrrPacingWorker worker(&backend, cachedConfig, &telemetry);
          expect(worker.start(), "worker must start for deep diagnostics testing");
-@@ -1749,11 +1755,18 @@ void testDeepTraceRequestsNativeObservationsWithoutChangingMode()
+@@ -1749,11 +1759,18 @@ void testDeepTraceRequestsNativeObservationsWithoutChangingMode()
      const QList<QByteArray> columns = header.split(',');
      const QList<QByteArray> fields = row.split(',');
      expect(columns.size() == fields.size(), "diagnostic columns must align with every value");
