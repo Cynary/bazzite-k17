@@ -68,12 +68,22 @@ Record what was actually tested and what still needs visual confirmation.
 
 1. Export the tested image as an OCI directory with `podman save --format oci-dir`.
    Record its manifest digest with `skopeo inspect --raw oci:PATH | sha256sum`.
-2. Archive the directory and split it below GitHub's 2 GiB per-file limit. Upload
-   `image.oci.tar.part-*`, `IMAGE-SHA256SUMS` and `cosign.pub` to a numbered release
-   such as `moonmachine-YYYYMMDD.1`. Include useful release notes and test limits.
-3. Run **Publish tested full-kernel image** with the release name and digest. It
-   publishes the exact archive, without rebuilding it, and signs it in both the
-   native containers/image format used by bootc and the Cosign format.
+2. Sign in to GHCR with a token that has `write:packages` permission, then push
+   directly from the build machine. This reuses layers already in GHCR and avoids
+   uploading a second copy as GitHub Release attachments:
+
+   ```sh
+   skopeo login ghcr.io
+   skopeo copy --preserve-digests oci:PATH \
+     docker://ghcr.io/cynary/bazzite-k17:moonmachine-YYYYMMDD.1
+   ```
+
+   Keep the numbered tag unique. Record the digest, source commit, release notes,
+   and test limits. GitHub Releases can hold the notes; no image archive is needed.
+3. Run **Publish tested full-kernel image** with the numbered tag and digest. It
+   checks the uploaded manifest and signs that exact image in both the native
+   containers/image format used by bootc and the Cosign format. Signing keys stay
+   in repository secrets.
 4. Run **Promote tested Moonmachine release** with that release and digest. It
    verifies signatures before pointing `:moonmachine` at the image.
 5. Check the signed channel on hardware and run `bootc upgrade --check` and
