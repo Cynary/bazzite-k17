@@ -42,6 +42,13 @@ the overlay can coexist with several more milliseconds before the surface is
 usable. Different drivers may block at different points, so comparing that
 number between Intel and AMD does not establish which GPU finishes first.
 
+For a concrete example, saved 4:4:4 session statistics reported **0.28–0.29 ms
+average decoding time**—about the 0.3 ms shown in the overlay. The published
+4:4:4 trace measured **4.60 ms from CPU decoder output to observed GPU readiness**.
+Those are different intervals from separate captures, not a matched per-frame
+ratio: the important point is that the roughly 0.3 ms statistic omitted several
+milliseconds of subsequent waiting for usable pixels.
+
 Before anything **reads the pixels**, decoding must have completed. That includes
 CPU readback, a shader sampling the surface, colour conversion and direct display
 scanout. Reading the handle or metadata does not require finished pixels. The

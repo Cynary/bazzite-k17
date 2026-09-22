@@ -35,3 +35,9 @@ alone. GPU decode wait is observed synchronization time, not a GPU timer query.
 The p99 summary uses sorted sample index `floor(0.99*n)`, matching the release
 report. The curves show all samples rather than synthesizing a distribution
 from percentiles. Publication figures are snapshots of separate live runs.
+
+The article’s 0.28–0.29 ms decode-statistic example is transcribed from
+`444-overlay-test-2-complete.log`, two session summaries (`Average decoding
+time: 0.28 ms` and `Average decoding time: 0.29 ms`). It is separate from the
+release trace supplying the 4.60 ms readiness interval; no per-frame ratio is
+claimed.
