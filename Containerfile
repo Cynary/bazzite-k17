@@ -60,4 +60,4 @@ RUN ldd /usr/bin/gamescope > /tmp/gamescope-libraries \
 RUN dnf5 clean all && rm -rf /var/cache/libdnf5 /var/cache/ldconfig/aux-cache /var/lib/dnf/repos && rm -f /var/log/dnf5.log
 RUN --mount=type=tmpfs,target=/run --network=none bootc container lint
 LABEL org.opencontainers.image.source="https://github.com/Cynary/bazzite-k17" \
-      io.cynary.k17.release="moonmachine-20260921.2"
+      io.cynary.k17.release="moonmachine-20260922.1"

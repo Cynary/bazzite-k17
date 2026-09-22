@@ -86,3 +86,12 @@ See [the offline test](../tests/hardware/chroma/README.md) and
 [validation results](../docs/CHROMA-VALIDATION.md).
 
 The libplacebo patch has not yet been submitted upstream.
+
+## Direct video presentation
+
+The direct-presentation patches add selectable YUV and RGB paths to Moonlight
+and packed-YUV import to Gamescope. YUV can avoid Moonlight's colour-conversion
+render pass when the display supports direct scanout. The settings retain Vulkan
+as an explicit choice and as the fallback for unsupported direct presentation.
+See [Direct video presentation](../docs/DIRECT-VIDEO.md) for requirements,
+measurements, and the remaining overlay performance limitation.

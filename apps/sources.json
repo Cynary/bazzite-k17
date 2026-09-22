@@ -15,26 +15,28 @@
     "patches": []
   },
   "moonlight": {
-    "version": "6.1.0-vrr17.1-moonmachine.2",
+    "version": "6.1.0-vrr17.1-moonmachine.3",
     "repository": "https://github.com/Nonary/moonlight-qt.git",
     "commit": "1ccefb6e981880bef6d6d114dba6459c7be28878",
     "patches": [
       "0001-reuse-ready-vaapi-mapping.patch",
       "0002-document-vaapi-mapping-lifetime.patch",
       "0003-release-attributable-buffer.patch",
-      "0004-gamescope-fifo-latch-protection.patch"
+      "0004-gamescope-fifo-latch-protection.patch",
+      "0005-direct-wayland-video.patch"
     ],
     "source": "https://github.com/Nonary/moonlight-qt/tree/1ccefb6e981880bef6d6d114dba6459c7be28878"
   },
   "gamescope": {
-    "version": "ogc-0ef725a-moonmachine.3",
+    "version": "ogc-0ef725a-moonmachine.4",
     "repository": "https://github.com/OpenGamingCollective/gamescope.git",
     "commit": "0ef725a8754b3480fb52d2493c4b3af3b845659b",
     "patches": [
       "0001-preserve-paced-vrr-for-fifo.patch",
       "0002-measured-drm-presentation-timing.patch",
       "0003-allow-native-hdr-scanout.patch",
-      "0004-wake-already-ready-commits.patch"
+      "0004-wake-already-ready-commits.patch",
+      "0005-direct-yuv-composition.patch"
     ],
     "source": "https://github.com/OpenGamingCollective/gamescope/pull/24"
   }
