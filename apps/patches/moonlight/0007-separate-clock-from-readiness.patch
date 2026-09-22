@@ -183,7 +183,7 @@ index 4f31c70c..de77b0bf 100644
      X(size_t, playout_offset_warmup_samples, playoutOffsetWarmupSamples, 64) \
      X(uint64_t, playout_delay_adaptive, playoutDelayAdaptive, 0) \
 diff --git a/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp b/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp
-index 579c4c7a..542707ca 100644
+index 579c4c7a..47b9a913 100644
 --- a/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp
 +++ b/app/streaming/video/ffmpeg-renderers/pacer/vrrpacingworker.cpp
 @@ -161,6 +161,15 @@ bool isUncPath(const char* path)
@@ -231,7 +231,36 @@ index 579c4c7a..542707ca 100644
              // The wait can overlap time already spent in the pacing queue.
              // Keep that queue residence out of the readiness model by adding
              // only the blocking fence cost to immutable decoder output.
-@@ -1220,7 +1239,7 @@ void VrrPacingWorker::writeTraceRow(const TraceRow& row)
+@@ -454,19 +473,20 @@ int VrrPacingWorker::run()
+         // render-bound client it only deepened the standing backlog.
+         const uint64_t scheduleNowUs = LiGetMicroseconds();
+         telemetry.staleCheckUs = scheduleNowUs;
+-        const uint64_t scheduleAgeUs = scheduleNowUs >=
+-                frame.decodeCompleteUs() ?
+-            scheduleNowUs - frame.decodeCompleteUs() : 0;
++        const bool observedReadiness =
++            m_TimingController->parameters().playoutOffsetDecoderOutput != 0;
++        const uint64_t contentOriginUs = observedReadiness ?
++            frame.decoderOutputUs() : frame.decodeCompleteUs();
++        const uint64_t scheduleAgeUs = positiveDifference(scheduleNowUs, contentOriginUs);
+         telemetry.staleAgeUs = scheduleAgeUs;
+         const bool metronome =
+             m_TimingController->parameters().playoutMetronomeEnabled != 0;
+         const bool latencyFix = m_TimingController->latencyFixActive();
+-        // The optional near-ceiling policy measures transport occupancy from
+-        // admission. Other modes retain their existing GPU-readiness origin
+-        // for stale-work policy; reporting always uses immutable decoder
+-        // output below.
++        // Observing GPU readiness now must not rejuvenate content that was
++        // already queued. New-policy sessions measure content age from CPU
++        // output; historical policy retains its old readiness origin.
+         const uint64_t ageOriginUs = latencyFix ?
+-            queuedFrame.trace.arrivalUs : frame.decodeCompleteUs();
++            queuedFrame.trace.arrivalUs : contentOriginUs;
+         const uint64_t ageUs = positiveDifference(scheduleNowUs, ageOriginUs);
+         if (hasQueuedFrame() && VrrFrameDropPolicy::beforeRender(
+                 decision, m_TimingController->displayPeriodUs(), ageUs, metronome, latencyFix)) {
+@@ -1220,7 +1240,7 @@ void VrrPacingWorker::writeTraceRow(const TraceRow& row)
      // this row's policy from immutable session settings and its captured mode.
      auto traceConfig = m_Config;
      traceConfig.latencyMode = row.latencyMode;
@@ -241,10 +270,10 @@ index 579c4c7a..542707ca 100644
      const FrameTelemetry& telemetry = row.telemetry;
      const uint64_t nativePresentDurationUs =
 diff --git a/architecture.md b/architecture.md
-index a67117a0..860e4ada 100644
+index a67117a0..84a6474a 100644
 --- a/architecture.md
 +++ b/architecture.md
-@@ -2176,3 +2176,20 @@ read the same surface as a reference, even when an earlier wait completed.
+@@ -2176,3 +2176,22 @@ read the same surface as a reference, even when an earlier wait completed.
  
  Export failure uses the existing synchronized path. This patch changes frame
  resource handling; it does not change the timing controller or replay policy.
@@ -258,7 +287,9 @@ index a67117a0..860e4ada 100644
 +latter is an upper bound on GPU readiness, not a hardware completion timestamp.
 +GPU waits and worker scheduling cannot backdate the clock observation. Adaptive
 +pacing and target clamping retain their existing policy; targets never precede
-+observed readiness. This policy uses a separate calibration key.
++observed readiness. Stale-frame age uses immutable decoder output, so observing
++readiness does not reset the age of queued content. This policy uses a separate
++calibration key.
 +
 +This includes early retained YUV export. The raw parameter defaults to zero
 +for replay compatibility; the Linux worker enables it for live sessions.
