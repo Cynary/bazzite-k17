@@ -95,3 +95,35 @@ Existing firmware ACPI warnings and Intel Ethernet PTM timeout messages remain.
 
 The subsequent [timing investigation](TIMING-VALIDATION.md) corrected the queue
 backlog and Gamescope presentation feedback.
+
+## 2026-09-22: permanent clock/readiness policy
+
+Image digest: `sha256:78a8822139dcdf80abd7fafe1282bef3cb6b38928228bbf8c6a87b4225d93282`.
+Built from `e648001`, booted on the K17, with no Moonlight or Gamescope binary
+overrides. Moonlight reports `6.1.0-vrr17.1-moonmachine.5`.
+
+| Path | Measured frames | Mean | p99 | Maximum | Drops |
+|---|---:|---:|---:|---:|---:|
+| Direct YUV 4:4:4 | 8,453 | 6.08 ms | 7.09 ms | 7.72 ms | 0 |
+| Direct RGB 4:4:4 | 3,825 | 9.17 ms | 10.27 ms | 11.09 ms | 0 |
+| Vulkan 4:4:4 | 3,818 | 8.26 ms | 9.56 ms | 10.59 ms | 0 |
+| Direct YUV 4:2:0 | 967 | 4.42 ms | 5.54 ms | 5.89 ms | 0 |
+
+These are separate Overcooked 2 streams at 4K HDR, about 116 FPS. The first
+30 seconds are excluded. Timing runs from complete frame receipt to the DRM
+display timestamp; host processing, network transit and TV processing are outside
+that interval. The 4:2:0 window was short because the same run tested overlays.
+
+Statistics switched to Vulkan and back with the decoder retained at both
+transitions. The screenshot showed the game and statistics, and the log recorded
+no fallback or decoder restart. HDR colour accuracy still needs quantitative testing on the display.
+
+Moonlight's timing and worker suites, Gamescope's 68 tests, three image-setup
+tests, bootc container checks and the booted K17 health check passed. The installed
+Xe module checksum matched and the HDMI recovery code was present. The earlier
+trial was also visually checked and reported smooth; the release-image check was
+automated.
+
+The release tests caught two integration issues before publication: trace rows
+must record the enabled Linux clock policy, and observing GPU readiness must not
+reset a queued frame's age. Both are covered by the worker tests.

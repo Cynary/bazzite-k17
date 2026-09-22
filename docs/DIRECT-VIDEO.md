@@ -72,8 +72,7 @@ are separate runs of the same game, not identical encoded frames.
 
 Opening statistics still produced a 55 ms gap between reported display flips;
 closing them produced a 25 ms gap. There was no decoder reset or new keyframe
-request at either transition. These changes are under validation and are not
-in the published image yet. P010 colours still need visual confirmation on the TV.
+request at either transition. These changes are included in `moonmachine-20260922.2`. P010 colours still need visual confirmation on the TV.
 
 ## Frame timing and early export
 
@@ -89,7 +88,7 @@ at the 99th percentile, compared with 6.95 ms average and 13.96 ms at the 99th
 percentile before these changes. None of the roughly 17,000 measured candidate
 frames exceeded 8.33 ms; neither run recorded drops. These are separate live
 streams, measuring complete frame receipt to the DRM display timestamp, excluding
-host work, network transit, and TV processing. They are not a latency guarantee.
+host work, network transit, and TV processing. Other games, stream settings and hardware can produce different timings.
 The display was also checked visually and reported smooth.
 
 The short 4:2:0 regression run averaged 4.14 ms with a 5.43 ms 99th percentile.
