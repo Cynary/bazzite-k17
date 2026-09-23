@@ -6,7 +6,7 @@ streaming exposed a second problem. Moonlight could receive and decode 116 frame
 per second while displaying only about 63. Even after fixing that, frames spent
 far too long waiting inside the client.
 
-The current release's Direct YUV 4:4:4 path averages **6.08 ms**, with **99% of
+The original release validation measured Direct YUV 4:4:4 at **6.08 ms**, with **99% of
 measured frames at or below 7.09 ms**. That is the time from receiving a complete
 encoded frame to the Linux display driver's timestamp for showing it. It excludes
 the gaming PC, network transit, the position of a pixel during scanout, and the
@@ -141,9 +141,8 @@ Fixing that reduced measured ready-frame dispatch from about **2.22 ms to
 
 These are checkpoints from different runs, not additive savings attributable to
 individual patches. Low Latency mode and higher media-engine minimum clocks
-helped further. Raising the package power limit did not materially help this
-streaming workload, which used about 7 W. The CPU/GPU tuning used for these
-measurements is recorded separately from the shared image defaults.
+helped further. We later tested the CPU preference, GPU clocks and power limits
+individually to establish which settings belong in the image.
 
 ## Making Intel 4:4:4 practical
 
@@ -227,13 +226,52 @@ client, not hardware performance-counter measurements of pure decoder execution.
 Submission-to-display also includes scheduling and the display's permitted
 presentation time, so it is not entirely removable software overhead.
 
+## Making the faster settings the default
+
+After the rendering and pacing fixes, we tested all eight combinations of CPU
+performance preference, higher GPU minimum clocks and higher power limits. Each
+combination ran twice, with the order reversed on the second pass. The workload
+was Overcooked 2’s idle startup/menu sequence at 4K HDR, HEVC 4:4:4 and about
+116 FPS through Direct YUV. We excluded the first 30 seconds of each run.
+
+![Streaming latency with individual CPU, GPU and power settings](tuning/tuning-effects.png)
+
+Both the CPU preference and GPU clocks helped. Together, they reduced average
+client latency from **8.00 to 6.29 ms** and p99 from **10.55 to 7.24 ms**. The
+bars average the two runs; the dots show each run. The p99 comparison averages
+the two runs’ 99th percentiles. All sixteen valid runs recorded zero frame drops.
+
+The stage timings help explain the improvement:
+
+- **CPU performance preference** reduced submission-to-display waiting from
+  about 1.55 to 0.97 ms. It favours responsiveness while leaving the CPU governor
+  unchanged.
+- **Higher GPU minimum clocks** reduced observed decode waiting from roughly
+  5.5 to 4.6 ms. Graphics and media clock floors are 1850 and 1200 MHz on the K17.
+  Maximum clocks are unchanged; this stays within the hardware’s rated range.
+- **Higher power limits** had no consistent benefit for this stream. Average
+  package power was about 5–7 W, below either tested limit.
+
+Starting with **`moonmachine-20260923.2`**, the image selects the CPU performance
+preference automatically and applies the GPU floors on the K17. Other machines
+receive the CPU profile only. These defaults survived reboot and suspend/resume;
+switching to the balanced profile restored the previous settings. Later profile
+choices are preserved.
+
+This is a separate experiment from the 6.08 ms release capture above. Its metric
+starts at the first packet received by the client and ends at the display
+controller’s flip timestamp; it still excludes host processing, network transit
+before receipt and TV processing. See [the tuning results](../PERFORMANCE.md#which-tuning-settings-help-streaming-23-september)
+for the individual comparisons, raw summaries and profile controls.
+
 ## What ships, and what remains
 
-The [release audit](RELEASE-AUDIT-20260922.md) lists the exact image, sources,
-patches and an important omission: the later Xbox suspend candidate is not yet
-packaged. The shared image includes the HDMI/VRR and recovery driver, patched
-Gamescope, Moonlight and libplacebo, upstream MoonDeck, graphical boot, Wi-Fi
-and earlier Xbox reconnection fixes. It updates through the signed GHCR channel.
+The [original release audit](RELEASE-AUDIT-20260922.md) lists the streaming
+patches and their sources. The later Xbox startup and suspend fixes are now
+packaged too; see [their release validation](XBOX-RELEASE-20260923.md). The shared
+image includes the HDMI/VRR and recovery driver, patched Gamescope, Moonlight and
+libplacebo, upstream MoonDeck, graphical boot, Wi-Fi fixes and the performance
+defaults described above. It updates through the signed GHCR channel.
 
 These measurements used a K17, 4K HDR HEVC, roughly 116 FPS, Overcooked 2 and the
 test machine's CPU/GPU performance tuning. The first 30 seconds were excluded
