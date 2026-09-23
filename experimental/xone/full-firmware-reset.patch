@@ -1,0 +1,76 @@
+--- a/transport/mt76.h
++++ b/transport/mt76.h
+@@ -66,7 +66,8 @@
+ void xone_mt76_prep_command(struct sk_buff *skb, enum mt76_mcu_cmd cmd);
+ 
+ int xone_mt76_set_led_mode(struct xone_mt76 *mt, enum xone_mt76_led_mode mode);
+-int xone_mt76_load_firmware(struct xone_mt76 *mt, const struct firmware *fw);
++int xone_mt76_load_firmware(struct xone_mt76 *mt, const struct firmware *fw,
++			    bool full_reset);
+ int xone_mt76_init_radio(struct xone_mt76 *mt);
+ int xone_mt76_suspend_radio(struct xone_mt76 *mt);
+ int xone_mt76_resume_radio(struct xone_mt76 *mt);
+--- a/transport/mt76.c
++++ b/transport/mt76.c
+@@ -512,12 +512,38 @@
+ 	return 0;
+ }
+ 
+-int xone_mt76_load_firmware(struct xone_mt76 *mt, const struct firmware *fw)
++static int xone_mt76_enter_upload_state(struct xone_mt76 *mt)
++{
++	int err;
++
++	/* Stop transmitting before restarting the MCU and replacing its RAM. */
++	xone_mt76_write_register(mt, MT_BEACON_TIME_CFG, 0);
++	xone_mt76_write_register(mt, MT_MAC_SYS_CTRL, 0);
++	err = usb_control_msg(mt->udev, usb_sndctrlpipe(mt->udev, 0),
++			      MT_VEND_DEV_MODE, USB_DIR_OUT | USB_TYPE_VENDOR,
++			      1, 0, NULL, 0, XONE_MT_USB_TIMEOUT);
++	if (err < 0)
++		return err;
++
++	/* The running firmware's ready bit alone cannot confirm this reset. */
++	if (!xone_mt76_poll(mt, MT_FCE_DMA_ADDR | MT_VEND_TYPE_CFG,
++			    0xffffffff, 0x80000000))
++		return -ETIMEDOUT;
++
++	return 0;
++}
++
++int xone_mt76_load_firmware(struct xone_mt76 *mt, const struct firmware *fw,
++			    bool full_reset)
+ {
+ 	u32 val;
+ 	int err;
+ 
+-	if (xone_mt76_read_register(mt, MT_FCE_DMA_ADDR | MT_VEND_TYPE_CFG)) {
++	if (full_reset) {
++		err = xone_mt76_enter_upload_state(mt);
++		if (err)
++			return err;
++	} else if (xone_mt76_read_register(mt, MT_FCE_DMA_ADDR | MT_VEND_TYPE_CFG)) {
+ 		dev_dbg(mt->dev, "%s: resetting firmware...\n", __func__);
+ 		err = xone_mt76_reset_firmware(mt);
+ 		if (err)
+--- a/transport/dongle.c
++++ b/transport/dongle.c
+@@ -1119,7 +1119,8 @@
+ 	const struct firmware *fw;
+ 	char fwname[21];
+ 	int err;
+-	u16 fw_product = dongle->product;
++	/* Use the shared 2017 firmware on the original adapter too. */
++	u16 fw_product = dongle->product == 0x02e6 ? 0x02fe : dongle->product;
+ 
+ 	if (fw_override_pid) {
+ 		dev_info(mt->dev, "Firmware overriden with PID=0x%04x", fw_override_pid);
+@@ -1143,7 +1144,7 @@
+ 
+ 
+ 	for (int i = 0; i < 5; ++i) {
+-		err = xone_mt76_load_firmware(mt, fw);
++		err = xone_mt76_load_firmware(mt, fw, dongle->product == 0x02e6);
+ 		if (!err)
+ 			break;
+ 		ssleep(1);

@@ -1,0 +1,13 @@
+--- a/transport/dongle.c
++++ b/transport/dongle.c
+@@ -864,7 +864,9 @@
+ 		 * A real controller always uses a valid unicast address.
+ 		 * Accepting invalid addresses exhausts the client table.
+ 		 */
+-		if (!is_valid_ether_addr(hdr->addr2))
++		/* Ignore association requests addressed to another access point. */
++		if (!is_valid_ether_addr(hdr->addr2) ||
++		    !ether_addr_equal(hdr->addr1, dongle->mt.address))
+ 			return 0;
+ 		return xone_dongle_handle_association(dongle, hdr->addr2);
+ 	case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_DISASSOC:
