@@ -11,9 +11,9 @@ owns packaging and defaults; component changes belong in their own forks.
 | Moonlight | [moonlight-qt](https://github.com/Cynary/moonlight-qt) | moonmachine |
 | Gamescope | [gamescope](https://github.com/Cynary/gamescope) | moonmachine |
 | libplacebo | [libplacebo](https://github.com/Cynary/libplacebo) | moonmachine |
-| Streaming protocol | [moonlight-common-c](https://github.com/Cynary/moonlight-common-c) | master |
-| Windows host | [Vibepollo](https://github.com/Cynary/Vibepollo) | master |
-| Windows virtual controllers | [libvirtualgamepad](https://github.com/Cynary/libvirtualgamepad) | main |
+| Streaming protocol | [moonlight-common-c](https://github.com/Cynary/moonlight-common-c) | moonmachine |
+| Windows host | [Vibepollo](https://github.com/Cynary/Vibepollo) | moonmachine |
+| Windows virtual controllers | [libvirtualgamepad](https://github.com/Cynary/libvirtualgamepad) | experimental/steam-controller |
 | Buddy | [moondeck-buddy](https://github.com/Cynary/moondeck-buddy) | main |
 
 The first migration into the application and xonedo branches preserved the exact
@@ -22,3 +22,6 @@ are in `apps/sources.json`; kernel and xonedo revisions are in the kernel build
 notes. A branch moving does not change a published image: each build pins full
 commit IDs. The streaming protocol and Windows forks are development sources;
 creating them does not enable native controller forwarding in a released image.
+
+`apps/fork-migration.json` records the original bases, imported patch names, and
+resulting Git tree IDs for the source-equivalence audit.

@@ -1,0 +1,54 @@
+{
+  "moonlight": {
+    "repository": "https://github.com/Cynary/moonlight-qt.git",
+    "upstream_base": "1ccefb6e981880bef6d6d114dba6459c7be28878",
+    "commit": "b6c9a4eede2f620188dae7e6b4d78f4a010e42a7",
+    "tree": "3ee19a63c37e9af53da517f3d4b9497e338d9200",
+    "patches": [
+      "0001-reuse-ready-vaapi-mapping.patch",
+      "0002-document-vaapi-mapping-lifetime.patch",
+      "0003-release-attributable-buffer.patch",
+      "0004-gamescope-fifo-latch-protection.patch",
+      "0005-direct-wayland-video.patch",
+      "0006-direct-p010-overlay-handoff.patch",
+      "0007-separate-clock-from-readiness.patch"
+    ]
+  },
+  "gamescope": {
+    "repository": "https://github.com/Cynary/gamescope.git",
+    "upstream_base": "0ef725a8754b3480fb52d2493c4b3af3b845659b",
+    "commit": "362932d5e33f8b20cfc05b6e21245f994878d468",
+    "tree": "c1fad04321ada183b89cee6a196be324258af8f8",
+    "patches": [
+      "0001-preserve-paced-vrr-for-fifo.patch",
+      "0002-measured-drm-presentation-timing.patch",
+      "0003-allow-native-hdr-scanout.patch",
+      "0004-wake-already-ready-commits.patch",
+      "0005-direct-yuv-composition.patch",
+      "0006-direct-p010-overlay-handoff.patch"
+    ]
+  },
+  "libplacebo": {
+    "repository": "https://github.com/Cynary/libplacebo.git",
+    "upstream_base": "2d0979fb54e025e904c7372666fffbf5dae40f66",
+    "commit": "1d2a1ac3d814462f2f3dca35f9f76ea0513b2e87",
+    "tree": "cbf533b4350f770af7e0955984d9a35778a0cc4a",
+    "patches": [
+      "libplacebo-disable-internally-synchronized-queues.patch",
+      "0001-import-packed-vaapi-444.patch"
+    ]
+  },
+  "xonedo": {
+    "repository": "https://github.com/Cynary/xonedo.git",
+    "upstream_base": "982cbcb019ae4d2bee5ae69385223409ee555c88",
+    "commit": "b516bdd96f7d22f4e3de211cf1ca7177d0064357",
+    "tree": "ec6e9067a72e26f73a2558fb584fc68ddb8c8956",
+    "patches": [
+      "0001-answer-association-retries.patch",
+      "0002-restore-02e6-probe-reset.patch",
+      "0003-restore-radio-before-receive-and-bound-teardown.patch",
+      "0004-reject-association-requests-for-other-access-points.patch",
+      "0005-reload-02e6-firmware-from-upload-state.patch"
+    ]
+  }
+}
