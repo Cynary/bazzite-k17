@@ -16,7 +16,6 @@ public sealed class Tester : Form {
     readonly bool demo;bool hapticBusy;string message="R: guided check    C: centre pose    H / J: left / right haptic    F9: save    F11: fullscreen";
     readonly Font normal=new Font("Segoe UI",13),small=new Font("Segoe UI",10),title=new Font("Segoe UI Semibold",25),heading=new Font("Segoe UI Semibold",16);
     static Color Bg=Color.FromArgb(12,17,26),Card=Color.FromArgb(23,31,43),Ink=Color.FromArgb(234,240,247),Muted=Color.FromArgb(151,168,190),Mint=Color.FromArgb(78,231,185),Amber=Color.FromArgb(255,193,100);
-    double poseScale=1;
     double[] zero=new[]{1.0,0,0,0};long lastCount;DateTime rateAt=DateTime.UtcNow;double hz;int hapticStep=-1;bool savedComplete;
     public Tester(bool simulation){demo=simulation;Text="Steam Controller Lab";DoubleBuffered=true;AutoScaleMode=AutoScaleMode.None;BackColor=Bg;ClientSize=new Size(1536,960);KeyPreview=true;
         timer.Tick+=(a,b)=>{if(steamMotion!=null)steamMotion.Poll();guide.Tick(data);if(!demo&&guide.Current!=null&&guide.Current.Kind.StartsWith("haptic")&&hapticStep!=guide.Index&&!hapticBusy){hapticStep=guide.Index;Haptic(guide.Current.Kind=="haptic-left"?0:1);}if(!demo&&guide.Index==guide.Steps.Count&&!savedComplete){savedComplete=true;Save();}if((DateTime.UtcNow-rateAt).TotalSeconds>1){lock(data.Sync){hz=(data.Reports-lastCount)/(DateTime.UtcNow-rateAt).TotalSeconds;lastCount=data.Reports;}rateAt=DateTime.UtcNow;}Invalidate();};
@@ -68,18 +67,9 @@ public sealed class Tester : Form {
     void Stick(Graphics g,float x,float y,State s,int side){int touch=side==0?24:20,click=side==0?15:5;Circle(g,x,y,40,Down(s,touch)?Color.FromArgb(61,111,105):Bg);using(var p=new Pen(Down(s,click)?Mint:Muted,2))g.DrawEllipse(p,x-39,y-39,78,78);float xx=s==null?0:s.Sticks[side*2]/32768f,yy=s==null?0:s.Sticks[side*2+1]/32768f;Circle(g,x+xx*25,y-yy*25,12,Ink);TextAt(g,s==null?"0, 0":s.Sticks[side*2]+", "+s.Sticks[side*2+1],x-54,y+44,small,Muted);}
     void Pad(Graphics g,float x,float y,State s,int side){int touch=side==0?25:21,click=side==0?26:22;Box(g,x-53,y-5,106,78,Down(s,click)?Color.FromArgb(61,111,105):Bg);if(Down(s,touch)){float xx=s.Pads[side*2]/32768f,yy=s.Pads[side*2+1]/32768f;Circle(g,x+xx*44,y+34-yy*31,7,Mint);}TextAt(g,s==null?"0, 0":s.Pads[side*2]+", "+s.Pads[side*2+1],x-57,y+79,small,Muted);TextAt(g,"P "+(s==null?0:s.Pressure[side]),x-32,y+96,small,Ink);}
     void Meter(Graphics g,float x,float y,float w,double v,string label,int raw){TextAt(g,label+" "+raw,x,y-25,small,Muted);Box(g,x,y,w,7,Bg);Box(g,x,y,(float)(w*Math.Max(0,Math.Min(1,v))),7,Mint);}
-    PointF Project(double[] q,double x,double y,double z){var a=Rotation.Apply(q,x,y,z);double perspective=4.2/(4.2-a[2]);return new PointF((float)(1240+a[0]*85*perspective*poseScale),(float)(320-a[1]*85*perspective*poseScale));}
     void Draw3D(Graphics g,State s){var raw=steamMotion!=null?steamMotion.Quaternion:Rotation.Unit(s);var q=raw==null?new[]{1.0,0,0,0}:Rotation.Multiply(zero,raw);
-        // Tilt the camera; device X is right, Y points toward the shoulders, Z is up.
-        q=Rotation.Multiply(new[]{Math.Cos(.28),Math.Sin(.28),0.0,0.0},q);
-        double[,] poly={{-1.4,.7},{-.8,1.0},{.8,1.0},{1.4,.7},{1.8,-.9},{1.25,-1.2},{.65,-.55},{-.65,-.55},{-1.25,-1.2},{-1.8,-.9}};
-        poseScale=1;double mx=1,my=1;for(int i=0;i<10;i++){var point=Project(q,poly[i,0],poly[i,1],.16);mx=Math.Max(mx,Math.Abs(point.X-1240));my=Math.Max(my,Math.Abs(point.Y-320));}poseScale=Math.Min(1,Math.Min(215/mx,110/my));
-        var top=new PointF[10];var bottom=new PointF[10];for(int i=0;i<10;i++){top[i]=Project(q,poly[i,0],poly[i,1],.16);bottom[i]=Project(q,poly[i,0],poly[i,1],-.16);}
-        for(int i=0;i<10;i++){using(var b=new SolidBrush(Color.FromArgb(42,57,75)))g.FillPolygon(b,new[]{top[i],top[(i+1)%10],bottom[(i+1)%10],bottom[i]});}
-        using(var b=new SolidBrush(Color.FromArgb(74,97,123)))g.FillPolygon(b,top);using(var p=new Pen(Mint,2))g.DrawPolygon(p,top);
-        foreach(double x in new[]{-.8,.8}){var pad=new[]{Project(q,x-.3,-.05,.18),Project(q,x+.3,-.05,.18),Project(q,x+.3,-.5,.18),Project(q,x-.3,-.5,.18)};using(var b=new SolidBrush(Bg))g.FillPolygon(b,pad);var stick=Project(q,x*.75,.5,.2);Circle(g,stick.X,stick.Y,12,Bg);}
-        var nose=Project(q,0,1,.2);Circle(g,nose.X,nose.Y,5,Mint);
-        TextAt(g,raw==null?"No valid orientation data":(steamMotion!=null?"Steam Input orientation • schematic model":"Controller quaternion • schematic model"),1006,186,small,raw==null?Amber:Muted);
+        var saved=g.Save();g.SetClip(new RectangleF(992,213,503,226));ControllerModel.Draw(g,q,s);g.Restore(saved);
+        TextAt(g,raw==null?"No valid orientation data":(steamMotion!=null?"Steam Input orientation • 3D model":"Controller quaternion • 3D model"),1006,186,small,raw==null?Amber:Muted);
         TextAt(g,"Gyro °/s  "+(s==null?"—":Fmt(s.Gyro,2000.0/32768)),1006,447,normal,Ink);
         TextAt(g,"Accel g    "+(s==null?"—":Fmt(s.Accel,2.0/32768)),1006,474,normal,Ink);
     }

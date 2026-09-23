@@ -49,3 +49,7 @@ This development test uses Steam's sample application ID 480 to initialize the p
 On the tested firmware, the raw quaternion remains `(32767, 0, 0, 0)`. Windows Steam identifies the emulated controller as type 17 (Steam Controller 2026) and returns a non-identity quaternion. Steam documents this orientation as accumulated gyro rotation. This test does not implement its own motion fusion or change controller firmware.
 
 The guided orientation step still checks raw reports; it does not automatically pass based on Steam Input's result. The separate 3D view is the Steam Input check.
+
+The orientation model has a bevelled shell, rounded grips, raised sticks, trackpads, shoulder controls and rear buttons. It uses a depth buffer so the back and front occlude correctly during rotation. This is an illustrative model, not a measured scan.
+
+The Steam Input comparison also exposed intermittent exact identity quaternions between non-identity samples. A follow-up capture reproduced 17 identities in 232 samples with the same controller handle throughout. These jumps already exist in the API output; the viewer does not smooth or hide them. This does not yet distinguish a Steam bug from an interaction with the emulated reports. Motion logging includes every sampled quaternion and its handle to investigate that distinction.
