@@ -1,0 +1,14 @@
+__pycache__/
+*.exe
+*.dll
+*.obj
+*.lib
+*.exp
+*.cat
+*.cer
+package/
+certificate-thumbprint.txt
+*.log
+*.jsonl
+*.stderr
+*.requests

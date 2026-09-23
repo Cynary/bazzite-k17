@@ -1,0 +1,121 @@
+; Copyright (c) 2026 Chase Payne
+; SPDX-License-Identifier: MIT
+;
+; Architecture template. The release packager substitutes amd64 with amd64 or
+; arm64 and writes MoonmachineSteamHid.inf beside the matching DLL. Do not ship
+; an INF that names more than one architecture while carrying one flat DLL.
+
+[Version]
+Signature="$Windows NT$"
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%Vibeshine%
+CatalogFile=MoonmachineSteamHid.cat
+DriverVer=09/23/2026,0.0.1.3
+PnpLockdown=1
+
+[Manufacturer]
+%Vibeshine%=Vibeshine,NTamd64.10.0...19041,NTamd64.10.0...22000
+
+[Vibeshine.NTamd64.10.0...19041]
+%DeviceName%=MoonmachineSteamHid_Install_Win10,ROOT\MOONMACHINESTEAMHID
+
+[Vibeshine.NTamd64.10.0...22000]
+%DeviceName%=MoonmachineSteamHid_Install_Win11,ROOT\MOONMACHINESTEAMHID
+
+; ================= Windows 10 1909 through Windows 10 =========================
+; Windows 10 predates the inbox WUDFRD filter sections, so this variant adds the
+; reflector as an upper filter itself. VHF still owns the function driver slot.
+
+[MoonmachineSteamHid_Install_Win10.NT]
+Include=hidvhf.inf
+Needs=vhfservice.NT
+CopyFiles=MoonmachineSteamHid.CopyFiles
+
+[MoonmachineSteamHid_Install_Win10.NT.HW]
+Include=hidvhf.inf
+Needs=vhfservice.NT.HW
+AddReg=MoonmachineSteamHid_Install.AddReg
+
+[MoonmachineSteamHid_Install_Win10.NT.Services]
+Include=hidvhf.inf
+Needs=vhfservice.NT.Services
+AddService=WUDFRd,0x000001f8,WUDFRd_ServiceInstall
+
+[MoonmachineSteamHid_Install_Win10.NT.Filters]
+AddFilter=WUDFRd,,WUDFRd_UpperFilterPosition
+
+[MoonmachineSteamHid_Install_Win10.NT.Wdf]
+UmdfService=MoonmachineSteamHid,MoonmachineSteamHid_Wdf
+UmdfServiceOrder=MoonmachineSteamHid
+UmdfKernelModeClientPolicy=AllowKernelModeClients
+UmdfFileObjectPolicy=AllowNullAndUnknownFileObjects
+UmdfFsContextUsePolicy=CannotUseFsContexts
+
+[WUDFRd_UpperFilterPosition]
+FilterPosition=Upper
+
+[WUDFRd_ServiceInstall]
+DisplayName=%WUDFRdServiceName%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%12%\WUDFRd.sys
+
+; ================================ Windows 11 ==================================
+
+[MoonmachineSteamHid_Install_Win11.NT]
+Include=WUDFRD.inf,hidvhf.inf
+Needs=WUDFRD_UpperFilter.NT,vhfservice.NT
+CopyFiles=MoonmachineSteamHid.CopyFiles
+
+[MoonmachineSteamHid_Install_Win11.NT.HW]
+Include=WUDFRD.inf,hidvhf.inf
+Needs=WUDFRD_UpperFilter.NT.HW,vhfservice.NT.HW
+AddReg=MoonmachineSteamHid_Install.AddReg
+
+[MoonmachineSteamHid_Install_Win11.NT.Services]
+Include=WUDFRD.inf,hidvhf.inf
+Needs=WUDFRD_UpperFilter.NT.Services,vhfservice.NT.Services
+
+[MoonmachineSteamHid_Install_Win11.NT.Filters]
+Include=WUDFRD.inf
+Needs=WUDFRD_UpperFilter.NT.Filters
+
+[MoonmachineSteamHid_Install_Win11.NT.Wdf]
+UmdfService=MoonmachineSteamHid,MoonmachineSteamHid_Wdf
+UmdfServiceOrder=MoonmachineSteamHid
+UmdfKernelModeClientPolicy=AllowKernelModeClients
+UmdfFileObjectPolicy=AllowNullAndUnknownFileObjects
+UmdfFsContextUsePolicy=CannotUseFsContexts
+
+; ================================ Shared =======================================
+
+[MoonmachineSteamHid_Install.AddReg]
+; This is a UMDF source device, so its stack security belongs in the INF.
+; Permit only the interactive user session to create virtual controllers;
+; SYSTEM and Administrators retain full access for installation and recovery.
+; UD is the Windows UMDF-host SID, required for the driver's local VHF target.
+HKR,,Security,,"D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GRGW;;;IU)(A;;GA;;;UD)"
+
+[MoonmachineSteamHid_Wdf]
+UmdfLibraryVersion=2.15
+ServiceBinary=%13%\MoonmachineSteamHid.dll
+
+[MoonmachineSteamHid.CopyFiles]
+MoonmachineSteamHid.dll
+
+[DestinationDirs]
+DefaultDestDir=13
+
+[SourceDisksNames]
+1=%DiskName%,,,
+
+[SourceDisksFiles]
+MoonmachineSteamHid.dll=1
+
+[Strings]
+Vibeshine="Vibeshine"
+DeviceName="Moonmachine Experimental Steam HID"
+WUDFRdServiceName="Windows Driver Foundation - User-mode Driver Framework Reflector"
+DiskName="Moonmachine Experimental Steam HID Driver"

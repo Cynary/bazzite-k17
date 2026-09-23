@@ -2,7 +2,7 @@
 
 The goal is to let Windows Steam Input see a Steam Controller, including its touchpads, grip sensors, back buttons, motion and haptics, while the controller stays connected to the streaming client. This does not use USB/IP.
 
-This directory contains the report codec, a proposed transport payload, tests and a read-only capture tool. It is **not yet connected to Moonlight or a Windows virtual controller**. Passing these tests does not establish Steam Input compatibility.
+This directory contains the report codec, a proposed transport payload, tests and a read-only capture tool. The [Windows prototype](windows-native/README.md) now builds and loads as a separate virtual HID driver. Windows Steam opens its native Steam Controller backend, and a raw-input replay test passed byte-for-byte. Moonlight integration, complete Steam initialization and haptics are still pending.
 
 ## What is available in open source
 
@@ -46,14 +46,14 @@ g++ -std=c++20 -Wall -Wextra -Werror capture.cpp -o steam-capture
 
 Turn the controller on, then move sticks, touch each pad and grip, press the back buttons and rotate it during the capture. Existing hidraw permissions are required. Exit code 4 means no native state reports arrived. Only recognized state reports are saved, with a relative monotonic timestamp and local endpoint name.
 
-The initial capture found the puck but received no native state reports. Physical field and haptic validation remain pending.
+A later capture received 797 native reports in three seconds from the powered-on controller. Individual control and haptic validation remain pending.
 
 ## Integration still to build
 
 1. Add capability negotiation and controller attachment metadata to Moonlight and Vibepollo. Select native forwarding explicitly, and avoid simultaneously forwarding the same controller as an Xbox pad.
 2. Give Moonlight access to native reports while streaming. Return ownership to local Steam Input on disconnect, including restoring the appropriate controller settings. Keep system-navigation behavior explicit rather than letting two Steam instances consume the same controls.
-3. Add a VHF Steam Controller profile using verified identity, descriptor and input reports. A puck endpoint is not necessarily interchangeable with the wired controller; do not substitute one identity for another without testing discovery.
-4. Implement bounded, correlated feature-request/reply handling. Steam’s settings and identity requests must receive real responses or a verified emulation. Handle timeout, cancellation, unplug and reconnect without replaying an old response into a new session. Do not forward firmware-update commands as ordinary controller configuration.
+3. Finish testing the new VHF Steam Controller profile against the real controller. A puck endpoint is not necessarily interchangeable with the wired controller; do not substitute one identity for another without testing discovery.
+4. Integrate the prototype’s bounded, correlated feature-request/reply handling into the streaming connection. Steam’s settings and identity requests must receive real responses or a verified emulation. Handle timeout, cancellation, unplug and reconnect without replaying an old response into a new session. Do not forward firmware-update commands as ordinary controller configuration.
 5. Relay haptic output through the authenticated connection. Preserve pulse order; do not coalesce distinct haptic commands as if they were interchangeable rumble strengths.
 6. Validate Windows Steam recognition and per-game Steam Input features, then latency and multiplayer. Packet simulation cannot prove those behaviors.
 
