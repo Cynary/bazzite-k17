@@ -1,0 +1,39 @@
+#!/usr/bin/python3
+"""Select streaming defaults once; leave later profile choices to the user."""
+from pathlib import Path
+import subprocess
+
+
+def select_profile(sysfs=Path('/sys')):
+    dmi = sysfs / 'class/dmi/id'
+    try:
+        is_k17 = ((dmi / 'sys_vendor').read_text().strip() == 'GMKtec'
+                  and (dmi / 'product_name').read_text().strip() == 'NucBox K17')
+    except FileNotFoundError:
+        is_k17 = False
+    if not is_k17:
+        return 'moonmachine-streaming'
+    gpu = sysfs / 'bus/pci/devices/0000:00:02.0'
+    if (gpu / 'vendor').read_text().strip() != '0x8086':
+        raise RuntimeError('Expected Intel graphics on K17')
+    for gt, minimum in ((0, 1850), (1, 1200)):
+        freq = gpu / f'tile0/gt{gt}/freq0'
+        if not (freq / 'min_freq').exists() or int((freq / 'rp0_freq').read_text()) < minimum:
+            raise RuntimeError('K17 GPU frequency controls are unavailable or incompatible')
+    return 'moonmachine-k17-streaming'
+
+
+def apply_default(stamp=Path('/var/lib/moonmachine/performance-default-v1'),
+                  opt_out=Path('/etc/moonmachine/disable-performance-default'),
+                  sysfs=Path('/sys'), run=subprocess.run):
+    if stamp.exists() or opt_out.exists():
+        return
+    profile = select_profile(sysfs)
+    run(['tuned-adm', 'profile', profile], check=True)
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text(profile + '\n')
+    print(f'Selected {profile}; later profile choices will be preserved')
+
+
+if __name__ == '__main__':
+    apply_default()

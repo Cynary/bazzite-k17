@@ -49,6 +49,8 @@ RUN dnf5 install -y qt6-qtbase qt6-qtdeclarative qt6-qtsvg SDL2_ttf sdl2-compat 
 RUN python3 /tmp/moonmachine-apps/install.py && rm -rf /tmp/moonmachine-apps
 # Preserve the scheduling capability carried by Bazzite's Gamescope package.
 RUN setcap cap_sys_nice=eip /usr/bin/gamescope
+COPY tests/test_performance_defaults.py /tmp/test_performance_defaults.py
+RUN python3 /tmp/test_performance_defaults.py && rm /tmp/test_performance_defaults.py
 COPY tests/test_app_setup.py /tmp/test_app_setup.py
 RUN python3 /tmp/test_app_setup.py && rm /tmp/test_app_setup.py
 RUN LD_LIBRARY_PATH=/usr/lib/moonmachine/moonlight/usr/lib:/usr/lib/moonmachine/moonlight/usr/lib64 \
@@ -61,4 +63,4 @@ RUN ldd /usr/bin/gamescope > /tmp/gamescope-libraries \
 RUN dnf5 clean all && rm -rf /var/cache/libdnf5 /var/cache/ldconfig/aux-cache /var/lib/dnf/repos && rm -f /var/log/dnf5.log
 RUN --mount=type=tmpfs,target=/run --network=none bootc container lint
 LABEL org.opencontainers.image.source="https://github.com/Cynary/bazzite-k17" \
-      io.cynary.k17.release="moonmachine-20260923.1"
+      io.cynary.k17.release="moonmachine-20260923.2"

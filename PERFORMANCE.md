@@ -101,4 +101,32 @@ receipt on the client through DRM display flip, excluding host processing,
 network transit before receipt and TV processing. Raw percentile summaries and
 stage timings are in [the results data](docs/tuning/summary.json). The first pass
 was inspected incrementally; the second was collected uninterrupted and
-confirmed the same pattern. These settings remain outside the shared image.
+confirmed the same pattern. CPU preference and K17 GPU floors are image defaults
+starting with `moonmachine-20260923.2`.
+
+## Streaming profile
+
+On its first boot after installation or upgrade, Moonmachine selects
+`moonmachine-k17-streaming` on the GMKtec K17, or `moonmachine-streaming` on other
+hardware. Both inherit Bazzite’s balanced settings and select CPU performance
+preference. The K17 profile also raises the Intel GPU clock floors to
+1850/1200 MHz. Hardware identity and supported maximum frequencies are checked
+before the K17 profile is selected.
+
+The profile is selected once. To choose the ordinary balanced settings afterward:
+
+```sh
+sudo tuned-adm profile balanced-bazzite
+```
+
+To restore the K17 streaming profile:
+
+```sh
+sudo tuned-adm profile moonmachine-k17-streaming
+```
+
+Use `moonmachine-streaming` for the CPU-only profile on other hardware.
+`tuned-adm active` shows the selection. Profile changes persist across reboots;
+image updates do not repeatedly override that choice. Administrators can prevent
+the initial selection by creating `/etc/moonmachine/disable-performance-default`.
+TuneD restores the previous GPU minimums when leaving the K17 profile.

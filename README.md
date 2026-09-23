@@ -20,6 +20,8 @@ straight from Steam's Gaming Mode. You can also install and play games locally.
 - Optimized Moonlight + Gamescope for extremely low latency from receiving a frame
   to presenting it on the TV.
   [How we reached 6.08 ms client latency, with graphs](docs/LATENCY.md).
+- CPU performance preference and higher K17 GPU clock floors selected by default,
+  [measured to reduce both average streaming latency and occasional slow frames](#performance-defaults).
 - A custom kernel with BORE, which schedules CPU work with responsiveness in mind,
   and ThinLTO, which lets the compiler optimise across source files.
 - [HDMI recovery and Steam sleep handling](docs/DISPLAY-RECOVERY.md).
@@ -39,8 +41,33 @@ network transit and TV processing are outside that measurement.
 We traced and fixed queueing, presentation feedback, extra rendering passes and
 late GPU-surface exports. Read [the investigation](docs/LATENCY.md) for the
 breakdown, comparison graphs, test settings and downloadable data. The
-[release audit](docs/RELEASE-AUDIT-20260922.md) records what is included and the
-Xbox suspend candidate that still needs packaging.
+[release audit](docs/RELEASE-AUDIT-20260922.md) records the streaming changes;
+[the Xbox release notes](docs/XBOX-RELEASE-20260923.md) cover the later packaged
+restart and suspend fixes.
+
+## Performance defaults
+
+Moonmachine selects a streaming performance profile automatically. On the K17,
+it asks the CPU to favour responsiveness and raises the GPU’s minimum clocks to
+**1850 MHz for graphics and 1200 MHz for the media engine**. These are within the
+GPU’s supported range; the maximum clocks are unchanged.
+
+We tested the CPU preference, GPU clocks and power limits separately, then in
+combination, with two runs of each setting. CPU preference and GPU clocks each
+helped. Together they reduced average client latency from **8.00 to 6.29 ms**
+and p99 from **10.55 to 7.24 ms**. p99 is the time within which 99% of measured
+frames were presented, so its improvement means fewer slow frames.
+
+Higher GPU clocks cut decode wait from about **5.5 to 4.6 ms**. CPU performance
+preference mostly shortened frame preparation and the wait for presentation.
+The graph shows the full comparison; dots mark the individual runs.
+
+![Streaming latency with individual CPU, GPU and power settings](docs/tuning/tuning-effects.png)
+
+These measurements cover frame receipt on the client through the display
+controller’s flip timestamp, at 4K HDR, 4:4:4 and roughly 116 FPS. They exclude
+host processing, network transit before receipt and TV processing.
+[Full results and how to change the profile](PERFORMANCE.md#streaming-profile).
 
 ## Before you start
 

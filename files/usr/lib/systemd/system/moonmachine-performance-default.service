@@ -1,0 +1,15 @@
+[Unit]
+Description=Select Moonmachine streaming performance defaults once
+Requires=tuned.service
+After=tuned.service
+Before=display-manager.service
+ConditionPathExists=!/var/lib/moonmachine/performance-default-v1
+ConditionPathExists=!/etc/moonmachine/disable-performance-default
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/moonmachine-performance-default
+TimeoutStartSec=30
+
+[Install]
+WantedBy=multi-user.target
