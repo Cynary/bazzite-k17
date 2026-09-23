@@ -8,6 +8,7 @@ import shlex
 import subprocess
 import time
 from pathlib import Path
+from imu_clock import ImuClock
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--client', required=True, help='Linux SSH alias')
@@ -44,6 +45,7 @@ try:
     buffers = {linux.stdout: b'', windows.stdout: b''}
     end = time.monotonic() + args.minutes * 60
     count = 0
+    imu_clock = ImuClock()
     print('Native relay running. Open Steam Controller Lab in Moonlight. Ctrl+C ends it.', flush=True)
     while time.monotonic() < end:
         for key, _ in selector.select(max(0, end - time.monotonic())):
@@ -56,6 +58,9 @@ try:
             while b'\n' in buffers[key.fileobj]:
                 line, buffers[key.fileobj] = buffers[key.fileobj].split(b'\n', 1)
                 count += line.startswith(b'I ')
+                if key.fileobj is linux.stdout and line.startswith(b'I '):
+                    report = imu_clock.normalize(bytes.fromhex(line[2:].decode('ascii')))
+                    line = b'I ' + report.hex().encode('ascii')
                 key.data.stdin.write(line + b'\n')
     print('Time limit reached. Reports forwarded:', count)
 except KeyboardInterrupt:

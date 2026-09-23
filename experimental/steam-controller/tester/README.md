@@ -52,4 +52,12 @@ The guided orientation step still checks raw reports; it does not automatically 
 
 The orientation model has a bevelled shell, rounded grips, raised sticks, trackpads, shoulder controls and rear buttons. It uses a depth buffer so the back and front occlude correctly during rotation. This is an illustrative model, not a measured scan.
 
-The Steam Input comparison also exposed intermittent exact identity quaternions between non-identity samples. A follow-up capture reproduced 17 identities in 232 samples with the same controller handle throughout. These jumps already exist in the API output; the viewer does not smooth or hide them. This does not yet distinguish a Steam bug from an interaction with the emulated reports. Motion logging includes every sampled quaternion and its handle to investigate that distinction.
+### Orientation reset workaround
+
+The physical controller sometimes sends multiple reports with the same IMU timestamp. In the Windows Steam Input test this made `GetMotionData` intermittently return an exact neutral quaternion, then resume its prior orientation. This occurred with an unchanged controller handle. Changing the raw quaternion or removing that field did not help. Dropping repeated-timestamp reports did, but could also drop button changes.
+
+The prototype relay now preserves every report and separates repeated IMU timestamps by one microsecond. The next real sensor timestamp is preserved, so these small adjustments do not accumulate into clock drift. Clock wrap and genuine resets are handled separately; adjustment is bounded to 1,000 microseconds. Buttons, pressures, sensor values and raw quaternion bytes are unchanged. This is a compatibility workaround for the observed Steam Input behavior, not a firmware fix or custom orientation filter.
+
+Two ten-second baseline phases produced 24/163 and 10/214 neutral API samples. The two adjusted phases each produced 0/213. `test_imu_clock.py` verifies button preservation, compact reports, timestamp wrap, reset and bounded adjustment. The Windows viewer's existing 11,094 checks also pass. The experiment identifies the repeated timestamp as the trigger; it does not establish the internal bug in Steam's closed-source implementation.
+
+The final 45-second capture recorded 967 samples with zero neutral resets, and the user confirmed smooth orientation while tilting and rotating the controller.
