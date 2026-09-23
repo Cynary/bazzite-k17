@@ -1,0 +1,5 @@
+#!/bin/bash
+set -euo pipefail
+root=${XBOX_TRIGGER_ROOT:-$HOME/xbox-trigger-rumble-20260923}
+export LD_LIBRARY_PATH="$root/sdl-build${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$root/motor-test" "$@"

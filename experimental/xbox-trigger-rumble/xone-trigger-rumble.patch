@@ -1,0 +1,45 @@
+--- a/driver/gamepad.c
++++ b/driver/gamepad.c
+@@ -173,17 +173,27 @@
+ 				    struct ff_effect *effect)
+ {
+ 	struct gip_gamepad_rumble *rumble = input_get_drvdata(dev);
+-	u16 mag_left = effect->u.rumble.strong_magnitude;
+-	u16 mag_right = effect->u.rumble.weak_magnitude;
+ 	unsigned long flags;
+ 
+-	if (effect->type != FF_RUMBLE)
++	if (effect->type != FF_RUMBLE && effect->type != FF_TRIGGER_RUMBLE)
+ 		return 0;
+ 
+ 	spin_lock_irqsave(&rumble->lock, flags);
+ 
+-	rumble->pkt.left = mag_left * GIP_GP_RUMBLE_MAX / U16_MAX;
+-	rumble->pkt.right = mag_right * GIP_GP_RUMBLE_MAX / U16_MAX;
++	/* The two effect types own separate motor pairs. In particular, stopping
++	 * a trigger effect must not cancel a still-playing grip effect.
++	 */
++	if (effect->type == FF_TRIGGER_RUMBLE) {
++		rumble->pkt.left_trigger = (u32)effect->u.trigger_rumble.left_magnitude *
++			GIP_GP_RUMBLE_MAX / U16_MAX;
++		rumble->pkt.right_trigger = (u32)effect->u.trigger_rumble.right_magnitude *
++			GIP_GP_RUMBLE_MAX / U16_MAX;
++	} else {
++		rumble->pkt.left = (u32)effect->u.rumble.strong_magnitude *
++			GIP_GP_RUMBLE_MAX / U16_MAX;
++		rumble->pkt.right = (u32)effect->u.rumble.weak_magnitude *
++			GIP_GP_RUMBLE_MAX / U16_MAX;
++	}
+ 
+ 	/* delay rumble to work around firmware bug */
+ 	if (!timer_pending(&rumble->timer))
+@@ -211,6 +221,9 @@
+ 	gip_gamepad_send_rumble(&rumble->timer);
+ 
+ 	input_set_capability(dev, EV_FF, FF_RUMBLE);
++	/* Only advertise the four-motor interface for Microsoft gamepads. */
++	if (dev->id.vendor == 0x045e)
++		input_set_capability(dev, EV_FF, FF_TRIGGER_RUMBLE);
+ 	input_set_drvdata(dev, rumble);
+ 
+ 	return input_ff_create_memless(dev, NULL, gip_gamepad_queue_rumble);

@@ -1,0 +1,16 @@
+From: Guillaume Casal <guillaume.casal.42@gmail.com>
+Subject: [PATCH v3 3/4] HID: debug: Add FF_TRIGGER_RUMBLE name
+Source: https://lists.openwall.net/linux-kernel/2026/07/31/472
+
+diff --git a/drivers/hid/hid-debug.c b/drivers/hid/hid-debug.c
+--- a/drivers/hid/hid-debug.c
++++ b/drivers/hid/hid-debug.c
+@@ -3583,6 +3583,7 @@
+ };
+ 
+ static const char *force[FF_CNT] = {
++	[FF_TRIGGER_RUMBLE] = "FF_TRIGGER_RUMBLE",
+ 	[FF_RUMBLE] = "FF_RUMBLE",
+ 	[FF_PERIODIC] = "FF_PERIODIC",
+ 	[FF_CONSTANT] = "FF_CONSTANT",
+

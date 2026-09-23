@@ -1,0 +1,17 @@
+# Local hardware-test image only. Do not publish on the moonmachine channel.
+FROM localhost/moonmachine:performance-20260923
+COPY vmlinuz /usr/lib/modules/7.2.4-k17bore1+/vmlinuz
+COPY ff-memless.ko /usr/lib/modules/7.2.4-k17bore1+/kernel/drivers/input/ff-memless.ko
+COPY xone_gip_gamepad.ko /usr/lib/modules/7.2.4-k17bore1+/extra/xone/xone_gip_gamepad.ko
+# Scope SDL to Moonlight; Steam and other system programs keep stock SDL.
+COPY libSDL3.so.0 /usr/lib/moonmachine/moonlight/usr/lib/libSDL3.so.0
+COPY motor-test /usr/libexec/xbox-motor-test
+COPY candidate.json /usr/share/moonmachine/xbox-trigger-candidate.json
+RUN depmod -a 7.2.4-k17bore1+ && \
+    sha256sum /usr/lib/modules/7.2.4-k17bore1+/vmlinuz > /usr/share/k17-bore/build/vmlinuz.sha256 && \
+    dracut --install "$(printf '%s ' /usr/lib/firmware/xone_dongle_*.bin.xz)" --no-hostonly --kver 7.2.4-k17bore1+ --reproducible --zstd --add ostree --add fido2 --add-drivers 'xe drm_display_helper xone_dongle mei_me mei_gsc_proxy ff_memless xone_gip_gamepad' -f /usr/lib/modules/7.2.4-k17bore1+/initramfs.img && \
+    chmod 0600 /usr/lib/modules/7.2.4-k17bore1+/initramfs.img
+RUN LD_LIBRARY_PATH=/usr/lib/moonmachine/moonlight/usr/lib ldd /usr/libexec/xbox-motor-test > /tmp/test-libs && ! grep -q 'not found' /tmp/test-libs
+RUN --mount=type=tmpfs,target=/run --network=none bootc container lint
+LABEL io.cynary.k17.release="experimental-xbox-trigger-20260923" \
+      io.cynary.k17.experimental="Unvalidated four-motor Xbox rumble; local testing only"

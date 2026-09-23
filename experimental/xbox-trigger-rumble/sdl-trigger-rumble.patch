@@ -1,0 +1,108 @@
+diff --git a/src/joystick/linux/SDL_sysjoystick.c b/src/joystick/linux/SDL_sysjoystick.c
+index ede0d5e..c3dc500 100644
+--- a/src/joystick/linux/SDL_sysjoystick.c
++++ b/src/joystick/linux/SDL_sysjoystick.c
+@@ -1468,6 +1468,11 @@ static void ConfigJoystick(SDL_Joystick *joystick, int fd, int fd_sensor)
+         if (test_bit(FF_RUMBLE, ffbit)) {
+             joystick->hwdata->ff_rumble = true;
+         }
++#ifdef FF_TRIGGER_RUMBLE
++        if (test_bit(FF_TRIGGER_RUMBLE, ffbit)) {
++            joystick->hwdata->ff_trigger_rumble = true;
++        }
++#endif
+         if (test_bit(FF_SINE, ffbit)) {
+             joystick->hwdata->ff_sine = true;
+         }
+@@ -1487,6 +1492,9 @@ static bool PrepareJoystickHwdata(SDL_Joystick *joystick, SDL_joylist_item *item
+     joystick->hwdata->item_sensor = item_sensor;
+     joystick->hwdata->guid = item->guid;
+     joystick->hwdata->effect.id = -1;
++#ifdef FF_TRIGGER_RUMBLE
++    joystick->hwdata->trigger_effect.id = -1;
++#endif
+     SDL_memset(joystick->hwdata->key_map, 0xFF, sizeof(joystick->hwdata->key_map));
+     SDL_memset(joystick->hwdata->abs_map, 0xFF, sizeof(joystick->hwdata->abs_map));
+ 
+@@ -1633,6 +1641,11 @@ static bool LINUX_JoystickOpen(SDL_Joystick *joystick, int device_index)
+         joystick->hwdata->fd_sensor = -1;
+     }
+ 
++#ifdef FF_TRIGGER_RUMBLE
++    if (joystick->hwdata->ff_trigger_rumble) {
++        SDL_SetBooleanProperty(SDL_GetJoystickProperties(joystick), SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN, true);
++    }
++#endif
+     if (joystick->hwdata->ff_rumble || joystick->hwdata->ff_sine) {
+         SDL_SetBooleanProperty(SDL_GetJoystickProperties(joystick), SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, true);
+     }
+@@ -1684,7 +1697,41 @@ static bool LINUX_JoystickRumble(SDL_Joystick *joystick, Uint16 low_frequency_ru
+ 
+ static bool LINUX_JoystickRumbleTriggers(SDL_Joystick *joystick, Uint16 left_rumble, Uint16 right_rumble)
+ {
++#ifdef FF_TRIGGER_RUMBLE
++    struct ff_effect *effect = &joystick->hwdata->trigger_effect;
++    struct input_event event = { 0 };
++
++    SDL_AssertJoysticksLocked();
++    if (!joystick->hwdata->ff_trigger_rumble) {
++        return SDL_Unsupported();
++    }
++
++    effect->type = FF_TRIGGER_RUMBLE;
++    effect->replay.length = SDL_MAX_RUMBLE_DURATION_MS;
++    effect->u.trigger_rumble.left_magnitude = left_rumble;
++    effect->u.trigger_rumble.right_magnitude = right_rumble;
++    if (ioctl(joystick->hwdata->fd, EVIOCSFF, effect) < 0) {
++        // Retry only if an existing effect disappeared (e.g. device reset).
++        // Do not leak effect slots on permission or resource errors.
++        if (effect->id < 0 || errno != EINVAL) {
++            return SDL_SetError("Couldn't update trigger rumble effect: %s", strerror(errno));
++        }
++        effect->id = -1;
++        if (ioctl(joystick->hwdata->fd, EVIOCSFF, effect) < 0) {
++            return SDL_SetError("Couldn't allocate trigger rumble effect: %s", strerror(errno));
++        }
++    }
++
++    event.type = EV_FF;
++    event.code = effect->id;
++    event.value = (left_rumble || right_rumble) ? 1 : 0;
++    if (write(joystick->hwdata->fd, &event, sizeof(event)) != sizeof(event)) {
++        return SDL_SetError("Couldn't play trigger rumble effect: %s", strerror(errno));
++    }
++    return true;
++#else
+     return SDL_Unsupported();
++#endif
+ }
+ 
+ static bool LINUX_JoystickSetLED(SDL_Joystick *joystick, Uint8 red, Uint8 green, Uint8 blue)
+@@ -2216,6 +2263,12 @@ static void LINUX_JoystickClose(SDL_Joystick *joystick)
+     SDL_AssertJoysticksLocked();
+ 
+     if (joystick->hwdata) {
++#ifdef FF_TRIGGER_RUMBLE
++        if (joystick->hwdata->trigger_effect.id >= 0) {
++            ioctl(joystick->hwdata->fd, EVIOCRMFF, joystick->hwdata->trigger_effect.id);
++            joystick->hwdata->trigger_effect.id = -1;
++        }
++#endif
+         if (joystick->hwdata->effect.id >= 0) {
+             ioctl(joystick->hwdata->fd, EVIOCRMFF, joystick->hwdata->effect.id);
+             joystick->hwdata->effect.id = -1;
+diff --git a/src/joystick/linux/SDL_sysjoystick_c.h b/src/joystick/linux/SDL_sysjoystick_c.h
+index d149948..e1f53ca 100644
+--- a/src/joystick/linux/SDL_sysjoystick_c.h
++++ b/src/joystick/linux/SDL_sysjoystick_c.h
+@@ -40,6 +40,10 @@ struct joystick_hwdata
+ 
+     bool ff_rumble;
+     bool ff_sine;
++#ifdef FF_TRIGGER_RUMBLE
++    bool ff_trigger_rumble;
++    struct ff_effect trigger_effect;
++#endif
+     struct ff_effect effect;
+     Uint32 effect_expiration;
+ 

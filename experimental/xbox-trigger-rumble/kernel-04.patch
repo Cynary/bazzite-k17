@@ -1,0 +1,16 @@
+From: Guillaume Casal <guillaume.casal.42@gmail.com>
+Subject: [PATCH v3 4/4] Documentation: input: Document FF_TRIGGER_RUMBLE
+Source: https://lists.openwall.net/linux-kernel/2026/07/31/473
+
+diff --git a/Documentation/input/ff.rst b/Documentation/input/ff.rst
+--- a/Documentation/input/ff.rst
++++ b/Documentation/input/ff.rst
+@@ -85,6 +85,7 @@
+ - FF_FRICTION	can simulate friction
+ - FF_DAMPER	can simulate damper effects
+ - FF_RUMBLE	rumble effects
++- FF_TRIGGER_RUMBLE rumble effects in the triggers
+ - FF_INERTIA    can simulate inertia
+ - FF_GAIN	gain is adjustable
+ - FF_AUTOCENTER	autocenter is adjustable
+
