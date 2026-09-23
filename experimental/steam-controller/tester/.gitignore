@@ -1,0 +1,6 @@
+*.exe
+*.pdb
+*.png
+__pycache__/
+*-capture.json
+*.stderr
