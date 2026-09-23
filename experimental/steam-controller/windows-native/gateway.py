@@ -7,7 +7,7 @@ if "HID_ID=0003:000028DE:00001304" not in identity:
  raise SystemExit("Refusing non-puck endpoint")
 fd=os.open(sys.argv[1],os.O_RDWR|os.O_NONBLOCK)
 s=selectors.DefaultSelector();s.register(fd,selectors.EVENT_READ);s.register(sys.stdin,selectors.EVENT_READ)
-allowed={0x81,0x82,0x83,0x84,0x85,0x87,0x89,0x8a,0x8b,0x8c,0x8f,0xa1,0xaa,0xab,0xae,0xba,0xc4}
+allowed={0x81,0x82,0x83,0x84,0x85,0x87,0x89,0x8a,0x8b,0x8c,0x8f,0xa1,0xaa,0xab,0xae,0xba,0xc4,0xed,0xf2,0xc1,0xe2}
 pending=b''
 print('READY',flush=True)
 while True:
@@ -29,7 +29,7 @@ while True:
       if len(b)!=64 or b[0] not in (1,2):raise ValueError('bad get')
       fcntl.ioctl(fd,0xc0404807,b,True)
      elif op==2:
-      if len(b)!=64 or not ((b[0]==1 and b[1] in allowed and b[2]<=61) or (b[:3]==bytes.fromhex('02a300'))):raise ValueError('blocked feature')
+      if len(b)!=64 or not ((b[0]==1 and b[1] in allowed and b[2]<=61) or (b[0]==2 and ((b[1] in (0xa3,0xb4,0x83) and b[2]==0) or (b[1]==0xf3 and b[2]<=1)))):raise ValueError('blocked feature')
       fcntl.ioctl(fd,0xc0404806,b,True)
      elif op==3:
       lengths={0x80:10,0x81:8,0x82:4,0x83:10,0x84:9,0x85:4}

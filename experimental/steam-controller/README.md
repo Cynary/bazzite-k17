@@ -2,7 +2,7 @@
 
 The goal is to let Windows Steam Input see a Steam Controller, including its touchpads, grip sensors, back buttons, motion and haptics, while the controller stays connected to the streaming client. This does not use USB/IP.
 
-This directory contains the report codec, a proposed transport payload, tests and a read-only capture tool. The [Windows prototype](windows-native/README.md) now builds and loads as a separate virtual HID driver. Windows Steam opens its native Steam Controller backend, and a raw-input replay test passed byte-for-byte. Moonlight integration, complete Steam initialization and haptics are still pending.
+This directory contains the report codec, a proposed transport payload, tests and a read-only capture tool. The [Windows prototype](windows-native/README.md) now builds and loads as a separate virtual HID driver. Windows Steam opens its native Steam Controller backend, and a raw-input replay test passed byte-for-byte. Windows Steam also loaded the real controller’s Triton configuration, and a live Windows-to-controller haptic test passed. Moonlight integration and per-game control validation remain pending.
 
 ## What is available in open source
 

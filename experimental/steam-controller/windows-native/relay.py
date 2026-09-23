@@ -6,12 +6,16 @@ prefix=pathlib.Path(sys.argv[2] if len(sys.argv)>2 else 'relay')
 logs=[open(str(prefix)+suffix,'w') for suffix in ('.linux.log','.windows.log','.transactions.jsonl')]
 linux=subprocess.Popen(['ssh','k17','sudo python3 /tmp/steam-native-gateway.py /dev/hidraw5'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=logs[0],bufsize=0)
 windows=None
+probe=None
 try:
  if linux.stdout.readline()!=b'READY\n':raise RuntimeError('physical endpoint unavailable')
  windows=subprocess.Popen(['ssh','shed','C:/Users/rodri/controller-forwarding/steam-native/broker.exe'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=logs[1],bufsize=0)
  sel=selectors.DefaultSelector();sel.register(linux.stdout,selectors.EVENT_READ,windows);sel.register(windows.stdout,selectors.EVENT_READ,linux)
+ probe_at=time.monotonic()+8
  buffers={linux.stdout:b'',windows.stdout:b''};end=time.monotonic()+seconds;inputs=0;queries=0
  while time.monotonic()<end:
+  if len(sys.argv)>3 and sys.argv[3]=='--rumble' and probe is None and time.monotonic()>=probe_at:
+   probe=subprocess.Popen(['ssh','shed','C:/Users/rodri/controller-forwarding/steam-native/probe.exe --rumble'],stdout=subprocess.PIPE,stderr=logs[1])
   for key,_ in sel.select(max(0,end-time.monotonic())):
    data=key.fileobj.read(65536)
    if not data:raise RuntimeError('endpoint closed')
@@ -23,8 +27,12 @@ try:
      logs[2].write(json.dumps({'t':time.monotonic(),'line':line.decode()})+'\n');logs[2].flush()
      queries+=line.startswith(b'Q ')
     key.data.stdin.write(line+b'\n')
+ if probe:
+  output=probe.communicate(timeout=5)[0].decode();print(output.strip())
+  if probe.returncode:raise RuntimeError('Windows native haptic probe failed')
  print(json.dumps({'inputs':inputs,'queries':queries}))
 finally:
+ if probe and probe.poll() is None:probe.kill();probe.wait()
  for p in (windows,linux):
   if p:
    try:p.stdin.write(b'X\n');p.stdin.close();p.wait(timeout=10)

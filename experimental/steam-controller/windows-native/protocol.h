@@ -57,7 +57,7 @@ constexpr unsigned input_size(unsigned id) {
 constexpr bool safe_feature(unsigned id, unsigned cmd, unsigned length) {
   // Steam's CGetTritonDonglePairingBondWorkItem sends report 2/A3/0.
   if (id == 2)
-    return cmd == 0xa3 && length == 0;
+    return ((cmd == 0xa3 || cmd == 0xb4 || cmd == 0x83) && length == 0) || (cmd == 0xf3 && length <= 1);
   if (id != 1 || length > 61)
     return false;
   switch (cmd) {
@@ -78,6 +78,10 @@ constexpr bool safe_feature(unsigned id, unsigned cmd, unsigned length) {
   case 0xae:
   case 0xba:
   case 0xc4:
+  case 0xed: // Read named setting (including calibration data).
+  case 0xf2: // Read system information.
+  case 0xc1: // Runtime audio mapping.
+  case 0xe2: // Runtime trackpad side.
     return true;
   default:
     return false;

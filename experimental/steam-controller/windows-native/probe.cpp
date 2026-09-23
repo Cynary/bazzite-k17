@@ -3,11 +3,13 @@
 #include <windows.h>
 
 #include <cstdio>
+#include <cstring>
 #include <cwchar>
 #include <hidsdi.h>
 #include <setupapi.h>
 #include <vector>
-int main() {
+int main(int argc, char **argv) {
+  const bool rumble = argc == 2 && std::strcmp(argv[1], "--rumble") == 0;
   GUID guid;
   HidD_GetHidGuid(&guid);
   auto set = SetupDiGetClassDevsW(&guid, nullptr, nullptr,
@@ -51,6 +53,27 @@ int main() {
               caps.Usage, caps.InputReportByteLength,
               caps.OutputReportByteLength, caps.FeatureReportByteLength);
   HANDLE event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+  if (rumble) {
+    bool success = true;
+    for (unsigned phase = 0; phase < 4; ++phase) {
+      unsigned char report[64]{};
+      report[0] = 0x80;
+      // Left, stop, right, stop. Modest amplitude; finite pulses.
+      if (phase == 0) report[5] = 0x18;
+      if (phase == 2) report[8] = 0x18;
+      OVERLAPPED ov{}; ov.hEvent = event; ResetEvent(event); DWORD written{};
+      BOOL ok = WriteFile(handle, report, sizeof(report), &written, &ov);
+      if (!ok && GetLastError() == ERROR_IO_PENDING) {
+        if (WaitForSingleObject(event, 3000) != WAIT_OBJECT_0) CancelIoEx(handle, &ov);
+        ok = GetOverlappedResult(handle, &ov, &written, TRUE);
+      }
+      success = success && ok && written == sizeof(report);
+      Sleep(250);
+    }
+    CloseHandle(event); CloseHandle(handle);
+    std::printf("native rumble writes=%s\n", success ? "passed" : "failed");
+    return success ? 0 : 4;
+  }
   unsigned count = 0;
   unsigned long long hash = 14695981039346656037ull;
   for (unsigned i = 0; i < 20; i++) {

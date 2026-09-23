@@ -13,7 +13,9 @@
 using namespace steam_native;
 struct pending {
   VHFOPERATIONHANDLE handle;
-  PHID_XFER_PACKET transfer;
+  // Keep a copy of the callback packet wrapper, not its temporary address.
+  // Its report buffer belongs to the outstanding VHF operation.
+  HID_XFER_PACKET transfer;
   packet request;
   ULONGLONG deadline;
   bool delivered;
@@ -132,7 +134,7 @@ void enqueue(PVOID ptr, VHFOPERATIONHANDLE handle, PHID_XFER_PACKET transfer,
       for (auto &p : c->requests)
         if (!p.handle) {
           p.handle = handle;
-          p.transfer = transfer;
+          p.transfer = *transfer;
           p.deadline = GetTickCount64() + 2000;
           p.request.id = ++c->next_id;
           p.request.op = op;
@@ -200,7 +202,7 @@ NTSTATUS create(context *c, WDFFILEOBJECT owner) {
   config.VhfClientContext = c;
   config.VendorID = 0x28de;
   config.ProductID = 0x1304;
-  config.VersionNumber = 0x100;
+  config.VersionNumber = 0x0002; // Actual puck bcdDevice, selects native HID v2.
   config.HardwareIDs = ids;
   config.HardwareIDsLength = sizeof(ids);
   config.InstanceID = instance;
@@ -301,7 +303,7 @@ void ioctl(WDFQUEUE q, WDFREQUEST r, size_t out_size, size_t in_size,
                   p->data[0] != item.request.data[0])
                 completion = STATUS_INVALID_PARAMETER;
               else
-                std::memcpy(item.transfer->reportBuffer, p->data, p->size);
+                std::memcpy(item.transfer.reportBuffer, p->data, p->size);
             }
             h = item.handle;
             item = {};
