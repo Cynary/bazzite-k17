@@ -9,7 +9,7 @@ Propeller are not enabled. Image publishing is described in [MAINTAINING.md](../
 - Exact source commit: `b6a571d6677f23a2893d95a30d102cc44abc888a`.
 - OGC base: `43d13ad09df8a544c032f75dc84fddd2aefe8f76`.
 - BORE source: `firelzrd/bore-scheduler`, commit `076b60f7b147827e89da77601662751a36c57831`.
-- Xone: `982cbcb019ae4d2bee5ae69385223409ee555c88` plus the patches in `xone-patches/`.
+- Xone: `OpenGamingCollective/xonedo` at `982cbcb019ae4d2bee5ae69385223409ee555c88`, with every patch in `xone-patches/` applied in filename order. The current dongle module must report source version `3DBD258ECD8E759A6E35105`; image builds reject older modules.
 - Compiler used: Clang/LLD 22.1.8; bindgen 0.72.1. See `Containerfile.builder`.
 - Resolved configuration: `candidate.config`; reference OGC configuration: `stock.config`.
 

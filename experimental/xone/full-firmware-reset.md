@@ -12,7 +12,7 @@ For `02e6`, this candidate stops beacon transmission and the MAC, requests firmw
 
 It also selects the shared 2017 firmware (`xone_dongle_02fe.bin`) for this adapter, as the original xone driver did. Newer firmware by itself did not solve the failure. The firmware must be included in the initramfs as well as the installed filesystem.
 
-Apply [the candidate patch](full-firmware-reset.patch) after `xone-patches/0001` through `0004`. It compiled as module source version `3DBD258ECD8E759A6E35105` with the current kernel build. This patch is not yet part of a published image.
+The reset is now [patch 0005](../../xone-patches/0005-reload-02e6-firmware-from-upload-state.patch) in the image’s xone patch series, after patches `0001` through `0004`. It compiled as module source version `3DBD258ECD8E759A6E35105` with the current kernel build. This patch is not yet part of a published image.
 
 ## Validation so far
 

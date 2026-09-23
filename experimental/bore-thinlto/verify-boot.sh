@@ -4,6 +4,10 @@ expected=$(cat /usr/share/k17-bore/build/kernel-release)
 test "$(uname -r)" = "$expected"
 sha256sum -c /usr/share/k17-bore/build/vmlinuz.sha256
 sha256sum -c /usr/share/k17-bore/build/xe.sha256
+sha256sum -c /usr/share/k17-bore/build/xone.sha256
+xone_expected=$(cat /usr/share/k17-bore/build/xone-srcversion)
+test "$(modinfo -F srcversion xone_dongle)" = "$xone_expected"
+test "$(cat /sys/module/xone_dongle/srcversion)" = "$xone_expected"
 python3 /usr/libexec/k17-verify-frl-module "$(modinfo -n xe)"
 for setting in SCHED_BORE LTO_CLANG_THIN DEBUG_INFO_BTF; do
  zgrep -qx "CONFIG_${setting}=y" /proc/config.gz

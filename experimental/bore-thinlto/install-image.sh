@@ -49,11 +49,14 @@ done
 xe_module=$(modinfo -k "$kver" -n xe)
 python3 /usr/libexec/k17-verify-frl-module "$xe_module"
 sha256sum "$xe_module" > /usr/share/k17-bore/build/xe.sha256
-# Refuse older module RPMs that omit the validated suspend candidate.
+# Refuse older module RPMs that omit the tested firmware reset and suspend fixes.
 # Refresh this identity when rebuilding xone from changed sources/toolchains.
 xone_srcversion=$(modinfo -k "$kver" -F srcversion xone_dongle)
-test "$xone_srcversion" = D8FF84A6F3EBB08550E72FE
+test "$xone_srcversion" = 3DBD258ECD8E759A6E35105
 sha256sum "$(modinfo -k "$kver" -n xone_dongle)" > /usr/share/k17-bore/build/xone.sha256
+printf '%s\n' "$xone_srcversion" > /usr/share/k17-bore/build/xone-srcversion
+# The original adapter now uses the shared 2017 firmware, including during early boot.
+xz -dc /usr/lib/firmware/xone_dongle_02fe.bin.xz | sha256sum | grep -q '^48084d9fa53b9bb04358f3bb127b7495dc8f7bb0b3ca1437bd24ef2b6eabdf66 '
 # Xone requests firmware dynamically, so dracut cannot infer these names from modinfo.
 xone_firmware=$(printf '%s ' /usr/lib/firmware/xone_dongle_*.bin.xz)
 dracut --install "$xone_firmware" --no-hostonly --kver "$kver" --reproducible --zstd --add ostree --add fido2 --add-drivers 'xe drm_display_helper xone_dongle mei_me mei_gsc_proxy' -f "/usr/lib/modules/$kver/initramfs.img"
