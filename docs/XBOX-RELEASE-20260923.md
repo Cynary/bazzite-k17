@@ -8,7 +8,7 @@ Build source: `7ca49a2`.
 
 ## What is included
 
-All five patches in `xone-patches/` are applied to the pinned xonedo source.
+The five fixes are now committed in [the xonedo fork](https://github.com/Cynary/xonedo/tree/b516bdd96f7d22f4e3de211cf1ca7177d0064357). Its source tree matches the five-patch build used for this release.
 The rebuilt source files match the tested candidate exactly. The module package
 is `kernel-modules-7.2.4-k17bore1.frl6`; only `xone_dongle.ko` changed from the
 previous module package. The existing graphics, Wi-Fi and other modules remain.

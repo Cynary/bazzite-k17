@@ -37,11 +37,7 @@ cd /build/ffmpeg
     --enable-libdav1d --enable-decoder=libdav1d
 make -j"$JOBS"
 make install
-fetch libplacebo https://github.com/haasn/libplacebo.git 2d0979fb54e025e904c7372666fffbf5dae40f66
 cd /build/libplacebo
-git apply /build/moonlight/app/deploy/linux/appimage/*.patch
-git apply --check "$here/patches/libplacebo/0001-import-packed-vaapi-444.patch"
-git apply "$here/patches/libplacebo/0001-import-packed-vaapi-444.patch"
 meson setup build --prefix="$PREFIX" --libdir=lib -Dbuildtype=release -Dvulkan=enabled -Dopengl=disabled -Ddemos=false
 ninja -C build -j"$JOBS"
 ninja -C build install

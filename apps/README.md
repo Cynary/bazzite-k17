@@ -1,8 +1,8 @@
-# Streaming application patches
+# Streaming application sources
 
-The image builds Moonlight, MoonDeck and Gamescope from the commits in `sources.json`.
-`checkout.py` applies the listed patches before compilation. A patch that no
-longer applies stops the build.
+The image builds the exact commits in `sources.json`. Moonlight, Gamescope and
+libplacebo come from the Moonmachine branches of our forks; MoonDeck comes from
+upstream. The build does not apply a second set of application patches.
 
 * **Moonlight:** reuse the DRM PRIME mapping created when waiting for a VAAPI
   frame. This avoids synchronizing the same Intel decoder surface again after
@@ -35,14 +35,13 @@ The corresponding patched source and build inputs are included at
 `/usr/share/moonmachine/sources`. No application configuration, pairing keys,
 or host addresses are included.
 
-## Updating or removing a patch
+## Updating a component
 
-1. Review the upstream changes and update the source commit in `sources.json`.
-2. If upstream includes the fix, remove its patch file and its entry in
-   `patches`. Otherwise rebase the patch against the new commit.
-3. Build the image and check streaming on hardware, including actual display
-   refresh, return to Steam, and background splash behavior. Passing compilation alone
-   does not cover these behaviors.
+1. Merge or rebase upstream changes in the component fork. Remove our corresponding
+   commits when upstream has incorporated them.
+2. Test the component and pin its full commit ID in `sources.json`.
+3. Build the image and check streaming on hardware, including display refresh,
+   return to Steam and overlays. Compilation alone does not cover these behaviors.
 
 Moonlight updates with the OS image. MoonDeck installations created by the image
 also update at boot, keeping settings and a backup under

@@ -6,7 +6,7 @@ it doesn't recognise. Initialization and network scanning passed after the fix;
 connecting to Wi-Fi and measuring throughput haven't been tested yet.
 See the [Wi-Fi notes](../PLATFORM-FIRMWARE.md#mt7922-wi-fi) for details.
 
-The **xone driver** handles Xbox Wireless Adapters. The image’s patch series:
+The **xone driver** handles Xbox Wireless Adapters. The [Moonmachine driver fork](https://github.com/Cynary/xonedo/tree/moonmachine) includes:
 
 - Answers repeated controller connection requests instead of silently ignoring them.
 - Restores the startup USB reset for the original adapter (`045e:02e6`).

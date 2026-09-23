@@ -12,7 +12,7 @@ For `02e6`, this candidate stops beacon transmission and the MAC, requests firmw
 
 It also selects the shared 2017 firmware (`xone_dongle_02fe.bin`) for this adapter, as the original xone driver did. Newer firmware by itself did not solve the failure. The firmware must be included in the initramfs as well as the installed filesystem.
 
-The reset is now [patch 0005](../../xone-patches/0005-reload-02e6-firmware-from-upload-state.patch) in the image’s xone patch series, after patches `0001` through `0004`. It compiled as module source version `3DBD258ECD8E759A6E35105` with the current kernel build. It is packaged in the signed `moonmachine-20260923.1` release on the `moonmachine` channel; see [release validation](../../docs/XBOX-RELEASE-20260923.md).
+The reset is included in [the complete xonedo fork](https://github.com/Cynary/xonedo/tree/b516bdd96f7d22f4e3de211cf1ca7177d0064357). Its module source version is `3DBD258ECD8E759A6E35105`. See [release validation](../../docs/XBOX-RELEASE-20260923.md).
 
 ## Validation so far
 

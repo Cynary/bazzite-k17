@@ -88,3 +88,5 @@ reported `update_available: false` (exit 77).
 This audit verifies packaging and selected runtime identities. It does not
 repeat the full hardware test suite. See [streaming validation](STREAMING-VALIDATION.md)
 and [display recovery](DISPLAY-RECOVERY.md) for what was exercised.
+
+The application and Xbox patches described in this historical audit have since moved to [component forks](FORKS.md). The original patch files remain in this repository’s Git history.

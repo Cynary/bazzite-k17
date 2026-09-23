@@ -11,36 +11,23 @@
     "sha256": "73f3010fd22cee74d5f0cb2060cf2d83705ecafd90a659732343eb2fc70c7424",
     "source": "https://github.com/FrogTheFrog/moondeck/tree/7c256cf1e40995615c21b57618e90d7e8b760ce0",
     "repository": "https://github.com/FrogTheFrog/moondeck.git",
-    "commit": "7c256cf1e40995615c21b57618e90d7e8b760ce0",
-    "patches": []
+    "commit": "7c256cf1e40995615c21b57618e90d7e8b760ce0"
   },
   "moonlight": {
     "version": "6.1.0-vrr17.1-moonmachine.5",
-    "repository": "https://github.com/Nonary/moonlight-qt.git",
-    "commit": "1ccefb6e981880bef6d6d114dba6459c7be28878",
-    "patches": [
-      "0001-reuse-ready-vaapi-mapping.patch",
-      "0002-document-vaapi-mapping-lifetime.patch",
-      "0003-release-attributable-buffer.patch",
-      "0004-gamescope-fifo-latch-protection.patch",
-      "0005-direct-wayland-video.patch",
-      "0006-direct-p010-overlay-handoff.patch",
-      "0007-separate-clock-from-readiness.patch"
-    ],
-    "source": "https://github.com/Nonary/moonlight-qt/tree/1ccefb6e981880bef6d6d114dba6459c7be28878"
+    "repository": "https://github.com/Cynary/moonlight-qt.git",
+    "commit": "b6c9a4eede2f620188dae7e6b4d78f4a010e42a7",
+    "source": "https://github.com/Cynary/moonlight-qt/tree/b6c9a4eede2f620188dae7e6b4d78f4a010e42a7"
   },
   "gamescope": {
     "version": "ogc-0ef725a-moonmachine.5",
-    "repository": "https://github.com/OpenGamingCollective/gamescope.git",
-    "commit": "0ef725a8754b3480fb52d2493c4b3af3b845659b",
-    "patches": [
-      "0001-preserve-paced-vrr-for-fifo.patch",
-      "0002-measured-drm-presentation-timing.patch",
-      "0003-allow-native-hdr-scanout.patch",
-      "0004-wake-already-ready-commits.patch",
-      "0005-direct-yuv-composition.patch",
-      "0006-direct-p010-overlay-handoff.patch"
-    ],
-    "source": "https://github.com/OpenGamingCollective/gamescope/pull/24"
+    "repository": "https://github.com/Cynary/gamescope.git",
+    "commit": "362932d5e33f8b20cfc05b6e21245f994878d468",
+    "source": "https://github.com/Cynary/gamescope/tree/362932d5e33f8b20cfc05b6e21245f994878d468"
+  },
+  "libplacebo": {
+    "repository": "https://github.com/Cynary/libplacebo.git",
+    "commit": "1d2a1ac3d814462f2f3dca35f9f76ea0513b2e87",
+    "source": "https://github.com/Cynary/libplacebo/tree/1d2a1ac3d814462f2f3dca35f9f76ea0513b2e87"
   }
 }

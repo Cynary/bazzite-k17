@@ -19,9 +19,9 @@ podman build --build-arg SOURCE_COMMIT="$(git rev-parse HEAD)" \
   -t localhost/moonmachine:test /path/to/empty-context
 ```
 
-The context includes the kernel RPMs, boot defaults and application sources/patches.
+The context includes the kernel RPMs, boot defaults and application source pins.
 The first build stage compiles patched Moonlight, MoonDeck and Gamescope. See
-[the application patch notes](apps/README.md) for version pins, patch removal,
+[the application source notes](apps/README.md) for version pins, upstream updates,
 and how installed plugins receive updates. Decky and the Python dependency bundle
 are checksum-verified downloads. MoonDeck's dependency archive is a moving
 nightly asset; review and update its checksum if upstream replaces it.

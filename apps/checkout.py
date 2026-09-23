@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Fetch exact source revisions and apply the image's patch series."""
+"""Fetch the exact tested revisions of the application forks."""
 import json
 import hashlib
 from pathlib import Path
@@ -11,7 +11,7 @@ import zipfile
 here = Path(__file__).resolve().parent
 sources = json.loads((here / 'sources.json').read_text())
 root = Path(sys.argv[1])
-for name in ('moonlight', 'moondeck', 'gamescope'):
+for name in ('moonlight', 'moondeck', 'gamescope', 'libplacebo'):
     source = sources[name]
     dest = root / name
     subprocess.run(['git', 'init', str(dest)], check=True)
@@ -23,10 +23,6 @@ for name in ('moonlight', 'moondeck', 'gamescope'):
     if actual != source['commit']:
         raise RuntimeError(f'{name}: wrong source revision')
     git('submodule', 'update', '--init', '--recursive', '--depth=1')
-    for patch in source['patches']:
-        path = str(here / 'patches' / name / patch)
-        git('apply', '--check', path)
-        git('apply', path)
 
 # Reuse only the pinned upstream bundle's Python dependencies, not its code.
 with tempfile.TemporaryDirectory() as tmp:
