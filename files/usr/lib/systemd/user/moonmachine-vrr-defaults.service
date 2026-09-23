@@ -1,0 +1,11 @@
+[Unit]
+Description=Moonmachine streaming VRR and frame-limit defaults
+BindsTo=gamescope-session-plus@ogui-steam.service
+After=gamescope-session-plus@ogui-steam.service
+ConditionPathExists=!%h/.config/moonmachine/disable-vrr-defaults
+StartLimitIntervalSec=0
+
+[Service]
+ExecStart=/usr/libexec/moonmachine-vrr-defaults
+Restart=on-failure
+RestartSec=2

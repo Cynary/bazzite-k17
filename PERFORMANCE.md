@@ -41,3 +41,20 @@ applies to new writes. No filesystem migration or whole-disk recompression is
 required by the image. Alternate filesystem performance has not been measured.
 
 Earlier scheduler comparisons are recorded in [tuning results](experimental/tuning/README.md).
+
+## Direct YUV with and without machine tuning (22 September)
+
+Three consecutive 4K HDR 4:4:4 streams used the same published image and settings,
+excluding the first 30 seconds of each run:
+
+| Settings | Frames | Mean receipt-to-display | p99 | Drops |
+|---|---:|---:|---:|---:|
+| CPU performance, GPU floors 1850/1200 MHz, package 35/37 W | 8,411 | 6.10 ms | 7.14 ms | 0 |
+| CPU balance_performance, GPU floors 800/400 MHz, package 25/25 W | 8,450 | 8.03 ms | 10.19 ms | 0 |
+| Original tuning restored | 8,456 | 6.12 ms | 7.10 ms | 0 |
+
+This combined A/B/A comparison supports a repeatable benefit from the tuning
+bundle; it does not isolate each setting. Earlier power-limit tests alone found
+little benefit. GPU floors stay within the hardware's supported frequency range.
+These are client timings, excluding host, network transit and TV processing.
+The stock run's slowest frame was 15.80 ms; restored tuning's was 8.47 ms.

@@ -25,6 +25,10 @@ class SetupTests(unittest.TestCase):
                 account = pwd.struct_passwd((name, 'x', 1000, 1000, '', str(home), '/bin/bash'))
                 units = base / (name + '-units')
                 self.assertTrue(seed(account, share, units))
+                ml = home / '.config/Moonlight Game Streaming Project/Moonlight.conf'
+                self.assertIn('bitrate=500000', ml.read_text())
+                self.assertIn('directvideomode=1', ml.read_text())
+                ml.write_text('[General]\nbitrate=100000\n')
                 settings = home / '.config/moondeck/settings.json'
                 data, migrated = asyncio.run(UserSettingsManager(settings).read())
                 self.assertFalse(migrated)
@@ -41,6 +45,7 @@ class SetupTests(unittest.TestCase):
                 marker.write_text('installed plugin: preserve me')
                 unit_before = (units / 'plugin_loader.service').read_bytes()
                 self.assertFalse(seed(account, share, units))
+                self.assertEqual(ml.read_text(), '[General]\nbitrate=100000\n')
                 self.assertEqual(settings.read_text(), '{"user-setting":"preserve me"}')
                 self.assertEqual(marker.read_text(), 'installed plugin: preserve me')
                 self.assertEqual((units / 'plugin_loader.service').read_bytes(), unit_before)

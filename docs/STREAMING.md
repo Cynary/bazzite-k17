@@ -55,3 +55,28 @@ that installation out of image-managed plugin updates.
 If you remove Decky or MoonDeck and want them to stay removed, create
 `/etc/moonmachine/disable-app-setup` before uninstalling. That disables the
 first-boot setup helper on subsequent boots too.
+
+## Initial stream settings
+
+New Moonlight profiles start at 3840×2160, 120 FPS, 500 Mbps, HDR, YUV 4:4:4,
+Direct YUV presentation, V-sync on, legacy frame pacing off and the VRR Low Latency
+preset. Existing profiles are preserved. These settings target a wired K17 and
+4K120 HDR TV; reduce bitrate/resolution or disable HDR for other networks/displays.
+The host must support the requested codec and colour format.
+
+Gaming Mode's Moonmachine service keeps VRR enabled and Steam's compositor frame
+limit disabled. This prevents Steam's saved performance preferences from capping
+the stream independently of Moonlight. It does not add VRR hardware support; the
+kernel, display and application still need to support it. The uncapped-scheduling
+fix and default are separate from this FPS limiter.
+
+To let Steam control these two settings instead, create
+`~/.config/moonmachine/disable-vrr-defaults` and stop the user service:
+
+```sh
+mkdir -p ~/.config/moonmachine
+touch ~/.config/moonmachine/disable-vrr-defaults
+systemctl --user stop moonmachine-vrr-defaults.service
+```
+
+Remove that file and start the service to restore the streaming defaults.

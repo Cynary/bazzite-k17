@@ -1,0 +1,32 @@
+#!/usr/bin/python3
+"""Keep the user-requested VRR defaults while Gaming Mode is running."""
+import os
+import subprocess
+import sys
+
+env = os.environ.copy()
+env["DISPLAY"] = ":0"
+desired = {"GAMESCOPE_VRR_ENABLED": "1", "GAMESCOPE_FPS_LIMIT": "0"}
+# xprop emits initial values and subsequent PropertyNotify changes.
+watch = subprocess.Popen(
+    ["stdbuf", "-oL", "xprop", "-spy", "-root", *desired],
+    env=env, stdout=subprocess.PIPE, text=True,
+)
+try:
+    for line in watch.stdout:
+        name = line.split("(", 1)[0].strip()
+        if name not in desired:
+            name = next((key for key in desired if line.startswith(key)), None)
+        if name is None:
+            continue
+        value = line.partition("=")[2].strip()
+        if value != desired[name]:
+            subprocess.run(
+                ["xprop", "-root", "-f", name, "32c", "-set", name, desired[name]],
+                env=env, check=True,
+            )
+            print(f"Applied {name}={desired[name]}", flush=True)
+finally:
+    watch.terminate()
+    watch.wait()
+sys.exit(1)  # Reconnect if the X server restarts; systemd stops us on session exit.

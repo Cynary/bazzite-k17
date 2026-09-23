@@ -20,3 +20,10 @@ The later radio-before-receive suspend candidate is **not included in
 `moonmachine-20260922.2`**. Its five short sleep tests used a local module. See
 the [release audit](RELEASE-AUDIT-20260922.md#omission-xbox-suspend-candidate) for
 the packaging gap and required follow-up.
+
+The next image build also carries
+`0003-restore-radio-before-receive-and-bound-teardown.patch`: restore the radio
+before accepting receive traffic after sleep, and stop processing queued requests
+during teardown. This preserves the previously tested candidate without its
+informational diagnostic messages. Packaging and new-image reboot/resume
+validation must finish before this is described as released.

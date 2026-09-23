@@ -20,7 +20,23 @@ def plugin_digest(directory):
     return digest.hexdigest()
 
 
+def seed_streaming(account):
+    """Seed new profiles only; updates never overwrite user streaming settings."""
+    home = Path(account.pw_dir)
+    config = home / '.config/Moonlight Game Streaming Project/Moonlight.conf'
+    if config.exists():
+        return
+    config.parent.mkdir(parents=True, exist_ok=True)
+    with config.open('x') as f:
+        f.write("[General]\nwidth=3840\nheight=2160\nfps=120\nbitrate=500000\n"
+                "hdr=true\nyuv444=true\ndirectvideomode=1\nvsync=true\n"
+                "framepacing=false\nvrrlatencymode=2\n")
+    for path in [home / '.config', config.parent, config]:
+        os.chown(path, account.pw_uid, account.pw_gid)
+
+
 def seed(account, share, service_dir):
+    seed_streaming(account)
     home = Path(account.pw_dir)
     brew = home / 'homebrew'
     unit = service_dir / 'plugin_loader.service'
