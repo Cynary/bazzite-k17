@@ -1,8 +1,7 @@
 # Xbox driver release validation
 
 `moonmachine-20260923.1` is built, signed and installed on the test K17.
-**Update-channel promotion is pending the final packaged-image controller
-reconnection check after suspend.**
+It is published on the signed `moonmachine` update channel.
 
 Image digest: `sha256:c960ed5c03c2fbd690b324e952b9eb548551c81da9c9b3469aef41b89f419edc`.
 Build source: `7ca49a2`.
@@ -37,9 +36,9 @@ entry, without a local module-loading service or test initramfs overlay. The
 controller registered normally and remained present during the reboot test's
 observation period. The kernel boot-health check passed.
 
-The subsequent timer-driven suspend/resume completed without xone errors, but
-the controller had not reconnected at the observation point. A controller button
-press is needed to complete that check; this is not yet counted as a pass.
+The subsequent timer-driven suspend/resume completed without xone errors.
+The controller was off at the first observation; after the user pressed Xbox,
+a fresh input device registered with exactly one client and no new xone errors.
 
 No new visual TV or streaming performance test was performed for this release.
 The graphics and application binaries were checked against the previous build.

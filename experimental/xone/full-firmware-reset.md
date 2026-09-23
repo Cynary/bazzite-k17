@@ -12,7 +12,7 @@ For `02e6`, this candidate stops beacon transmission and the MAC, requests firmw
 
 It also selects the shared 2017 firmware (`xone_dongle_02fe.bin`) for this adapter, as the original xone driver did. Newer firmware by itself did not solve the failure. The firmware must be included in the initramfs as well as the installed filesystem.
 
-The reset is now [patch 0005](../../xone-patches/0005-reload-02e6-firmware-from-upload-state.patch) in the image’s xone patch series, after patches `0001` through `0004`. It compiled as module source version `3DBD258ECD8E759A6E35105` with the current kernel build. It is packaged in the signed `moonmachine-20260923.1` candidate; [release validation](../../docs/XBOX-RELEASE-20260923.md) tracks installation and channel promotion.
+The reset is now [patch 0005](../../xone-patches/0005-reload-02e6-firmware-from-upload-state.patch) in the image’s xone patch series, after patches `0001` through `0004`. It compiled as module source version `3DBD258ECD8E759A6E35105` with the current kernel build. It is packaged in the signed `moonmachine-20260923.1` release on the `moonmachine` channel; see [release validation](../../docs/XBOX-RELEASE-20260923.md).
 
 ## Validation so far
 
@@ -23,6 +23,6 @@ The reset is now [patch 0005](../../xone-patches/0005-reload-02e6-firmware-from-
 - Timer wake and controller wake both restored a real input device with no new xone errors. Controller wake occurred about 15 seconds into sleep, before the 90-second fallback alarm.
 - A subsequent batch of ten suspend/resume cycles also passed on the early-loaded clean candidate. The user pressed Xbox during some sleeps and after some timed wakes, so this was a mixed wake/reconnection test. All ten cycles resumed without rebooting, created a fresh controller input device, and retained exactly one client with no new xone errors. Suspend-entry to resume-exit intervals ranged from 6.5 to 31.8 seconds; these were short-cycle tests, not overnight standby tests.
 
-The full-reload sequence is still a candidate. Earlier upload experiments failed, including a transition back to the older firmware. The exact firmware-side fault is unresolved. The ten-restart test passed, but validation of a rebuilt image remains necessary before release. These results cover this adapter on this K17; they do not establish reliability across other hardware.
+The full-reload sequence is still a candidate. Earlier upload experiments failed, including a transition back to the older firmware. The exact firmware-side fault is unresolved. The ten-restart test passed, but the packaged image also passed boot and reconnection after a timer wake. These results cover this adapter on this K17; they do not establish reliability across other hardware.
 
 An unrelated, confirmed bug is covered separately by `0004`: requests addressed to other access points must not allocate controller slots. A replay of the captured association requests preserved all three controller requests and rejected the unrelated request.
