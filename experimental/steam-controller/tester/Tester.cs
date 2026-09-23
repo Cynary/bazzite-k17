@@ -10,6 +10,7 @@ using System.Web.Script.Serialization;
 
 namespace Moonmachine.ControllerTest {
 public sealed class Tester : Form {
+    SteamMotion steamMotion;
     readonly Tracker data=new Tracker();readonly Guide guide=new Guide();NativeHid hid;
     readonly Timer timer=new Timer{Interval=33};
     readonly bool demo;bool hapticBusy;string message="R: guided check    C: centre pose    H / J: left / right haptic    F9: save    F11: fullscreen";
@@ -18,11 +19,11 @@ public sealed class Tester : Form {
     double poseScale=1;
     double[] zero=new[]{1.0,0,0,0};long lastCount;DateTime rateAt=DateTime.UtcNow;double hz;int hapticStep=-1;bool savedComplete;
     public Tester(bool simulation){demo=simulation;Text="Steam Controller Lab";DoubleBuffered=true;AutoScaleMode=AutoScaleMode.None;BackColor=Bg;ClientSize=new Size(1536,960);KeyPreview=true;
-        timer.Tick+=(a,b)=>{guide.Tick(data);if(!demo&&guide.Current!=null&&guide.Current.Kind.StartsWith("haptic")&&hapticStep!=guide.Index&&!hapticBusy){hapticStep=guide.Index;Haptic(guide.Current.Kind=="haptic-left"?0:1);}if(!demo&&guide.Index==guide.Steps.Count&&!savedComplete){savedComplete=true;Save();}if((DateTime.UtcNow-rateAt).TotalSeconds>1){lock(data.Sync){hz=(data.Reports-lastCount)/(DateTime.UtcNow-rateAt).TotalSeconds;lastCount=data.Reports;}rateAt=DateTime.UtcNow;}Invalidate();};
+        timer.Tick+=(a,b)=>{if(steamMotion!=null)steamMotion.Poll();guide.Tick(data);if(!demo&&guide.Current!=null&&guide.Current.Kind.StartsWith("haptic")&&hapticStep!=guide.Index&&!hapticBusy){hapticStep=guide.Index;Haptic(guide.Current.Kind=="haptic-left"?0:1);}if(!demo&&guide.Index==guide.Steps.Count&&!savedComplete){savedComplete=true;Save();}if((DateTime.UtcNow-rateAt).TotalSeconds>1){lock(data.Sync){hz=(data.Reports-lastCount)/(DateTime.UtcNow-rateAt).TotalSeconds;lastCount=data.Reports;}rateAt=DateTime.UtcNow;}Invalidate();};
         if(demo){data.Open("SIMULATION — synthetic data, not a forwarding test");data.Add(Demo());hz=266;}
-        else {hid=new NativeHid(data);hid.Start();guide.Start(data);}
+        else {if(Environment.GetEnvironmentVariable("CONTROLLER_LAB_STEAM_INPUT")=="1")steamMotion=new SteamMotion();hid=new NativeHid(data);hid.Start();guide.Start(data);}
         timer.Start();KeyDown+=KeysDown;MouseClick+=ClickAt;
-        FormClosing+=(a,b)=>{timer.Stop();if(hid!=null)hid.Dispose();normal.Dispose();small.Dispose();title.Dispose();heading.Dispose();};
+        FormClosing+=(a,b)=>{timer.Stop();if(hid!=null)hid.Dispose();if(steamMotion!=null)steamMotion.Dispose();normal.Dispose();small.Dispose();title.Dispose();heading.Dispose();};
     }
     void TextAt(Graphics g,string s,float x,float y,Font f,Color c){using(var b=new SolidBrush(c))g.DrawString(s,f,b,x,y);}
     void Box(Graphics g,float x,float y,float w,float h,Color c){using(var b=new SolidBrush(c))g.FillRectangle(b,x,y,w,h);}
@@ -38,8 +39,8 @@ public sealed class Tester : Form {
             Box(g,32,145,930,454,Card);Box(g,986,145,514,454,Card);
             TextAt(g,"CONTROLS",52,159,small,Muted);DrawController(g,s);
             TextAt(g,"ORIENTATION",1006,159,small,Muted);Draw3D(g,s);
-            TextAt(g,"C / Centre pose resets the visual reference",1006,501,small,Muted);
-            TextAt(g,"Quaternion W X Y Z",1006,526,small,Muted);TextAt(g,s!=null&&s.HasQuaternion?String.Join("   ",s.Quaternion):"Not present in the current report",1006,547,normal,Ink);
+            TextAt(g,steamMotion!=null?steamMotion.Status:"C / Centre pose resets the visual reference",1006,501,small,Muted);
+            TextAt(g,"Raw HID quaternion W X Y Z",1006,526,small,Muted);TextAt(g,s!=null&&s.HasQuaternion?String.Join("   ",s.Quaternion):"Not present in the current report",1006,547,normal,Ink);
             TextAt(g,"BUTTONS & TOUCH  •  all 32 raw bits",32,617,small,Muted);
             for(int i=0;i<32;i++){int col=i%8,row=i/8;float x=32+col*184,y=643+row*36;bool on=Down(s,i);Box(g,x,y,176,30,on?Mint:Card);TextAt(g,State.Buttons[i],x+7,y+6,small,on?Bg:Muted);}
             TextAt(g,String.Format("{0:0} reports/s   ·   {1:N0} received   ·   {2} invalid   ·   {3} sequence discontinuities",hz,data.Reports,data.Invalid,data.Discontinuities),32,798,small,Muted);
@@ -68,7 +69,7 @@ public sealed class Tester : Form {
     void Pad(Graphics g,float x,float y,State s,int side){int touch=side==0?25:21,click=side==0?26:22;Box(g,x-53,y-5,106,78,Down(s,click)?Color.FromArgb(61,111,105):Bg);if(Down(s,touch)){float xx=s.Pads[side*2]/32768f,yy=s.Pads[side*2+1]/32768f;Circle(g,x+xx*44,y+34-yy*31,7,Mint);}TextAt(g,s==null?"0, 0":s.Pads[side*2]+", "+s.Pads[side*2+1],x-57,y+79,small,Muted);TextAt(g,"P "+(s==null?0:s.Pressure[side]),x-32,y+96,small,Ink);}
     void Meter(Graphics g,float x,float y,float w,double v,string label,int raw){TextAt(g,label+" "+raw,x,y-25,small,Muted);Box(g,x,y,w,7,Bg);Box(g,x,y,(float)(w*Math.Max(0,Math.Min(1,v))),7,Mint);}
     PointF Project(double[] q,double x,double y,double z){var a=Rotation.Apply(q,x,y,z);double perspective=4.2/(4.2-a[2]);return new PointF((float)(1240+a[0]*85*perspective*poseScale),(float)(320-a[1]*85*perspective*poseScale));}
-    void Draw3D(Graphics g,State s){var raw=Rotation.Unit(s);var q=raw==null?new[]{1.0,0,0,0}:Rotation.Multiply(zero,raw);
+    void Draw3D(Graphics g,State s){var raw=steamMotion!=null?steamMotion.Quaternion:Rotation.Unit(s);var q=raw==null?new[]{1.0,0,0,0}:Rotation.Multiply(zero,raw);
         // Tilt the camera; device X is right, Y points toward the shoulders, Z is up.
         q=Rotation.Multiply(new[]{Math.Cos(.28),Math.Sin(.28),0.0,0.0},q);
         double[,] poly={{-1.4,.7},{-.8,1.0},{.8,1.0},{1.4,.7},{1.8,-.9},{1.25,-1.2},{.65,-.55},{-.65,-.55},{-1.25,-1.2},{-1.8,-.9}};
@@ -78,7 +79,7 @@ public sealed class Tester : Form {
         using(var b=new SolidBrush(Color.FromArgb(74,97,123)))g.FillPolygon(b,top);using(var p=new Pen(Mint,2))g.DrawPolygon(p,top);
         foreach(double x in new[]{-.8,.8}){var pad=new[]{Project(q,x-.3,-.05,.18),Project(q,x+.3,-.05,.18),Project(q,x+.3,-.5,.18),Project(q,x-.3,-.5,.18)};using(var b=new SolidBrush(Bg))g.FillPolygon(b,pad);var stick=Project(q,x*.75,.5,.2);Circle(g,stick.X,stick.Y,12,Bg);}
         var nose=Project(q,0,1,.2);Circle(g,nose.X,nose.Y,5,Mint);
-        TextAt(g,raw==null?"No valid orientation data":"Controller quaternion • schematic model",1006,186,small,raw==null?Amber:Muted);
+        TextAt(g,raw==null?"No valid orientation data":(steamMotion!=null?"Steam Input orientation • schematic model":"Controller quaternion • schematic model"),1006,186,small,raw==null?Amber:Muted);
         TextAt(g,"Gyro °/s  "+(s==null?"—":Fmt(s.Gyro,2000.0/32768)),1006,447,normal,Ink);
         TextAt(g,"Accel g    "+(s==null?"—":Fmt(s.Accel,2.0/32768)),1006,474,normal,Ink);
     }
@@ -87,7 +88,7 @@ public sealed class Tester : Form {
         if(c==null){TextAt(g,guide.Index<0?"Guided check":"Guided check complete",50,844,heading,Ink);int pass=0,skip=0,fail=0;foreach(var s in guide.Steps){if(s.Result=="passed"||s.Result=="confirmed")pass++;if(s.Result=="skipped")skip++;if(s.Result=="failed")fail++;}TextAt(g,guide.Index<0?"Press R or click here to check every control. Each step waits for real Windows input.":String.Format("{0} passed / confirmed · {1} skipped · {2} failed. F9 saves the evidence.",pass,skip,fail),50,879,normal,Muted);}
         else {TextAt(g,String.Format("{0}/{1}  {2}",guide.Index+1,guide.Steps.Count,c.Name),50,842,heading,Mint);TextAt(g,c.Instruction,370,843,normal,Ink);TextAt(g,guide.Hint+"   S: skip unverified · P: previous · F9: save",370,879,small,Muted);}
     }
-    void Centre(){lock(data.Sync){var q=Rotation.Unit(data.Latest);if(q!=null)zero=new[]{q[0],-q[1],-q[2],-q[3]};}}
+    void Centre(){lock(data.Sync){var q=steamMotion!=null?steamMotion.Quaternion:Rotation.Unit(data.Latest);if(q!=null)zero=new[]{q[0],-q[1],-q[2],-q[3]};}}
     async void Haptic(int side){if(hapticBusy||demo||hid==null)return;hapticBusy=true;bool ok=await Task.Run(()=>hid.Rumble(side));hapticBusy=false;guide.HapticSent(data,side,ok);message=ok?"Windows sent the haptic command. Confirm what you felt in the guided check.":"Haptic write failed; check the relay and native device.";}
     void Save(){lock(data.Sync){string dir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),"Steam Controller Lab");Directory.CreateDirectory(dir);string file=Path.Combine(dir,"validation-"+DateTime.Now.ToString("yyyyMMdd-HHmmss")+".json");var result=new {schema=1,simulation=demo,utc=DateTime.UtcNow.ToString("o"),device=data.Device,transport="Prototype relay; viewer reads Windows HID",reports=data.Reports,invalid=data.Invalid,sequenceDiscontinuities=data.Discontinuities,presses=data.Presses,releases=data.Releases,min=data.Min,max=data.Max,steps=guide.Steps,raw=data.Latest==null?null:BitConverter.ToString(data.Latest.Raw)};File.WriteAllText(file,new JavaScriptSerializer().Serialize(result));message="Saved "+file;}}
     void Fullscreen(){if(FormBorderStyle==FormBorderStyle.None){FormBorderStyle=FormBorderStyle.Sizable;WindowState=FormWindowState.Normal;}else{FormBorderStyle=FormBorderStyle.None;WindowState=FormWindowState.Maximized;}}
@@ -102,6 +103,6 @@ public sealed class Tester : Form {
             lock(tracker.Sync){var report=new {reports=tracker.Reports,invalid=tracker.Invalid,device=tracker.Device,connected=tracker.Connected,presses=tracker.Presses,raw=tracker.Latest==null?null:BitConverter.ToString(tracker.Latest.Raw)};File.WriteAllText(path,new JavaScriptSerializer().Serialize(report));Console.WriteLine("Windows HID reports received: "+tracker.Reports);return tracker.Reports>0?0:4;}}
     }
     [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool SetProcessDPIAware();
-    [STAThread] public static int Main(string[] args){SetProcessDPIAware();if(args.Length>0&&args[0]=="--self-test")return Tests.Run();if(args.Length==3&&args[0]=="--capture")return CaptureReports(int.Parse(args[1]),args[2]);Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);bool demo=Array.IndexOf(args,"--demo")>=0;using(var form=new Tester(demo)){if(args.Length>=3&&args[0]=="--snapshot"){form.Snapshot(args[1]);return 0;}if(Array.IndexOf(args,"--windowed")<0){form.FormBorderStyle=FormBorderStyle.None;form.WindowState=FormWindowState.Maximized;}Application.Run(form);}return 0;}
+    [STAThread] public static int Main(string[] args){SetProcessDPIAware();if(Array.IndexOf(args,"--steam-input")>=0)Environment.SetEnvironmentVariable("CONTROLLER_LAB_STEAM_INPUT","1");if(args.Length>0&&args[0]=="--self-test")return Tests.Run();if(args.Length==3&&args[0]=="--capture")return CaptureReports(int.Parse(args[1]),args[2]);Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);bool demo=Array.IndexOf(args,"--demo")>=0;using(var form=new Tester(demo)){if(args.Length>=3&&args[0]=="--snapshot"){form.Snapshot(args[1]);return 0;}if(Array.IndexOf(args,"--windowed")<0){form.FormBorderStyle=FormBorderStyle.None;form.WindowState=FormWindowState.Maximized;}Application.Run(form);}return 0;}
 }
 }

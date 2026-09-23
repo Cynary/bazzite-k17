@@ -4,3 +4,5 @@
 __pycache__/
 *-capture.json
 *.stderr
+steam_api64.dll
+steam-motion.jsonl

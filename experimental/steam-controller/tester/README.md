@@ -1,6 +1,6 @@
 # Steam Controller Lab
 
-A Windows app for checking the new Steam Controller's native reports. It shows buttons and touch sensors, stick and trackpad coordinates, trigger and pad pressure, accelerometer and gyro values, and a 3D view driven by the controller's quaternion. The guided check records what actually arrived in Windows; skipped controls remain unverified.
+A Windows app for checking the new Steam Controller's native reports. It shows buttons and touch sensors, stick and trackpad coordinates, trigger and pad pressure, accelerometer and gyro values, and a 3D orientation view. The optional Steam Input mode asks Windows Steam for orientation; the raw controller quaternion remains visible for comparison. The guided check records what actually arrived in Windows; skipped controls remain unverified.
 
 This is an experimental tester for the native HID prototype in `../windows-native`. Moonlight and Vibepollo carry the picture and sound. **Controller traffic currently travels through a separate authenticated SSH relay.** This does not yet add native Steam Controller support to ordinary Moonlight clients. The physical controller stays on Linux; Windows sees an emulated device. No USB/IP is used.
 
@@ -39,3 +39,13 @@ The Windows build passes 11,094 automated decoder, guide and orientation-math ch
 The viewer exposes 30 identified button/touch bits and labels the remaining two bits as unknown. It decodes full `0x42` and compact `0x45` reports; compact reports have no quaternion. It requests raw motion and orientation using the runtime IMU setting. Physical axis directions, touch/pressure thresholds and all guided steps still need validation. Battery/status and advanced haptic formats are not implemented in the viewer.
 
 Steam on either side may also configure the controller or consume its input. Exclusive local-versus-remote input routing is still unfinished. Do not treat this prototype as a complete replacement for the normal streaming controller path.
+
+## Testing Steam Input orientation
+
+Add `SteamControllerLab.exe` as a non-Steam game in Windows Steam and set its launch options to `--steam-input`. Put `steam_api64.dll` from the current Steamworks SDK beside the executable; the DLL is not included in this repository. Launch the shortcut through Steam.
+
+This development test uses Steam's sample application ID 480 to initialize the public Steamworks API. It is not an app registered on Steam. It calls `SteamAPI_RunCallbacks`, runs an explicit Steam Input frame, and reads `GetMotionData` for a Steam Controller. The 3D model uses that result, while the numerical raw HID quaternion below it still comes from the device reports. `steam-motion.jsonl` records Steam's motion values beside the executable.
+
+On the tested firmware, the raw quaternion remains `(32767, 0, 0, 0)`. Windows Steam identifies the emulated controller as type 17 (Steam Controller 2026) and returns a non-identity quaternion. Steam documents this orientation as accumulated gyro rotation. This test does not implement its own motion fusion or change controller firmware.
+
+The guided orientation step still checks raw reports; it does not automatically pass based on Steam Input's result. The separate 3D view is the Steam Input check.
