@@ -10,7 +10,7 @@ This candidate adds separate control of the two grip motors and two trigger moto
 
 Moonlight already receives trigger-rumble messages and calls SDL’s trigger-rumble API. Its SDL2 compatibility library forwards that call to SDL3. No new network message is needed for this trial.
 
-The Windows host needs Vibepollo’s newer Xbox Series virtual-controller backend for the eventual network test. The installed stable host still uses the virtual Xbox 360 path; it has not been upgraded. Test the Linux half first.
+The Windows host has been upgraded to the signed Vibepollo 2.0.0-beta.3 package. Direct HID four-motor feedback works, but Windows game-API feedback failed the synthetic tests, so normal streaming remains on automatic selection of the previous ViGEm backend. See [Windows probe results](windows-probe/README.md). Test the Linux half independently first.
 
 ## Hardware validation
 
