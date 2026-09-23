@@ -58,3 +58,47 @@ bundle; it does not isolate each setting. Earlier power-limit tests alone found
 little benefit. GPU floors stay within the hardware's supported frequency range.
 These are client timings, excluding host, network transit and TV processing.
 The stock run's slowest frame was 15.80 ms; restored tuning's was 8.47 ms.
+
+## Which tuning settings help streaming? (23 September)
+
+CPU performance preference and higher GPU minimum clocks each reduced latency.
+Increasing the package power limits from 25/25 W to 35/37 W had no consistent
+effect in this streaming workload.
+
+All eight combinations were measured twice, with the order reversed for the
+second pass. Each run used Overcooked 2’s idle startup/menu sequence, streamed
+at 4K HDR HEVC 4:4:4 through Direct YUV at about 116 FPS. The first 30 seconds
+were excluded. Settings were read back before and after every run.
+
+| Settings | Mean | p99 |
+|---|---:|---:|
+| Baseline | 8.00 ms | 10.55 ms |
+| Higher power limits only | 8.00 ms | 10.63 ms |
+| CPU performance preference only | 7.10 ms | 8.36 ms |
+| Higher GPU floors only | 7.02 ms | 8.89 ms |
+| CPU preference + GPU floors | 6.29 ms | 7.24 ms |
+| All three | 6.22 ms | 7.25 ms |
+
+The table averages the two runs’ means and p99 values. All sixteen valid runs
+had zero recorded frame drops. One earlier sample was discarded after a
+controller-disconnection notification switched Moonlight to Vulkan.
+
+- **CPU preference:** `performance` instead of `balance_performance`, with the
+  governor left at `powersave`. Across matched comparisons, this saved 0.85 ms
+  on average and 2.05 ms at p99. Submission-to-flip time fell from about 1.55 ms
+  to 0.97 ms; decode wait was largely unchanged.
+- **GPU floors:** 1850/1200 MHz instead of 800/400 MHz for GT0/GT1, with unchanged
+  maximum clocks. This saved 0.89 ms on average and 1.30 ms at p99. Decode wait
+  fell from roughly 5.5 ms to 4.6 ms. These floors stay within the supported range.
+- **Power limits:** the matched average change was −0.007 ms; p99 changes went
+  in both directions. Measured average package power was about 5–7 W, below
+  either limit. Higher limits may matter for local games; that was not tested.
+
+![Average and p99 client latency for all eight tuning combinations](docs/tuning/tuning-effects.png)
+
+Bars average the two runs; dots show each run. Measurements cover first packet
+receipt on the client through DRM display flip, excluding host processing,
+network transit before receipt and TV processing. Raw percentile summaries and
+stage timings are in [the results data](docs/tuning/summary.json). The first pass
+was inspected incrementally; the second was collected uninterrupted and
+confirmed the same pattern. These settings remain outside the shared image.

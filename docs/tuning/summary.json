@@ -1,0 +1,1090 @@
+{
+  "01-cgp-111-r1": {
+    "index": 1,
+    "repeat": 1,
+    "bits": "111",
+    "after": {
+      "epp": "performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7208,
+        "mean": 6.2515378745837955,
+        "p50": 6.212,
+        "p95": 6.947,
+        "p99": 7.289,
+        "max": 8.866,
+        "over_frame": 0.08324084350721421
+      },
+      "decode_wait": {
+        "n": 7208,
+        "mean": 4.594339345172031,
+        "p50": 4.605,
+        "p95": 4.659,
+        "p99": 4.686,
+        "max": 5.242,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7208,
+        "mean": 0.08874431187569368,
+        "p50": 0.079,
+        "p95": 0.159,
+        "p99": 0.206,
+        "max": 0.765,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7208,
+        "mean": 1.0042699778024418,
+        "p50": 0.944,
+        "p95": 1.53,
+        "p99": 1.86,
+        "max": 3.647,
+        "over_frame": 0.0
+      },
+      "frame_assembly": {
+        "n": 7208,
+        "mean": 0.1500878190899001,
+        "p50": 0.173,
+        "p95": 0.255,
+        "p99": 0.277,
+        "max": 0.708,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 68.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1150.0
+    },
+    "mean_package_w": null
+  },
+  "02-cgp-000-r1": {
+    "index": 2,
+    "repeat": 1,
+    "bits": "000",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7230,
+        "mean": 7.97123969571231,
+        "p50": 7.84,
+        "p95": 9.332,
+        "p99": 10.447,
+        "max": 16.836,
+        "over_frame": 22.26832641770401
+      },
+      "decode_wait": {
+        "n": 7230,
+        "mean": 5.51738520055325,
+        "p50": 5.666,
+        "p95": 5.801,
+        "p99": 5.842,
+        "max": 6.693,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7230,
+        "mean": 0.18039031811894882,
+        "p50": 0.167,
+        "p95": 0.341,
+        "p99": 0.448,
+        "max": 1.346,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7230,
+        "mean": 1.5502199170124482,
+        "p50": 1.423,
+        "p95": 2.545,
+        "p99": 3.753,
+        "max": 9.966,
+        "over_frame": 0.16597510373443983
+      },
+      "frame_assembly": {
+        "n": 7230,
+        "mean": 0.17218741355463346,
+        "p50": 0.19,
+        "p95": 0.28,
+        "p99": 0.307,
+        "max": 0.974,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 57.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1000.0
+    },
+    "mean_package_w": 5.101811000574176
+  },
+  "03-cgp-100-r1": {
+    "index": 3,
+    "repeat": 1,
+    "bits": "100",
+    "after": {
+      "epp": "performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7225,
+        "mean": 7.095096193771626,
+        "p50": 7.052,
+        "p95": 7.928,
+        "p99": 8.382,
+        "max": 15.494,
+        "over_frame": 1.1487889273356402
+      },
+      "decode_wait": {
+        "n": 7225,
+        "mean": 5.513625051903114,
+        "p50": 5.669,
+        "p95": 5.795,
+        "p99": 5.822,
+        "max": 11.451,
+        "over_frame": 0.01384083044982699
+      },
+      "prepare": {
+        "n": 7225,
+        "mean": 0.09033397923875433,
+        "p50": 0.081,
+        "p95": 0.16,
+        "p99": 0.213,
+        "max": 0.652,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7225,
+        "mean": 0.9678258823529412,
+        "p50": 0.893,
+        "p95": 1.499,
+        "p99": 2.008,
+        "max": 9.057,
+        "over_frame": 0.02768166089965398
+      },
+      "frame_assembly": {
+        "n": 7225,
+        "mean": 0.1519366089965398,
+        "p50": 0.174,
+        "p95": 0.253,
+        "p99": 0.277,
+        "max": 0.436,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 71.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 950.0
+    },
+    "mean_package_w": 6.686767653375024
+  },
+  "04-cgp-011-r1": {
+    "index": 4,
+    "repeat": 1,
+    "bits": "011",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7240,
+        "mean": 7.02325773480663,
+        "p50": 6.866,
+        "p95": 8.301,
+        "p99": 9.345,
+        "max": 15.975,
+        "over_frame": 4.723756906077348
+      },
+      "decode_wait": {
+        "n": 7240,
+        "mean": 4.584846685082873,
+        "p50": 4.592,
+        "p95": 4.669,
+        "p99": 4.718,
+        "max": 8.883,
+        "over_frame": 0.013812154696132596
+      },
+      "prepare": {
+        "n": 7240,
+        "mean": 0.17727665745856352,
+        "p50": 0.163,
+        "p95": 0.32,
+        "p99": 0.444,
+        "max": 2.014,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7240,
+        "mean": 1.526836325966851,
+        "p50": 1.413,
+        "p95": 2.464,
+        "p99": 3.654,
+        "max": 10.827,
+        "over_frame": 0.23480662983425415
+      },
+      "frame_assembly": {
+        "n": 7240,
+        "mean": 0.16094406077348067,
+        "p50": 0.186,
+        "p95": 0.275,
+        "p99": 0.297,
+        "max": 1.002,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 64.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1200.0
+    },
+    "mean_package_w": 5.379479543487594
+  },
+  "05-cgp-010-r1": {
+    "index": 5,
+    "repeat": 1,
+    "bits": "010",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7286,
+        "mean": 7.023111583859457,
+        "p50": 6.908,
+        "p95": 8.217,
+        "p99": 8.893,
+        "max": 10.628,
+        "over_frame": 3.9390612132857536
+      },
+      "decode_wait": {
+        "n": 7286,
+        "mean": 4.586704364534724,
+        "p50": 4.599,
+        "p95": 4.667,
+        "p99": 4.714,
+        "max": 5.523,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7286,
+        "mean": 0.17870244304144936,
+        "p50": 0.168,
+        "p95": 0.315,
+        "p99": 0.425,
+        "max": 1.325,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7286,
+        "mean": 1.5098082624210816,
+        "p50": 1.44,
+        "p95": 2.377,
+        "p99": 3.15,
+        "max": 4.435,
+        "over_frame": 0.0
+      },
+      "frame_assembly": {
+        "n": 7286,
+        "mean": 0.17436041723853968,
+        "p50": 0.193,
+        "p95": 0.284,
+        "p99": 0.305,
+        "max": 1.094,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 61.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1200.0
+    },
+    "mean_package_w": 5.370336509965573
+  },
+  "06-cgp-101-r1": {
+    "index": 6,
+    "repeat": 1,
+    "bits": "101",
+    "after": {
+      "epp": "performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7289,
+        "mean": 7.004678145150226,
+        "p50": 6.953,
+        "p95": 7.725,
+        "p99": 8.149,
+        "max": 17.588,
+        "over_frame": 0.7682809713266566
+      },
+      "decode_wait": {
+        "n": 7289,
+        "mean": 5.407256688160241,
+        "p50": 5.461,
+        "p95": 5.8,
+        "p99": 5.83,
+        "max": 11.256,
+        "over_frame": 0.013719303059404582
+      },
+      "prepare": {
+        "n": 7289,
+        "mean": 0.08488585539854575,
+        "p50": 0.077,
+        "p95": 0.154,
+        "p99": 0.201,
+        "max": 0.967,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7289,
+        "mean": 0.9457020167375497,
+        "p50": 0.848,
+        "p95": 1.439,
+        "p99": 1.856,
+        "max": 12.171,
+        "over_frame": 0.2881053642474962
+      },
+      "frame_assembly": {
+        "n": 7289,
+        "mean": 0.1496363012758952,
+        "p50": 0.172,
+        "p95": 0.253,
+        "p99": 0.275,
+        "max": 0.589,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 65.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1000.0
+    },
+    "mean_package_w": 6.537568828562748
+  },
+  "07-cgp-001-r1": {
+    "index": 7,
+    "repeat": 1,
+    "bits": "001",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7299,
+        "mean": 7.969460748047678,
+        "p50": 7.896,
+        "p95": 9.266,
+        "p99": 10.58,
+        "max": 16.687,
+        "over_frame": 23.70187696944787
+      },
+      "decode_wait": {
+        "n": 7299,
+        "mean": 5.494497191396082,
+        "p50": 5.663,
+        "p95": 5.802,
+        "p99": 5.843,
+        "max": 9.808,
+        "over_frame": 0.013700506918755994
+      },
+      "prepare": {
+        "n": 7299,
+        "mean": 0.17858953281271406,
+        "p50": 0.167,
+        "p95": 0.326,
+        "p99": 0.47,
+        "max": 1.973,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7299,
+        "mean": 1.5415578846417317,
+        "p50": 1.419,
+        "p95": 2.505,
+        "p99": 3.867,
+        "max": 10.298,
+        "over_frame": 0.13700506918755995
+      },
+      "frame_assembly": {
+        "n": 7299,
+        "mean": 0.17308960131524867,
+        "p50": 0.189,
+        "p95": 0.279,
+        "p99": 0.312,
+        "max": 0.583,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 84.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 950.0
+    },
+    "mean_package_w": 5.497006929655597
+  },
+  "08-cgp-110-r1": {
+    "index": 8,
+    "repeat": 1,
+    "bits": "110",
+    "after": {
+      "epp": "performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7297,
+        "mean": 6.326258325339181,
+        "p50": 6.31,
+        "p95": 6.955,
+        "p99": 7.262,
+        "max": 8.887,
+        "over_frame": 0.027408524050979856
+      },
+      "decode_wait": {
+        "n": 7297,
+        "mean": 4.5975256954912975,
+        "p50": 4.609,
+        "p95": 4.657,
+        "p99": 4.686,
+        "max": 4.843,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7297,
+        "mean": 0.0856809647800466,
+        "p50": 0.077,
+        "p95": 0.152,
+        "p99": 0.209,
+        "max": 0.816,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7297,
+        "mean": 0.9860548170481019,
+        "p50": 0.932,
+        "p95": 1.513,
+        "p99": 1.858,
+        "max": 3.528,
+        "over_frame": 0.0
+      },
+      "frame_assembly": {
+        "n": 7297,
+        "mean": 0.14638837878580238,
+        "p50": 0.17,
+        "p95": 0.247,
+        "p99": 0.273,
+        "max": 0.433,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 67.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1150.0
+    },
+    "mean_package_w": 6.7409706329173416
+  },
+  "09-cgp-110-r2": {
+    "index": 9,
+    "repeat": 2,
+    "bits": "110",
+    "after": {
+      "epp": "performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7308,
+        "mean": 6.245503968253968,
+        "p50": 6.219,
+        "p95": 6.89,
+        "p99": 7.209,
+        "max": 8.587,
+        "over_frame": 0.09578544061302682
+      },
+      "decode_wait": {
+        "n": 7308,
+        "mean": 4.60481746031746,
+        "p50": 4.614,
+        "p95": 4.666,
+        "p99": 4.694,
+        "max": 5.565,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7308,
+        "mean": 0.08698563218390805,
+        "p50": 0.079,
+        "p95": 0.151,
+        "p99": 0.205,
+        "max": 0.535,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7308,
+        "mean": 0.9750083470169677,
+        "p50": 0.917,
+        "p95": 1.493,
+        "p99": 1.783,
+        "max": 3.257,
+        "over_frame": 0.0
+      },
+      "frame_assembly": {
+        "n": 7308,
+        "mean": 0.14894896004378763,
+        "p50": 0.171,
+        "p95": 0.255,
+        "p99": 0.276,
+        "max": 0.788,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 81.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1150.0
+    },
+    "mean_package_w": 6.750958569012528
+  },
+  "10-cgp-001-r2": {
+    "index": 10,
+    "repeat": 2,
+    "bits": "001",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7289,
+        "mean": 8.023665797777474,
+        "p50": 7.868,
+        "p95": 9.542,
+        "p99": 10.688,
+        "max": 18.072,
+        "over_frame": 25.202359720126218
+      },
+      "decode_wait": {
+        "n": 7289,
+        "mean": 5.524744958156126,
+        "p50": 5.685,
+        "p95": 5.813,
+        "p99": 5.862,
+        "max": 11.373,
+        "over_frame": 0.013719303059404582
+      },
+      "prepare": {
+        "n": 7289,
+        "mean": 0.17053573878446976,
+        "p50": 0.152,
+        "p95": 0.303,
+        "p99": 0.455,
+        "max": 2.252,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7289,
+        "mean": 1.5208558101248457,
+        "p50": 1.368,
+        "p95": 2.542,
+        "p99": 3.899,
+        "max": 11.406,
+        "over_frame": 0.27438606118809167
+      },
+      "frame_assembly": {
+        "n": 7289,
+        "mean": 0.16045959665249004,
+        "p50": 0.185,
+        "p95": 0.276,
+        "p99": 0.301,
+        "max": 0.544,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 62.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 950.0
+    },
+    "mean_package_w": 4.9753328291539205
+  },
+  "11-cgp-101-r2": {
+    "index": 11,
+    "repeat": 2,
+    "bits": "101",
+    "after": {
+      "epp": "performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7321,
+        "mean": 7.137230023220871,
+        "p50": 7.113,
+        "p95": 7.902,
+        "p99": 8.338,
+        "max": 15.345,
+        "over_frame": 1.0107908755634476
+      },
+      "decode_wait": {
+        "n": 7321,
+        "mean": 5.486963666165824,
+        "p50": 5.669,
+        "p95": 5.795,
+        "p99": 5.824,
+        "max": 11.418,
+        "over_frame": 0.02731867231252561
+      },
+      "prepare": {
+        "n": 7321,
+        "mean": 0.08671684196148068,
+        "p50": 0.078,
+        "p95": 0.157,
+        "p99": 0.206,
+        "max": 0.364,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7321,
+        "mean": 0.9544679688567136,
+        "p50": 0.885,
+        "p95": 1.461,
+        "p99": 2.048,
+        "max": 8.831,
+        "over_frame": 0.013659336156262806
+      },
+      "frame_assembly": {
+        "n": 7321,
+        "mean": 0.1527313208578063,
+        "p50": 0.174,
+        "p95": 0.252,
+        "p99": 0.275,
+        "max": 1.064,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 68.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 950.0
+    },
+    "mean_package_w": 6.530608779623806
+  },
+  "12-cgp-010-r2": {
+    "index": 12,
+    "repeat": 2,
+    "bits": "010",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7275,
+        "mean": 7.024698144329897,
+        "p50": 6.912,
+        "p95": 8.185,
+        "p99": 8.885,
+        "max": 11.469,
+        "over_frame": 3.670103092783505
+      },
+      "decode_wait": {
+        "n": 7275,
+        "mean": 4.587223367697595,
+        "p50": 4.6,
+        "p95": 4.669,
+        "p99": 4.717,
+        "max": 5.567,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7275,
+        "mean": 0.17939752577319587,
+        "p50": 0.168,
+        "p95": 0.322,
+        "p99": 0.459,
+        "max": 1.842,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7275,
+        "mean": 1.5173729209621993,
+        "p50": 1.433,
+        "p95": 2.427,
+        "p99": 3.139,
+        "max": 5.073,
+        "over_frame": 0.0
+      },
+      "frame_assembly": {
+        "n": 7275,
+        "mean": 0.16549374570446734,
+        "p50": 0.187,
+        "p95": 0.277,
+        "p99": 0.302,
+        "max": 1.06,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 57.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1200.0
+    },
+    "mean_package_w": 5.35320239604803
+  },
+  "13-cgp-011-r2": {
+    "index": 13,
+    "repeat": 2,
+    "bits": "011",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7285,
+        "mean": 7.150178860672615,
+        "p50": 7.014,
+        "p95": 8.405,
+        "p99": 9.049,
+        "max": 9.94,
+        "over_frame": 5.998627316403569
+      },
+      "decode_wait": {
+        "n": 7285,
+        "mean": 4.576763349347975,
+        "p50": 4.577,
+        "p95": 4.668,
+        "p99": 4.716,
+        "max": 5.058,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7285,
+        "mean": 0.17079725463280715,
+        "p50": 0.155,
+        "p95": 0.31,
+        "p99": 0.425,
+        "max": 1.136,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7285,
+        "mean": 1.474982292381606,
+        "p50": 1.41,
+        "p95": 2.339,
+        "p99": 2.995,
+        "max": 4.437,
+        "over_frame": 0.0
+      },
+      "frame_assembly": {
+        "n": 7285,
+        "mean": 0.16941482498284147,
+        "p50": 0.189,
+        "p95": 0.277,
+        "p99": 0.302,
+        "max": 1.096,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 64.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1200.0
+    },
+    "mean_package_w": 5.32585127963163
+  },
+  "14-cgp-100-r2": {
+    "index": 14,
+    "repeat": 2,
+    "bits": "100",
+    "after": {
+      "epp": "performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7308,
+        "mean": 7.112436507936508,
+        "p50": 7.096,
+        "p95": 7.869,
+        "p99": 8.336,
+        "max": 15.725,
+        "over_frame": 1.026272577996716
+      },
+      "decode_wait": {
+        "n": 7308,
+        "mean": 5.458005610290093,
+        "p50": 5.491,
+        "p95": 5.796,
+        "p99": 5.822,
+        "max": 11.634,
+        "over_frame": 0.013683634373289545
+      },
+      "prepare": {
+        "n": 7308,
+        "mean": 0.088336070060208,
+        "p50": 0.08,
+        "p95": 0.151,
+        "p99": 0.199,
+        "max": 0.386,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7308,
+        "mean": 0.9684061302681992,
+        "p50": 0.907,
+        "p95": 1.487,
+        "p99": 1.861,
+        "max": 8.835,
+        "over_frame": 0.013683634373289545
+      },
+      "frame_assembly": {
+        "n": 7308,
+        "mean": 0.14732115489874112,
+        "p50": 0.17,
+        "p95": 0.25,
+        "p99": 0.274,
+        "max": 0.442,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 67.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 950.0
+    },
+    "mean_package_w": 6.537517571361263
+  },
+  "15-cgp-000-r2": {
+    "index": 15,
+    "repeat": 2,
+    "bits": "000",
+    "after": {
+      "epp": "balance_performance",
+      "gpu0": "800",
+      "gpu1": "400",
+      "pl1": "25000000",
+      "pl2": "25000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7297,
+        "mean": 8.019047416746607,
+        "p50": 7.863,
+        "p95": 9.627,
+        "p99": 10.645,
+        "max": 18.121,
+        "over_frame": 25.298067699054407
+      },
+      "decode_wait": {
+        "n": 7297,
+        "mean": 5.5209816362888855,
+        "p50": 5.671,
+        "p95": 5.804,
+        "p99": 5.854,
+        "max": 6.731,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7297,
+        "mean": 0.17765506372481843,
+        "p50": 0.159,
+        "p95": 0.323,
+        "p99": 0.453,
+        "max": 1.716,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7297,
+        "mean": 1.4637512676442375,
+        "p50": 1.306,
+        "p95": 2.515,
+        "p99": 3.588,
+        "max": 11.231,
+        "over_frame": 0.3563108126627381
+      },
+      "frame_assembly": {
+        "n": 7297,
+        "mean": 0.1701667808688502,
+        "p50": 0.19,
+        "p95": 0.281,
+        "p99": 0.3,
+        "max": 0.978,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 57.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 950.0
+    },
+    "mean_package_w": 4.999814490662076
+  },
+  "16-cgp-111-r2": {
+    "index": 16,
+    "repeat": 2,
+    "bits": "111",
+    "after": {
+      "epp": "performance",
+      "gpu0": "1850",
+      "gpu1": "1200",
+      "pl1": "35000000",
+      "pl2": "37000000"
+    },
+    "metrics": {
+      "receipt_to_flip": {
+        "n": 7299,
+        "mean": 6.197572544184135,
+        "p50": 6.141,
+        "p95": 6.816,
+        "p99": 7.211,
+        "max": 10.392,
+        "over_frame": 0.32881216605014385
+      },
+      "decode_wait": {
+        "n": 7299,
+        "mean": 4.6021927661323465,
+        "p50": 4.614,
+        "p95": 4.668,
+        "p99": 4.697,
+        "max": 5.028,
+        "over_frame": 0.0
+      },
+      "prepare": {
+        "n": 7299,
+        "mean": 0.08337840800109604,
+        "p50": 0.077,
+        "p95": 0.143,
+        "p99": 0.197,
+        "max": 0.723,
+        "over_frame": 0.0
+      },
+      "submit_to_flip": {
+        "n": 7299,
+        "mean": 1.0005467872311276,
+        "p50": 0.934,
+        "p95": 1.498,
+        "p99": 1.976,
+        "max": 5.407,
+        "over_frame": 0.0
+      },
+      "frame_assembly": {
+        "n": 7299,
+        "mean": 0.15172886696807783,
+        "p50": 0.172,
+        "p95": 0.254,
+        "p99": 0.276,
+        "max": 0.833,
+        "over_frame": 0.0
+      }
+    },
+    "drops": 0,
+    "bad_timestamps": 0,
+    "source_rate_hz": 115.996,
+    "max_temp_c": 65.0,
+    "actual_freq_median": {
+      "/sys/class/drm/card1/device/tile0/gt0/freq0/act_freq": 0.0,
+      "/sys/class/drm/card1/device/tile0/gt1/freq0/act_freq": 1150.0
+    },
+    "mean_package_w": 6.792648792924391
+  }
+}
