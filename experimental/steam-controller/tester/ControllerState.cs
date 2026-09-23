@@ -6,8 +6,8 @@ namespace Moonmachine.ControllerTest {
 public sealed class State {
     // Valve's Triton definitions, as published in SDL 3.4.16.
     public static readonly string[] Buttons = {
-        "A", "B", "X", "Y", "Quick Access", "R3", "View", "R4", "R5", "RB",
-        "D-pad Down", "D-pad Right", "D-pad Left", "D-pad Up", "Menu", "L3",
+        "A", "B", "X", "Y", "Quick Access", "R3", "Menu", "R4", "R5", "RB",
+        "D-pad Down", "D-pad Right", "D-pad Left", "D-pad Up", "View", "L3",
         "Steam", "L4", "L5", "LB", "Right stick touch", "Right pad touch",
         "Right pad click", "Right trigger click", "Left stick touch", "Left pad touch",
         "Left pad click", "Left trigger click", "Right grip touch", "Left grip touch",
@@ -96,7 +96,7 @@ public sealed class Guide {
     }
     public Step Current {get{return Index>=0&&Index<Steps.Count?Steps[Index]:null;}}
     public void Start(Tracker t){foreach(var s in Steps){s.Result="pending";s.Evidence="";}Index=0;Arm(t);}
-    public void Arm(Tracker t){lock(t.Sync){generation=t.Generation;neutral=false;pressed=false;Ready=false;Hint="";minimum=int.MaxValue;maximum=int.MinValue;startQ=null;yes=t.Presses[0];no=t.Presses[1];confirm=t.Presses[14];startPress=Current!=null&&Current.Bit>=0?t.Presses[Current.Bit]:0;}}
+    public void Arm(Tracker t){lock(t.Sync){generation=t.Generation;neutral=false;pressed=false;Ready=false;Hint="";minimum=int.MaxValue;maximum=int.MinValue;startQ=null;yes=t.Presses[0];no=t.Presses[1];confirm=t.Presses[6];startPress=Current!=null&&Current.Bit>=0?t.Presses[Current.Bit]:0;}}
     public void Next(Tracker t,string result,string evidence){if(Current==null)return;Current.Result=result;Current.Evidence=evidence;Index++;Arm(t);}
     public void Tick(Tracker t){
         lock(t.Sync){var c=Current;var s=t.Latest;if(c==null||s==null||!t.Connected||(DateTime.UtcNow-t.LastReport).TotalSeconds>.5)return;
@@ -118,7 +118,7 @@ public sealed class Guide {
                 if(startQ==null)startQ=q;
                 double dot=0;for(int i=0;i<4;i++)dot+=q[i]*startQ[i];double angle=2*Math.Acos(Math.Min(1,Math.Abs(dot)))*180/Math.PI;
                 if(angle>25)Ready=true;Hint=Ready?"Motion observed. Menu / Enter confirms visual direction; S skips.":"Rotate at least 25 degrees from the starting pose.";
-                if(Ready&&t.Presses[14]>confirm)Next(t,"confirmed","Quaternion changed >25 degrees; user confirmed visual orientation.");
+                if(Ready&&t.Presses[6]>confirm)Next(t,"confirmed","Quaternion changed >25 degrees; user confirmed visual orientation.");
             }else if(c.Kind.StartsWith("haptic")&&Ready){if(t.Presses[0]>yes)Next(t,"confirmed","User felt haptic after a successful Windows HID write.");else if(t.Presses[1]>no)Next(t,"failed","User did not feel haptic.");}
         }
     }

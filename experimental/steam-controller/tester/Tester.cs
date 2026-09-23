@@ -56,7 +56,7 @@ public sealed class Tester : Form {
         Stick(g,379,281,s,0);Stick(g,609,281,s,1);
         Button(g,704,225,3,s,"Y");Button(g,753,267,1,s,"B");Button(g,654,267,2,s,"X");Button(g,704,310,0,s,"A");
         Button(g,270,225,13,s,"↑");Button(g,316,267,11,s,"→");Button(g,224,267,12,s,"←");Button(g,270,309,10,s,"↓");
-        Button(g,445,270,6,s,"View",24);Button(g,542,270,14,s,"Menu",24);Button(g,494,313,16,s,"Steam",26);Button(g,494,376,4,s,"···",23);
+        Button(g,445,270,14,s,"View",24);Button(g,542,270,6,s,"Menu",24);Button(g,494,313,16,s,"Steam",26);Button(g,494,376,4,s,"···",23);
         TextAt(g,"LB",158,194,normal,Down(s,19)?Mint:Muted);TextAt(g,"RB",801,194,normal,Down(s,9)?Mint:Muted);
         Meter(g,355,202,116,s==null?0:s.Triggers[0]/32767.0,"LT",s==null?0:s.Triggers[0]);Meter(g,518,202,116,s==null?0:s.Triggers[1]/32767.0,"RT",s==null?0:s.Triggers[1]);
         Button(g,222,505,17,s,"L4",21);Button(g,278,505,18,s,"L5",21);Button(g,705,505,7,s,"R4",21);Button(g,761,505,8,s,"R5",21);
