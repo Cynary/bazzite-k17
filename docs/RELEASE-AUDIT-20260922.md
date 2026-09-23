@@ -31,6 +31,9 @@ The runtime Moonlight and Gamescope hashes match the validated build.
 
 ## Omission: Xbox suspend candidate
 
+Follow-up: the [23 September candidate](XBOX-RELEASE-20260923.md) packages this
+fix together with the later firmware-reset and association-address fixes.
+
 The September 19 candidate restored the radio before restarting USB receive
 requests and added a teardown guard for queued events. Five short candidate
 sleep cycles registered an input device without phantom clients or packet errors:

@@ -25,4 +25,4 @@ long standby periods still need testing.
 See the [firmware reset investigation](../experimental/xone/full-firmware-reset.md)
 for the captured failures, changes and validation. Earlier five-restart tests
 had missed an intermittent failure; the longer tests above cover the newer
-combined driver. Packaging for `moonmachine-20260923.1` is in progress.
+combined driver. The signed `moonmachine-20260923.1` candidate includes these changes. See [packaged-image validation](XBOX-RELEASE-20260923.md) for its release status.
