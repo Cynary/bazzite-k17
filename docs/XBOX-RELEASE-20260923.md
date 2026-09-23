@@ -37,8 +37,11 @@ controller registered normally and remained present during the reboot test's
 observation period. The kernel boot-health check passed.
 
 The subsequent timer-driven suspend/resume completed without xone errors.
-The controller was off at the first observation; after the user pressed Xbox,
+No controller was registered at the first observation; after the user confirmed reconnection,
 a fresh input device registered with exactly one client and no new xone errors.
 
 No new visual TV or streaming performance test was performed for this release.
 The graphics and application binaries were checked against the previous build.
+
+The signed registry channel was checked on the K17 and the identical digest was
+staged as its update source. The currently running image is that same digest.
