@@ -14,10 +14,10 @@
     "commit": "7c256cf1e40995615c21b57618e90d7e8b760ce0"
   },
   "moonlight": {
-    "version": "6.1.0-vrr17.1-moonmachine.5",
+    "version": "6.1.0-vrr17.1-moonmachine.6",
     "repository": "https://github.com/Cynary/moonlight-qt.git",
-    "commit": "b6c9a4eede2f620188dae7e6b4d78f4a010e42a7",
-    "source": "https://github.com/Cynary/moonlight-qt/tree/b6c9a4eede2f620188dae7e6b4d78f4a010e42a7"
+    "commit": "7808a17f01a209020b35f4df4f192a73af9b27f5",
+    "source": "https://github.com/Cynary/moonlight-qt/tree/7808a17f01a209020b35f4df4f192a73af9b27f5"
   },
   "gamescope": {
     "version": "ogc-0ef725a-moonmachine.5",

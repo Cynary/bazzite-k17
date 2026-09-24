@@ -79,10 +79,27 @@ mkdir -p /out/moondeck
 cp -a dist defaults/python main.py package.json plugin.json LICENSE /out/moondeck/
 mkdir -p /out/moonlight
 cp -a "$PREFIX" /out/moonlight/usr
+mkdir -p /out/moonlight/usr/lib/native-controller
+cp /build/moonlight/app/deploy/linux/native-controller/{moonmachine-native-controller,controller_io.py,imu_clock.py} /out/moonlight/usr/lib/native-controller/
+chmod +x /out/moonlight/usr/lib/native-controller/moonmachine-native-controller
+python3 -m unittest discover -s /build/moonlight/app/deploy/linux/native-controller -p 'test_*.py'
+c++ -std=c++17 /build/moonlight/tests/vrr/tst_predictivedrop.cpp -o /tmp/tst_predictivedrop
+/tmp/tst_predictivedrop
 cat > /out/moonlight/AppRun <<'EOF'
 #!/bin/bash
 appdir=$(cd -- "$(dirname -- "$0")" && pwd)
 export LD_LIBRARY_PATH="$appdir/usr/lib:$appdir/usr/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export MOONMACHINE_NATIVE_CONTROLLER_HELPER="$appdir/usr/lib/native-controller/moonmachine-native-controller"
+export MOONLIGHT_VA_EXPORT_CACHE=1
+# A single render device avoids choosing the wrong GPU for explicit sync.
+# Multi-GPU setups may select their decoder's device explicitly.
+if [[ -z ${MOONLIGHT_DIRECT_SYNCOBJ_DEVICE:-} ]]; then
+    shopt -s nullglob
+    render_nodes=(/dev/dri/renderD*)
+    if [[ ${#render_nodes[@]} == 1 ]]; then
+        export MOONLIGHT_DIRECT_SYNCOBJ_DEVICE="${render_nodes[0]}"
+    fi
+fi
 exec "$appdir/usr/bin/moonlight" "$@"
 EOF
 chmod +x /out/moonlight/AppRun
