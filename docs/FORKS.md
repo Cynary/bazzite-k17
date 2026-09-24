@@ -8,11 +8,11 @@ owns packaging and defaults; component changes belong in their own forks.
 | Image | [bazzite-k17](https://github.com/Cynary/bazzite-k17) | main |
 | Kernel and Intel display driver | [linux-k17-frl](https://github.com/Cynary/linux-k17-frl) | k17-bore-thinlto |
 | Xbox wireless driver | [xonedo](https://github.com/Cynary/xonedo) | moonmachine |
-| Moonlight | [moonlight-qt](https://github.com/Cynary/moonlight-qt) | moonmachine |
+| Moonlight | [moonlight-qt](https://github.com/Cynary/moonlight-qt) | experimental/native-steam-controller |
 | Gamescope | [gamescope](https://github.com/Cynary/gamescope) | moonmachine |
 | libplacebo | [libplacebo](https://github.com/Cynary/libplacebo) | moonmachine |
 | Streaming protocol | [moonlight-common-c](https://github.com/Cynary/moonlight-common-c) | moonmachine |
-| Windows host | [Vibepollo](https://github.com/Cynary/Vibepollo) | moonmachine |
+| Windows host | [Vibepollo](https://github.com/Cynary/Vibepollo) | experimental/native-steam-controller |
 | Windows virtual controllers | [libvirtualgamepad](https://github.com/Cynary/libvirtualgamepad) | experimental/steam-controller |
 | Buddy | [moondeck-buddy](https://github.com/Cynary/moondeck-buddy) | main |
 

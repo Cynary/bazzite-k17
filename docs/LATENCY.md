@@ -284,3 +284,25 @@ this article. The earlier [timing report](TIMING-VALIDATION.md) and
 [release validation](STREAMING-VALIDATION.md) retain the detailed test history.
 Changes, measurements and this analysis were developed with OpenAI Codex;
 visual feedback came from testing on the actual TV.
+
+
+## Predictive frame dropping remains optional
+
+The VRR settings now offer **Predictive frame dropping (experimental)**, off by
+default. It skips selected late frames in an attempt to leave the display free
+for the following frame. In a Stellar Blade gameplay capture, it skipped 5.1%
+of frames and display-gap p99 reached 18.65 ms. Receive-complete-to-flip latency
+averaged 7.22 ms, with p99 9.69 ms. This was not a controlled on/off comparison,
+and the tradeoff was not convincing enough to make dropping the default.
+
+Host capture and client synchronization improvements do not require this option.
+The Windows fork can capture available WGC frames without another periodic timer
+wait. The client can explicitly tell Gamescope when a decoded buffer is ready,
+while retaining that buffer until Gamescope releases it. The latter removes an
+observed implicit acquire wait; its overall latency benefit still needs a clean
+same-renderer comparison. One early comparison was invalid because the disabled
+run had fallen back to Vulkan.
+
+These figures start at complete frame reception. They should not be compared
+directly with first-packet-to-flip measurements elsewhere on this page, and do
+not measure the TV panel's response time.
