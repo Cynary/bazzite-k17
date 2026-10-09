@@ -29,5 +29,11 @@
     "repository": "https://github.com/Cynary/libplacebo.git",
     "commit": "1d2a1ac3d814462f2f3dca35f9f76ea0513b2e87",
     "source": "https://github.com/Cynary/libplacebo/tree/1d2a1ac3d814462f2f3dca35f9f76ea0513b2e87"
+  },
+  "flydigi-control": {
+    "version": "0.1.0-preview",
+    "repository": "https://github.com/Cynary/flydigi-control.git",
+    "commit": "68449f55c2a506a86ec339358d711eea03632163",
+    "source": "https://github.com/Cynary/flydigi-control/tree/68449f55c2a506a86ec339358d711eea03632163"
   }
 }

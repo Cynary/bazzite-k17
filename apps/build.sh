@@ -9,6 +9,11 @@ export HOME=/tmp/moonmachine-build-home
 mkdir -p "$HOME"
 mkdir -p /build "$PREFIX"
 
+# Package the couch configuration app; it does not replace an input driver.
+cd /build/flydigi-control
+python3 -m unittest discover -s tests -v
+python3 packaging/install.py /out/flydigi-control
+
 # Build the compositor and its matching WSI layer from the same pinned revision.
 cd /build/gamescope
 meson setup build --prefix=/usr --libdir=lib64 --buildtype=release \
@@ -106,5 +111,5 @@ chmod +x /out/moonlight/AppRun
 # Preserve corresponding patched sources and build inputs with the artifact.
 mkdir -p /out/sources
 tar --exclude=.git --exclude=node_modules --exclude=build --exclude=build-native --exclude=test-native \
-    -C /build -cJf /out/sources/applications.tar.xz moonlight moondeck ffmpeg libplacebo gamescope
+    -C /build -cJf /out/sources/applications.tar.xz moonlight moondeck ffmpeg libplacebo gamescope flydigi-control
 cp -a "$here" /out/sources/build

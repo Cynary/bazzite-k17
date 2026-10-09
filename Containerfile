@@ -44,8 +44,10 @@ RUN /tmp/k17-bore-install.sh && rm -rf /tmp/k17-bore-rpms /tmp/k17-bore-install.
 COPY apps/ /tmp/moonmachine-apps/
 COPY --from=applications --chown=0:0 /out/ /tmp/moonmachine-built/
 RUN dnf5 install -y qt6-qtbase qt6-qtdeclarative qt6-qtsvg SDL2_ttf sdl2-compat \
-    libdav1d libshaderc lcms2 xxhash-libs python3-gobject libsoup3
+    libdav1d libshaderc lcms2 xxhash-libs python3-gobject libsoup3 python3-pyside6 SDL3
 RUN python3 /tmp/moonmachine-apps/install.py && rm -rf /tmp/moonmachine-apps
+RUN QT_QPA_PLATFORM=offscreen flydigi-control --screenshot /tmp/flydigi-preview.png \
+    && test -s /tmp/flydigi-preview.png && rm /tmp/flydigi-preview.png
 # Preserve the scheduling capability carried by Bazzite's Gamescope package.
 RUN setcap cap_sys_nice=eip /usr/bin/gamescope
 COPY tests/test_performance_defaults.py /tmp/test_performance_defaults.py

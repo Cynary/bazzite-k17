@@ -24,6 +24,7 @@ with tempfile.TemporaryDirectory() as tmp:
     shutil.copy2(dest, share / 'PluginLoader')
     (share / 'PluginLoader').chmod(0o755)
 shutil.copytree(built / 'gamescope', '/', dirs_exist_ok=True)
+shutil.copytree(built / 'flydigi-control', '/', dirs_exist_ok=True)
 shutil.copytree(built / 'moonlight', '/usr/lib/moonmachine/moonlight')
 shutil.copytree(built / 'moondeck', share / 'moondeck')
 shutil.copytree(built / 'sources', share / 'sources')
