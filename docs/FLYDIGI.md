@@ -118,3 +118,14 @@ it when native mode is disabled. Live permission-off/on testing switched between
 one Xbox entry and one native entry without restarting Steam. The image now pins
 that fix and runs its transition regression test. Physical reconnect and assigned
 action delivery remain required before promotion.
+
+
+The follow-up image built from `7aff03c` also passed the build tests and booted
+successfully. Its OSTree checksum is
+`3e91ea80266835c2d6bd1a3fb58274f445710124200f956fca9e82e8427a0a17`.
+Steam mapped the image's SDL library with SHA-256
+`5cd2ffdf3f1357f9d0d61ee3abc903f0c3ea51649a4de168a05fd4792a937dc3`;
+the temporary library override was removed. Flydigi Control launched from the
+image, and no user services failed. The controller was off after this reboot,
+so its next physical reconnection remains a validation step. The public update
+channel has not been changed.
