@@ -4,6 +4,12 @@ This branch packages [Flydigi Control](https://github.com/Cynary/flydigi-control
 a controller-friendly configuration app for lighting, Turbo and Fn profile
 shortcuts. It uses a pinned source commit from `apps/sources.json`.
 
+**Release hold:** after the latest candidate boot, the tester saw a kernel panic
+and the machine restarted twice unexpectedly. The panic stack was not preserved.
+A subsequent filesystem scan found checksum errors. The cause is unresolved;
+the successful controller checks below do not establish system stability. This
+candidate must not be promoted until the crash and storage integrity are addressed.
+
 The app has passed protocol and offscreen UI tests on the K17. All extra buttons
 have been captured from hardware. All ten extra buttons, including LM/RM,
 have also delivered assigned keyboard actions through Steam Input. An ordered
