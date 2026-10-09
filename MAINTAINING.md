@@ -22,9 +22,11 @@ podman build --build-arg SOURCE_COMMIT="$(git rev-parse HEAD)" \
 The context includes the kernel RPMs, boot defaults and application source pins.
 The first build stage compiles patched Moonlight, MoonDeck and Gamescope. See
 [the application source notes](apps/README.md) for version pins, upstream updates,
-and how installed plugins receive updates. Decky and the Python dependency bundle
-are checksum-verified downloads. MoonDeck's dependency archive is a moving
-nightly asset; review and update its checksum if upstream replaces it.
+and how installed plugins receive updates. Decky is a checksum-verified download.
+MoonDeck's Python dependencies are pinned individually in `apps/moondeck-wheels.json`,
+including the CPython 3.13 wheel builds used by Decky. When updating MoonDeck's
+requirements, update and validate that lock too. Do not use the mutable nightly
+ZIP as a build dependency.
 Compilation uses all available CPU cores by default.
 
 Kernel RPMs must include the current kernel patches; copying a newer source tree

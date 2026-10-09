@@ -28,20 +28,30 @@ for name in names:
 if 'moondeck' not in names:
     sys.exit(0)
 
-# Reuse only the pinned upstream bundle's Python dependencies, not its code.
+# Preserve the tested CPython 3.13 wheel set used by Decky's plugin runtime.
+# Each wheel has an immutable URL/hash; an upstream nightly replacement cannot
+# silently replace dependencies or prevent rebuilding this source revision.
+wheels = json.loads((here / 'moondeck-wheels.json').read_text())
+requirements = {}
+for line in (root / 'moondeck/defaults/python/requirements.txt').read_text().splitlines():
+    line = line.split('#', 1)[0].strip()
+    if line:
+        name, version = line.split('==')
+        requirements[name.strip()] = version.strip()
+if {wheel['name']: wheel['version'] for wheel in wheels} != requirements:
+    raise RuntimeError('MoonDeck requirements changed; update and validate the wheel lock')
 with tempfile.TemporaryDirectory() as tmp:
-    archive_path = Path(tmp) / 'moondeck.zip'
-    source = sources['moondeck']
-    subprocess.run(['curl', '-fL', '--retry', '3', '-o', str(archive_path), source['url']], check=True)
-    if hashlib.sha256(archive_path.read_bytes()).hexdigest() != source['sha256']:
-        raise RuntimeError('MoonDeck dependency bundle checksum mismatch')
-    with zipfile.ZipFile(archive_path) as archive:
-        for item in archive.infolist():
-            path = Path(item.filename)
-            if path.is_absolute() or '..' in path.parts:
-                raise ValueError(f'Unsafe archive path: {path}')
-            prefix = 'moondeck/python/externals/'
-            if item.filename.startswith(prefix) and not item.is_dir():
-                target = root / 'moondeck/defaults/python/externals' / item.filename[len(prefix):]
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(archive.read(item))
+    for wheel in wheels:
+        archive_path = Path(tmp) / wheel['filename']
+        subprocess.run(['curl', '-fL', '--retry', '3', '-o', str(archive_path), wheel['url']], check=True)
+        if hashlib.sha256(archive_path.read_bytes()).hexdigest() != wheel['sha256']:
+            raise RuntimeError(f"MoonDeck wheel checksum mismatch: {wheel['filename']}")
+        with zipfile.ZipFile(archive_path) as archive:
+            for item in archive.infolist():
+                path = Path(item.filename)
+                if path.is_absolute() or '..' in path.parts or any(p.endswith('.data') for p in path.parts):
+                    raise ValueError(f'Unsupported wheel path: {path}')
+                if not item.is_dir():
+                    target = root / 'moondeck/defaults/python/externals' / path
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(archive.read(item))

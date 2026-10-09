@@ -29,7 +29,10 @@ Moonlight is a native build, with Wayland, Gamescope WSI, Vulkan and VAAPI
 support. Its private FFmpeg and libplacebo libraries live beside the executable;
 Qt and SDL come from Bazzite. The build runs Moonlight's VRR timing tests and
 builds and lints MoonDeck's frontend and checks Python syntax. Decky and
-MoonDeck's Python dependencies use checksum-verified upstream downloads.
+MoonDeck's Python dependencies use checksum-verified upstream downloads. The
+wheel URLs, versions and hashes are in `moondeck-wheels.json`; they match the
+CPython 3.13 dependencies from the tested plugin bundle. The build checks that
+they still match the pinned MoonDeck requirements.
 
 The corresponding patched source and build inputs are included at
 `/usr/share/moonmachine/sources`. No application configuration, pairing keys,

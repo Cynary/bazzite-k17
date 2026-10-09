@@ -34,7 +34,7 @@ RUN dnf5 install -y gcc gcc-c++ git make cmake meson ninja-build nasm \
     spirv-headers-devel spirv-tools-devel
 RUN npm install --global --prefix /usr/lib/moonmachine-build-tools --cache /tmp/npm-cache pnpm@11.24.0
 ENV PATH="/usr/lib/moonmachine-build-tools/bin:${PATH}"
-COPY apps/sources.json apps/checkout.py /build-input/
+COPY apps/sources.json apps/checkout.py apps/moondeck-wheels.json /build-input/
 # Separate build processes from the logged-in user's process-kill shortcuts.
 RUN mkdir -p /build /out /usr/lib/moonmachine /tmp/moonmachine-build-home \
     && chown 1001:1001 /build /out /usr/lib/moonmachine /tmp/moonmachine-build-home

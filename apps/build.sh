@@ -78,7 +78,7 @@ pnpm install --frozen-lockfile
 pnpm run build
 pnpm run test
 python3 -m compileall -q defaults/python
-# checkout.py supplies the checksum-pinned upstream Python dependency bundle;
+# checkout.py supplies the checksum-pinned Python wheels;
 # the frontend and backend themselves both come from the patched checkout.
 mkdir -p /out/moondeck
 cp -a dist defaults/python main.py package.json plugin.json LICENSE /out/moondeck/
