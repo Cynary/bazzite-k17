@@ -32,8 +32,8 @@
   "flydigi-control": {
     "version": "0.1.0-preview",
     "repository": "https://github.com/Cynary/flydigi-control.git",
-    "commit": "9fe53f9d0e637843895ebed25e2aca7b8d067185",
-    "source": "https://github.com/Cynary/flydigi-control/tree/9fe53f9d0e637843895ebed25e2aca7b8d067185"
+    "commit": "f3208bfa385dec475e0b4189334ae512c62acca9",
+    "source": "https://github.com/Cynary/flydigi-control/tree/f3208bfa385dec475e0b4189334ae512c62acca9"
   },
   "steam-sdl": {
     "repository": "https://github.com/Cynary/SDL.git",

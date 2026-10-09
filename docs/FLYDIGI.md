@@ -250,7 +250,7 @@ build. The running K17 and release channel have not been changed:
   with a pre-restore backup, compatibility checks and verified save. Global
   settings remain separate; physical recovery and vendor-profile conversion
   are unverified or unfinished.
-  All 207 tests pass, including official
+  All 218 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
@@ -283,3 +283,16 @@ NVIDIA firmware copy errors. The resulting initramfs can be listed and includes
 systemd, the Intel graphics modules and Lunar Lake firmware; NVMe and Btrfs are
 built into the kernel. These checks do not replace a boot test. The unresolved
 panic and physical controller tests still prevent release promotion.
+
+
+### Follow-up source pin
+
+The integration branch now pins app `f3208bf`. This adds Space Station-compatible
+macro exports and profile-specific Default lighting. Profile 1 has its own
+animation; profiles 2–4 share the ten-zone Flow preset. The animation bytes match
+the vendor SDK output, and all 218 app tests pass on the K17, including Qt tests.
+The Default page was also rendered and inspected offscreen.
+
+This source pin is newer than the unpublished image described above. It has not
+been rebuilt into that image or installed on the K17. Lighting saves, animation
+appearance and the four motor paths still need physical validation.
