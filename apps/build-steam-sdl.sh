@@ -18,7 +18,11 @@ cp "$library" /build/steam-original/libSDL3.so.0
 FLYDIGI_SDL_LIBRARY="$library" FLYDIGI_SAVED_PRELOAD= \
     LD_PRELOAD="/build/preload.so:$library" \
     /build/test-loader /build/steam-original/libSDL3.so.0 "$library"
-(cd /build/steam-sdl && python3 validation/replay-flydigi.py && python3 validation/replay-linux-handoff.py)
+(cd /build/steam-sdl &&
+    python3 validation/replay-flydigi.py &&
+    python3 validation/replay-linux-handoff.py &&
+    python3 validation/replay-flydigi-reconnect.py &&
+    python3 validation/replay-flydigi-battery.py)
 python3 -m unittest discover -s tests -p test_steam_launcher.py -v
 python3 packaging/steam-sdl/install.py /out/steam-sdl "$library" /build/preload.so
 mkdir -p /out/steam-sdl/usr/share/licenses/moonmachine-steam-sdl

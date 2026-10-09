@@ -7,8 +7,9 @@ shortcuts. It uses a pinned source commit from `apps/sources.json`.
 The app has passed protocol and offscreen UI tests on the K17. All extra buttons
 have been captured from hardware, and Steam events confirm M1–M4, C/Z, Fn and
 Turbo. The corrected colors have been confirmed visually. LM/RM Steam events,
-actual bindings, animations, reconnect behavior and controller-triggered wake
-still need hardware validation. This branch must not be promoted as full
+actual bindings and animations still need hardware validation. The user has
+confirmed off/on navigation recovery and raw button testing without restarting
+the app. Controller-triggered wake is not supported by the tested receiver. This branch must not be promoted as full
 Vader support until those checks pass.
 
 The image installation adds `/usr/bin/flydigi-control`, its desktop entry and a
@@ -16,8 +17,8 @@ udev rule granting the active desktop user access to the Vader configuration
 interface. It does not replace xpad, create a virtual gamepad, automatically change
 Steam controller settings, or enable a wake policy. The app offers an explicit
 Native Steam Input permission toggle; this was necessary for native detection
-on firmware 7.1.5.0. Restart Steam after enabling it; a receiver reconnect alone did not refresh
-the input path in our test.
+on firmware 7.1.5.0. The patched driver switches between native and Xbox-compatible input when
+this setting changes; earlier Steam drivers may need a restart.
 
 Use the app's [validation procedure](https://github.com/Cynary/flydigi-control/blob/main/docs/VALIDATION.md)
 for the remaining hardware checks. The image build runs its protocol tests and
@@ -129,3 +130,27 @@ the temporary library override was removed. Flydigi Control launched from the
 image, and no user services failed. The controller was off after this reboot,
 so its next physical reconnection remains a validation step. The public update
 channel has not been changed.
+
+### Reconnect fixes and battery follow-up
+
+The next candidate updates both the app and Steam SDL. The app now pumps SDL
+hotplug events even while unfocused, so reconnecting a controller restores
+navigation without restarting the app. A missing input stream produces a
+clear error in the button test. The user confirmed navigation and raw button
+testing after an off/on cycle with the same app process.
+
+SDL keeps the receiver available when Steam starts with the controller off,
+retries discovery, and limits acquisition retries to once per second after
+input stops. Previously, a missing reply could cause hundreds of acquisition
+requests per second. The image build runs the reconnect regression alongside
+the button parser and native/fallback transition tests.
+
+Battery reporting confirms a zero reading after two seconds: the receiver was
+captured reporting zero briefly and then returning to 40%. This preserves real
+empty-battery warnings without immediately publishing that transient. Steam's
+initial 100% display remains under investigation. Its Turn off controller menu
+does not send a command for this device; remote shutdown is not implemented.
+
+These newer revisions are pinned in the branch but have not yet passed the full
+image boot check. The running machine currently uses a local SDL/app override
+for validation; the older boot-check results above do not cover these changes.
