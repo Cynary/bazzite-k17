@@ -240,8 +240,10 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   off/on, receiver replug and reboot. It never restores settings during a check.
   Commit `7399ff2` adds a controller-operated PC macro library: save copies,
   reload them into the selected button’s draft, and exchange JSON files between
-  PCs. Loading does not upload or execute a macro. Vendor-file conversion is
-  still missing. All 186 tests pass, including official
+  PCs. Loading does not upload or execute a macro. Commit `c285e24` adds controller-operated import of Space Station’s individual
+  macro `.dat` files, checked against the official serializer. Import creates a
+  PC copy without hardware writes; online sharing is not integrated.
+  All 192 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
