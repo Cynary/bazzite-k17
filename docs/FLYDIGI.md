@@ -5,9 +5,11 @@ a controller-friendly configuration app for lighting, Turbo and Fn profile
 shortcuts. It uses a pinned source commit from `apps/sources.json`.
 
 The app has passed protocol and offscreen UI tests on the K17. All extra buttons
-have been captured from hardware, and Steam events confirm M1–M4, C/Z, Fn and
-Turbo. The corrected colors have been confirmed visually. LM/RM Steam events,
-actual bindings and animations still need hardware validation. The user has
+have been captured from hardware. All ten extra buttons, including LM/RM,
+have also delivered assigned keyboard actions through Steam Input. An ordered
+paddle test confirmed the printed M1–M4 labels. The corrected colors and Steam
+Identify rumble have been confirmed physically. Flow animation still needs
+visual validation. The user has
 confirmed off/on navigation recovery and raw button testing without restarting
 the app. Controller-triggered wake is not supported by the tested receiver. This branch must not be promoted as full
 Vader support until those checks pass.
@@ -151,9 +153,7 @@ empty-battery warnings without immediately publishing that transient. Steam's
 initial 100% display remains under investigation. Its Turn off controller menu
 does not send a command for this device; remote shutdown is not implemented.
 
-These newer revisions are pinned in the branch but have not yet passed the full
-image boot check. The running machine currently uses a local SDL/app override
-for validation; the older boot-check results above do not cover these changes.
+These revisions subsequently passed the image boot check recorded below.
 
 ### Native rumble
 
@@ -166,3 +166,25 @@ The build runs the rumble callback regression as well as the input tests.
 
 The full build also caught an unwritable log-directory startup failure in the
 app. Logging now falls back to stderr; it cannot prevent the UI from opening.
+
+### Reconnect and rumble image boot check (2026-10-09 UTC)
+
+The image built from `9e150a4` passed 33 app tests, the SDL input/reconnect/battery/
+rumble regressions, loader checks, application tests and 13 bootc checks. It booted
+with OSTree checksum
+`ebd735b88e8f235a273dfa300d53e5d0cde4211375aa6955f32eb2a7632e3774`.
+Its OCI manifest digest is
+`sha256:a8547988c157388c18a79f559761bac2e85f62db876758d01a9a4ca126434d1e`.
+
+Steam loads the image's SDL, SHA-256
+`94978e88828ca011fd358ff1f41b27312e7d7df8a573d5f66c7be4163290180f`,
+with the temporary Steam launcher override removed. The app launcher now uses
+the image's `/usr/bin/flydigi-control`. The kernel, Intel display module and xone
+checksums pass the boot health check. Existing firmware ACPI warnings remain.
+Post-boot controller interaction and the remaining lighting check are pending;
+this candidate has not been promoted to the public channel.
+
+The assigned-action test caught reversed paddle assignments in its own Steam
+configuration. Correcting those assignments produced A, B, C, D when the user
+pressed M1, M2, M3, M4. No driver paddle changes were needed. See the
+[reproducible test mapping](https://github.com/Cynary/flydigi-control/blob/main/experimental/STEAM-INPUT-CHECK.md).
