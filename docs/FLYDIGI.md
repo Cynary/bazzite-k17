@@ -232,7 +232,10 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   that restores the selected button. Its codec matches the vendor serializer, and its
   save path follows the official app’s separate macro-bank commands. The candidate
   is not installed; activation and persistence still need physical validation.
-  All 163 tests pass, including official
+  Commit `75fbcf6` adds native-versus-OS stick comparison and checks 36
+  curve serialization cases against the official SDK. Negative compensation
+  does not round-trip consistently in that SDK, so those writes remain disabled.
+  All 170 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
