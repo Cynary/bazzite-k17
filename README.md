@@ -26,6 +26,8 @@ straight from Steam's Gaming Mode. You can also install and play games locally.
   and ThinLTO, which lets the compiler optimise across source files.
 - [HDMI recovery and Steam sleep handling](docs/DISPLAY-RECOVERY.md).
 - Graphical boot and updates through Bazzite's normal system-update controls.
+- [Flydigi Vader 5 Pro configuration and Steam driver preview](docs/FLYDIGI.md),
+  with lighting controls and extra-button support under hardware validation.
 - [MediaTek Wi-Fi and Xbox Wireless Adapter fixes](docs/HARDWARE-FIXES.md)
   for firmware loading and controller reconnection after restarting.
 

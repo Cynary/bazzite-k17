@@ -45,7 +45,8 @@ The application, SDL source, launcher and licenses are included in the image.
 An explicit `STEAMCMD` override needs to use `steam-flydigi` to select it.
 The launcher has fallback and argument-preservation tests; its native loader test
 checks both ordinary and isolated library namespaces and child environment
-cleanup. Full image boot and hardware checks remain required before release.
+cleanup. The full image boots successfully; the remaining physical checks below
+are required before release.
 
 
 ### Driver-stage build check (2026-10-08)
@@ -56,6 +57,62 @@ cases. The packaged library is 32-bit and exports all 1,307 SDL symbols from the
 installed Steam library; none are missing. Its linked dependencies resolve.
 The output includes the SDL and launcher sources and both licenses.
 
-This verifies the driver build and packaging, not a full Moonmachine boot. The
-live hardware test still uses the earlier locally built candidate. The packaged
-library must be checked in Steam before promotion.
+These stage checks were followed by the full image boot check below.
+
+
+The stage-produced SDL was then loaded by Steam on the K17. Steam enumerated
+one native Vader 5 Pro (controller type 30, style 7), retained the complete
+mapping including `misc1:b20`, and reported capability mask `66586431487`.
+The 32-bit process mapped only the replacement SDL. Flydigi Control relaunched
+through its Steam shortcut. This checks initialization after a Steam restart;
+it does not replace the physical reconnect or binding tests.
+
+
+## Waking the PC
+
+The tested wireless receiver (`37d7:2401`) reports USB configuration attributes
+`0x80`: it does not advertise remote wake. Linux consequently exposes no
+`power/wakeup` setting for that device. Its runtime power control is already
+`on`, so disabling autosuspend does not supply the missing capability.
+
+Linux distinguishes a device's ability to signal wake from the policy allowing
+it to do so; see [device power management](https://docs.kernel.org/driver-api/pm/devices.html).
+Enabling a parent USB hub's wake policy cannot establish receiver support.
+There is currently no verified way to wake this PC with this receiver. No wake
+quirk, firmware write or global USB power-policy change is included in the image.
+
+
+Steam's configuration editor also accepted a test keyboard binding for each of
+the ten extra controls. The test did not save the edits; reopening the editor
+returned the original configuration byte-for-byte after excluding its temporary
+binding handle. This verifies editable bindings, not that a physical press has
+produced the assigned keyboard action. That last check remains open.
+
+The complete candidate image built successfully from commit `3e5898c`:
+28 Flydigi tests, the SDL replay/loader checks, 68 Gamescope tests, Moonlight and
+setup tests, and 13 bootc checks passed. The candidate's Intel display module
+hash matches the running K17 exactly, and its xone source version is unchanged.
+It has not been promoted to the public update channel.
+
+
+### Full image boot check (2026-10-08)
+
+The K17 booted the candidate built from `3e5898c`, with OSTree checksum
+`305818a75f52bc02ad64b69abfd3d8855e21bfb0bed56d26661b877b07f79412`.
+Steam loaded `/usr/lib/moonmachine/steam-sdl/lib32/libSDL3.so.0` through the
+image launcher, without the temporary test launcher override. The Steam
+shortcut launched the image's `/usr/bin/flydigi-control`. The refused-sleep
+recovery service also runs from the image; its former override was identical.
+
+Steam's event capture confirmed presses and releases for M1–M4, C, Z, Fn and
+Turbo. An earlier raw report capture included LM and RM; their Steam event
+check remains open, as does a physical press producing an assigned Steam Input
+action. Lighting colour was confirmed by the tester; Flow animation still
+needs a visual check.
+
+SDL deliberately leaves the generic Xbox interface available alongside the
+native interface for these receivers, to support changing native permission
+while running. Its source says the generic interface receives no input in native
+mode. Steam showed both entries after reconnecting during this boot. Capture is
+set up to check whether the generic entry stays inactive; controller assignment
+and reconnect behaviour still need validation before promotion.
