@@ -15,6 +15,11 @@ old container artifact, a full 302 GiB filesystem scrub completed with no errors
 Crash-report storage is now enabled for a recurrence. The panic itself remains
 unexplained, so the release hold still applies.
 
+Settings persistence is also required before release: the latest applied lights
+and settings must survive reconnecting with the app closed. The current app only
+uploads temporary lighting. [Persistence research and validation](https://github.com/Cynary/flydigi-control/blob/main/docs/LIGHTING.md#settings-persistence)
+track onboard saving and the fallback of restoring settings from the PC.
+
 The app has passed protocol and offscreen UI tests on the K17. All extra buttons
 have been captured from hardware. All ten extra buttons, including LM/RM,
 have also delivered assigned keyboard actions through Steam Input. An ordered
