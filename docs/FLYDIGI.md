@@ -219,11 +219,14 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   mappings, then save once and verify the new version. The app also has a guarded
   circle/rectangle and response-curve editor, passive analog/motion diagnostics
   and separate tests for all four motors, plus saved trigger/grip vibration
-  controls. All 84 tests pass, including official
+  controls. Commit `4c953ca` adds global filtering, calibration, precision,
+  sensitivity and sleep controls with capability checks and verified readback.
+  All 97 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
-  validation remains required.
+  validation remains required. Global-setting writes also await hardware tests;
+  report-rate changes are excluded because the vendor UI and SDK disagree.
 - [Four rumble motors](https://github.com/Cynary/SDL/tree/vader5-four-motors),
   commit `e4fe95e6d`: independent grip/trigger pairs, with one pair's stop preserving
   the other. Callback tests, existing regression replays and the full 32-bit
