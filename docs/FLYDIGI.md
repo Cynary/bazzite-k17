@@ -227,10 +227,12 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   deadzone compensation, preserving hidden smoothing and untouched X/Y values.
   Commit `07678b7` adds the separate macro bank to format-3.2 save backups
   and readback checks. Commit `0d5185a` adds a controller-operated macro editor
-  and guarded onboard upload. Its codec matches the vendor serializer, and its
+  and guarded onboard upload. Commit `93defa1` adds passive input recording,
+  controller-operated naming, balanced press/release validation and macro removal
+  that restores the selected button. Its codec matches the vendor serializer, and its
   save path follows the official app’s separate macro-bank commands. The candidate
   is not installed; activation and persistence still need physical validation.
-  All 146 tests pass, including official
+  All 163 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
