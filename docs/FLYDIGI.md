@@ -161,5 +161,8 @@ Steam Identify exposed a separate framing bug: rumble bypassed the helper that
 removes the report ID for this receiver, so an extra `03` reached USB before
 `5A A5`. The SDL fork now queues an unnumbered report for the Vader receiver;
 other models keep their existing format. Steam's start and stop commands were
-captured with the corrected framing. Physical vibration confirmation is pending.
+captured with the corrected framing. The user confirmed feeling Steam's Identify pulse with this driver.
 The build runs the rumble callback regression as well as the input tests.
+
+The full build also caught an unwritable log-directory startup failure in the
+app. Logging now falls back to stderr; it cannot prevent the UI from opening.
