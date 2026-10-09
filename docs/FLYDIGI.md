@@ -21,4 +21,4 @@ Use the app's [validation procedure](https://github.com/Cynary/flydigi-control/b
 for the remaining hardware checks. The image build runs its protocol tests and
 renders the app offscreen to check runtime dependencies.
 
-The preview now includes a safe button-test page and steady, breathing and gradient lighting controls with configuration readback. [Lighting notes](https://github.com/Cynary/flydigi-control/blob/main/docs/LIGHTING.md) record the official app’s settings, exact presets and remaining gaps.
+The preview now includes a safe button-test page and RGB editing, multicolor breathing and gradient, Flow and steady lighting controls with configuration readback. [Lighting notes](https://github.com/Cynary/flydigi-control/blob/main/docs/LIGHTING.md) record the official app’s settings, exact presets and remaining gaps.
