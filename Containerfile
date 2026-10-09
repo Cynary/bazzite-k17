@@ -1,5 +1,20 @@
 # Build context is created by experimental/bore-thinlto/prepare-image.sh.
 ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite-deck@sha256:050572c864322f567a223741922f70932d2a888f34f6b839f12e06ebd8e08f64
+FROM ${BASE_IMAGE} AS steam_sdl
+RUN sed -i '/^exclude=/d' /etc/dnf/repos.override.d/*.repo
+# Steam's main process is 32-bit. Keep its compiler dependencies separate from
+# the 64-bit application build to avoid changing that build's library selection.
+RUN dnf5 install -y gcc gcc-c++ git cmake ninja-build python3 tar xz \
+    glibc-devel.i686 libstdc++-devel.i686 libX11-devel.i686 libXext-devel.i686 \
+    libXcursor-devel.i686 libXi-devel.i686 libXfixes-devel.i686 libXrandr-devel.i686 \
+    libXScrnSaver-devel.i686 libXtst-devel.i686 alsa-lib-devel.i686 pulseaudio-libs-devel.i686 \
+    pipewire-devel.i686 wayland-devel.i686 libdecor-devel.i686 dbus-devel.i686 \
+    systemd-devel.i686 libusb1-devel.i686 vulkan-loader-devel.i686 vulkan-headers
+COPY apps/sources.json apps/checkout.py apps/build-steam-sdl.sh /build-input/
+RUN mkdir -p /build /out && chown 1001:1001 /build /out
+USER 1001:1001
+RUN python3 /build-input/checkout.py /build steam-sdl flydigi-control
+RUN bash /build-input/build-steam-sdl.sh
 FROM ${BASE_IMAGE} AS applications
 RUN sed -i '/^exclude=/d' /etc/dnf/repos.override.d/*.repo
 # The build needs Fedora's Xwayland headers; the runtime keeps Bazzite's Xwayland.
@@ -9,7 +24,7 @@ RUN dnf5 install -y gcc gcc-c++ git make cmake meson ninja-build nasm \
     SDL2-devel SDL2_ttf-devel openssl-devel opus-devel libva-devel libvdpau-devel \
     libdrm-devel vulkan-loader-devel vulkan-headers libshaderc-devel glslang-devel \
     lcms2-devel xxhash-devel libdav1d-devel wayland-devel wayland-protocols-devel \
-    libX11-devel libxcb-devel nodejs npm python3 curl tar xz \
+    libX11-devel libxcb-devel nodejs npm python3 python3-pyside6 SDL3 curl tar xz \
     libXdamage-devel libXcomposite-devel libXcursor-devel libXrender-devel libXext-devel \
     libXfixes-devel libXxf86vm-devel libXtst-devel libXres-devel libXmu-devel libXi-devel \
     libxkbcommon-devel libcap-devel pixman-devel systemd-devel libinput-devel luajit-devel catch-devel \
@@ -43,6 +58,7 @@ COPY install-image.sh /tmp/k17-bore-install.sh
 RUN /tmp/k17-bore-install.sh && rm -rf /tmp/k17-bore-rpms /tmp/k17-bore-install.sh
 COPY apps/ /tmp/moonmachine-apps/
 COPY --from=applications --chown=0:0 /out/ /tmp/moonmachine-built/
+COPY --from=steam_sdl --chown=0:0 /out/steam-sdl/ /
 RUN dnf5 install -y qt6-qtbase qt6-qtdeclarative qt6-qtsvg SDL2_ttf sdl2-compat \
     libdav1d libshaderc lcms2 xxhash-libs python3-gobject libsoup3 python3-pyside6 SDL3
 RUN python3 /tmp/moonmachine-apps/install.py && rm -rf /tmp/moonmachine-apps

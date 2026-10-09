@@ -11,7 +11,8 @@ import zipfile
 here = Path(__file__).resolve().parent
 sources = json.loads((here / 'sources.json').read_text())
 root = Path(sys.argv[1])
-for name in ('moonlight', 'moondeck', 'gamescope', 'libplacebo', 'flydigi-control'):
+names = sys.argv[2:] or ['moonlight', 'moondeck', 'gamescope', 'libplacebo', 'flydigi-control']
+for name in names:
     source = sources[name]
     dest = root / name
     subprocess.run(['git', 'init', str(dest)], check=True)
@@ -23,6 +24,9 @@ for name in ('moonlight', 'moondeck', 'gamescope', 'libplacebo', 'flydigi-contro
     if actual != source['commit']:
         raise RuntimeError(f'{name}: wrong source revision')
     git('submodule', 'update', '--init', '--recursive', '--depth=1')
+
+if 'moondeck' not in names:
+    sys.exit(0)
 
 # Reuse only the pinned upstream bundle's Python dependencies, not its code.
 with tempfile.TemporaryDirectory() as tmp:

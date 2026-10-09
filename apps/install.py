@@ -27,7 +27,7 @@ shutil.copytree(built / 'gamescope', '/', dirs_exist_ok=True)
 shutil.copytree(built / 'flydigi-control', '/', dirs_exist_ok=True)
 shutil.copytree(built / 'moonlight', '/usr/lib/moonmachine/moonlight')
 shutil.copytree(built / 'moondeck', share / 'moondeck')
-shutil.copytree(built / 'sources', share / 'sources')
+shutil.copytree(built / 'sources', share / 'sources', dirs_exist_ok=True)
 sys.path.insert(0, str(share / 'moondeck/python/externals'))
 sys.path.insert(0, str(share / 'moondeck/python'))
 from lib.plugin.settings import UserSettingsManager
