@@ -226,9 +226,11 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   Commit `411ddf2` adds gyro-to-stick mapping, activation, sensitivity and
   deadzone compensation, preserving hidden smoothing and untouched X/Y values.
   Commit `07678b7` adds the separate macro bank to format-3.2 save backups
-  and readback checks. The offline macro codec matches the vendor serializer;
-  hardware macro writes remain disabled pending validation.
-  All 129 tests pass, including official
+  and readback checks. Commit `0d5185a` adds a controller-operated macro editor
+  and guarded onboard upload. Its codec matches the vendor serializer, and its
+  save path follows the official app’s separate macro-bank commands. The candidate
+  is not installed; activation and persistence still need physical validation.
+  All 146 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
