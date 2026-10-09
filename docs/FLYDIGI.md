@@ -14,7 +14,8 @@ udev rule granting the active desktop user access to the Vader configuration
 interface. It does not replace xpad or SDL, create a virtual gamepad, automatically change
 Steam controller settings, or enable a wake policy. The app offers an explicit
 Native Steam Input permission toggle; this was necessary for native detection
-on firmware 7.1.5.0. Reconnect the receiver after enabling it.
+on firmware 7.1.5.0. Restart Steam after enabling it; a receiver reconnect alone did not refresh
+the input path in our test.
 
 Use the app's [validation procedure](https://github.com/Cynary/flydigi-control/blob/main/docs/VALIDATION.md)
 for the remaining hardware checks. The image build runs its protocol tests and
