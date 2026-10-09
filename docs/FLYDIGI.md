@@ -181,8 +181,12 @@ Steam loads the image's SDL, SHA-256
 with the temporary Steam launcher override removed. The app launcher now uses
 the image's `/usr/bin/flydigi-control`. The kernel, Intel display module and xone
 checksums pass the boot health check. Existing firmware ACPI warnings remain.
-Post-boot controller interaction and the remaining lighting check are pending;
-this candidate has not been promoted to the public channel.
+The user confirmed the controller remained connected across this reboot and
+could navigate Steam. Steam initially showed an incorrect battery level, then
+updated to 40%, matching the earlier hardware reading. The initial display
+problem remains unresolved; eventual correction is not proof of a startup fix.
+The remaining lighting check is pending. This candidate has not been promoted
+to the public channel.
 
 The assigned-action test caught reversed paddle assignments in its own Steam
 configuration. Correcting those assignments produced A, B, C, D when the user
