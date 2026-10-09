@@ -287,13 +287,13 @@ panic and physical controller tests still prevent release promotion.
 
 ### Follow-up source pin
 
-The integration branch now pins app `f5e8b56`. It includes Space Station-compatible
+The integration branch now pins app `5fde0f8`. It includes Space Station-compatible
 macro exports, profile-specific Default lighting, and active-profile default
 restoration with a pre-reset backup and undo through the ordinary restore page.
 The reset is restricted to Vader 5 firmware 7.1.5.0 and the observed data layout.
 It clears that profile's macros without resetting global settings or other profiles.
 
-All 229 app tests pass on the K17, including Qt tests. The presets and 28 global
+All 232 app tests pass on the K17, including Qt tests. The presets and 28 global
 setting/value combinations are checked against the vendor SDK's actual output.
 The Default lighting and reset-confirmation pages were rendered and inspected.
 The factory settings resource is included in the wheel and image installation.
@@ -308,3 +308,8 @@ The reader now backs up the full reply while preserving the extra 40 bytes
 through edits. They are not treated as additional macro capacity. A complete
 settings snapshot passed on the controller; saving and off/on retention remain
 unverified because subsequent configuration reads timed out before any write.
+
+A subsequent explicit save of existing settings passed full hardware readback;
+off/on retention is still pending. The candidate also avoids known duplicate-query
+timeouts, reducing two full settings reads from 7.13 to 5.17 seconds without
+caching settings or replaying writes.
