@@ -245,8 +245,11 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   PC copy without hardware writes; online sharing is not integrated.
   Commit `a3ceedf` adds selection of the four onboard PC profiles, with an
   active-profile backup, stale-state protection and readback; physical switching
-  tests and whole-profile restore remain pending.
-  All 200 tests pass, including official
+  tests remain pending. Commit `9fe53f9` adds app-snapshot profile restoration,
+  with a pre-restore backup, compatibility checks and verified save. Global
+  settings remain separate; physical recovery and vendor-profile conversion
+  are unverified or unfinished.
+  All 207 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
