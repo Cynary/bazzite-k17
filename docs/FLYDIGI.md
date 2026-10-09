@@ -250,7 +250,7 @@ build. The running K17 and release channel have not been changed:
   with a pre-restore backup, compatibility checks and verified save. Global
   settings remain separate; physical recovery and vendor-profile conversion
   are unverified or unfinished.
-  All 218 tests pass, including official
+  All 224 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
@@ -287,12 +287,18 @@ panic and physical controller tests still prevent release promotion.
 
 ### Follow-up source pin
 
-The integration branch now pins app `f3208bf`. This adds Space Station-compatible
-macro exports and profile-specific Default lighting. Profile 1 has its own
-animation; profiles 2–4 share the ten-zone Flow preset. The animation bytes match
-the vendor SDK output, and all 218 app tests pass on the K17, including Qt tests.
-The Default page was also rendered and inspected offscreen.
+The integration branch now pins app `eaf98fb`. It includes Space Station-compatible
+macro exports, profile-specific Default lighting, and active-profile default
+restoration with a pre-reset backup and undo through the ordinary restore page.
+The reset is restricted to Vader 5 firmware 7.1.5.0 and the observed data layout.
+It clears that profile's macros without resetting global settings or other profiles.
+
+All 224 app tests pass on the K17, including Qt tests. The presets and 28 global
+setting/value combinations are checked against the vendor SDK's actual output.
+The Default lighting and reset-confirmation pages were rendered and inspected.
+The factory settings resource is included in the wheel and image installation.
 
 This source pin is newer than the unpublished image described above. It has not
-been rebuilt into that image or installed on the K17. Lighting saves, animation
-appearance and the four motor paths still need physical validation.
+been rebuilt into that image or installed on the K17. Lighting saves, factory
+restore/undo, power-cycle persistence and the four motor paths still need physical
+validation. The unresolved panic also remains a release blocker.
