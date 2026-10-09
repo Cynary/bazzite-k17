@@ -10,6 +10,11 @@ A subsequent filesystem scan found checksum errors. The cause is unresolved;
 the successful controller checks below do not establish system stability. This
 candidate must not be promoted until the crash and storage integrity are addressed.
 
+After preserving recoverable data and replacing damaged logs, cache files and an
+old container artifact, a full 302 GiB filesystem scrub completed with no errors.
+Crash-report storage is now enabled for a recurrence. The panic itself remains
+unexplained, so the release hold still applies.
+
 The app has passed protocol and offscreen UI tests on the K17. All extra buttons
 have been captured from hardware. All ten extra buttons, including LM/RM,
 have also delivered assigned keyboard actions through Steam Input. An ordered
