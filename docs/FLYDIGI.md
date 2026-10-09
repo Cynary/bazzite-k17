@@ -221,7 +221,9 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   and separate tests for all four motors, plus saved trigger/grip vibration
   controls. Commit `4c953ca` adds global filtering, calibration, precision,
   sensitivity and sleep controls with capability checks and verified readback.
-  All 97 tests pass, including official
+  Commit `f3d4e28` also adds onboard button/rapid-fire mappings for the 24
+  controls editable in the official app, preserving unsupported macro/PC records.
+  All 107 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
