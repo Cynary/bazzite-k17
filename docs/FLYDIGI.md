@@ -208,3 +208,24 @@ The assigned-action test caught reversed paddle assignments in its own Steam
 configuration. Correcting those assignments produced A, B, C, D when the user
 pressed M1, M2, M3, M4. No driver paddle changes were needed. See the
 [reproducible test mapping](https://github.com/Cynary/flydigi-control/blob/main/experimental/STEAM-INPUT-CHECK.md).
+
+
+## Candidates after the October 9 release hold
+
+Two follow-up candidates are saved separately from the image's pinned sources:
+
+- [Onboard settings](https://github.com/Cynary/flydigi-control/tree/onboard-settings),
+  commit `f6da0b8`: backup the active profile, verify lighting and unchanged
+  mappings, then save once and verify the new version. All 46 tests pass,
+  including offscreen UI tests. Read-only hardware access confirmed the expected
+  840-byte mapping format. No save has yet been sent to the controller; power-cycle
+  validation remains required.
+- [Four rumble motors](https://github.com/Cynary/SDL/tree/vader5-four-motors),
+  commit `e4fe95e6d`: independent grip/trigger pairs, with one pair's stop preserving
+  the other. Callback tests, existing regression replays and the full 32-bit
+  build pass. It is not loaded into Steam, and physical motor testing is pending.
+
+The [official-app coverage checklist](https://github.com/Cynary/flydigi-control/blob/onboard-settings/docs/FEATURES.md)
+also tracks stick shape/curves/deadzones, motion, trigger settings and diagnostic
+tests. This expands the remaining scope; LED controls alone are not app parity.
+Neither candidate is in a released image. The panic investigation remains open.
