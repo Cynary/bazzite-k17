@@ -243,7 +243,10 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   PCs. Loading does not upload or execute a macro. Commit `c285e24` adds controller-operated import of Space Station’s individual
   macro `.dat` files, checked against the official serializer. Import creates a
   PC copy without hardware writes; online sharing is not integrated.
-  All 192 tests pass, including official
+  Commit `a3ceedf` adds selection of the four onboard PC profiles, with an
+  active-profile backup, stale-state protection and readback; physical switching
+  tests and whole-profile restore remain pending.
+  All 200 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
