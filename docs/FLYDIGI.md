@@ -11,8 +11,10 @@ Vader support until those checks pass.
 
 The image installation adds `/usr/bin/flydigi-control`, its desktop entry and a
 udev rule granting the active desktop user access to the Vader configuration
-interface. It does not replace xpad or SDL, create a virtual gamepad, change
-Steam controller settings, or enable a wake policy.
+interface. It does not replace xpad or SDL, create a virtual gamepad, automatically change
+Steam controller settings, or enable a wake policy. The app offers an explicit
+Native Steam Input permission toggle; this was necessary for native detection
+on firmware 7.1.5.0. Reconnect the receiver after enabling it.
 
 Use the app's [validation procedure](https://github.com/Cynary/flydigi-control/blob/main/docs/VALIDATION.md)
 for the remaining hardware checks. The image build runs its protocol tests and
