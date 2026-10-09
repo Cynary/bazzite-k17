@@ -110,9 +110,11 @@ check remains open, as does a physical press producing an assigned Steam Input
 action. Lighting colour was confirmed by the tester; Flow animation still
 needs a visual check.
 
-SDL deliberately leaves the generic Xbox interface available alongside the
-native interface for these receivers, to support changing native permission
-while running. Its source says the generic interface receives no input in native
-mode. Steam showed both entries after reconnecting during this boot. Capture is
-set up to check whether the generic entry stays inactive; controller assignment
-and reconnect behaviour still need validation before promotion.
+That boot exposed a duplicate-controller bug in SDL's fallback handling. Native
+mode stopped Xbox reports, but Steam retained the Xbox entry with a held A
+button. The subsequent [SDL fix](https://github.com/Cynary/SDL/blob/vader5-turbo/validation/FLYDIGI-HANDOFF.md)
+removes and recenters the Linux fallback when native mode takes over, and restores
+it when native mode is disabled. Live permission-off/on testing switched between
+one Xbox entry and one native entry without restarting Steam. The image now pins
+that fix and runs its transition regression test. Physical reconnect and assigned
+action delivery remain required before promotion.

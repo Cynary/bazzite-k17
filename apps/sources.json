@@ -37,8 +37,8 @@
   },
   "steam-sdl": {
     "repository": "https://github.com/Cynary/SDL.git",
-    "commit": "05d5a392dcbb632d5d752d934066b584fed230ee",
-    "source": "https://github.com/Cynary/SDL/tree/05d5a392dcbb632d5d752d934066b584fed230ee",
+    "commit": "3699a41f85e2ca50465f4611f5a5e5e1c924e95e",
+    "source": "https://github.com/Cynary/SDL/tree/3699a41f85e2ca50465f4611f5a5e5e1c924e95e",
     "steam_base": "70e9cc86ddbe0f6b580c3c02d1391b3dde4d11fb"
   }
 }
