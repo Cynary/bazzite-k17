@@ -287,7 +287,7 @@ panic and physical controller tests still prevent release promotion.
 
 ### Follow-up source pin
 
-The integration branch now pins app `5fde0f8`. It includes Space Station-compatible
+The integration branch now pins app `5e7fef2`. It includes Space Station-compatible
 macro exports, profile-specific Default lighting, and active-profile default
 restoration with a pre-reset backup and undo through the ordinary restore page.
 The reset is restricted to Vader 5 firmware 7.1.5.0 and the observed data layout.
@@ -313,3 +313,24 @@ A subsequent explicit save of existing settings passed full hardware readback;
 off/on retention is still pending. The candidate also avoids known duplicate-query
 timeouts, reducing two full settings reads from 7.13 to 5.17 seconds without
 caching settings or replaying writes.
+
+
+### Settings retention and motion
+
+The user confirmed the saved breathing-red effect after turning the controller
+back on. A complete settings comparison passed after Steam logged the reconnect:
+LEDs, button/analog mappings, macros, versions and global settings all matched.
+This verifies one controller off/on cycle; receiver replug and PC restart remain
+separate checks.
+
+Steam recognizes gyro capability and receives angular velocity, acceleration and
+orientation from the native driver. Keyboard/mouse and gyro-as-mouse mapping use
+Steam Input's per-game layouts. A regular Xbox virtual pad does not carry raw
+gyro, but Steam Input can turn it into mouse or stick movement before forwarding.
+
+The SDL pin `16b33112d` fixes the advertised sensor rate to match the model's
+existing timestamp step: 500 Hz for Vader 5, rather than the previously reused
+1000 Hz Vader 4 wireless value. Gyro/acceleration axes, units, timestamp increments
+and sensor-disable replay checks pass, as do the existing button/reconnect/rumble
+checks. The 32-bit library compiled. This source pin is not deployed on the K17;
+physical gyro mapping and the unresolved kernel panic still need investigation.
