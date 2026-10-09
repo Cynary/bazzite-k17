@@ -238,7 +238,10 @@ Two follow-up candidates are saved separately from the image's pinned sources:
   Commit `ec2b98d` adds a read-only persistence snapshot/check command covering
   LEDs, mappings, macros, global settings and native-mapping permission across
   off/on, receiver replug and reboot. It never restores settings during a check.
-  All 177 tests pass, including official
+  Commit `7399ff2` adds a controller-operated PC macro library: save copies,
+  reload them into the selected button’s draft, and exchange JSON files between
+  PCs. Loading does not upload or execute a macro. Vendor-file conversion is
+  still missing. All 186 tests pass, including official
   curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
