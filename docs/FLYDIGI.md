@@ -215,10 +215,11 @@ pressed M1, M2, M3, M4. No driver paddle changes were needed. See the
 Two follow-up candidates are saved separately from the image's pinned sources:
 
 - [Onboard settings](https://github.com/Cynary/flydigi-control/tree/onboard-settings),
-  commit `2c721e6`: back up the active profile, verify lighting and unchanged
+  commit `b799a4e`: back up the active profile, verify lighting and unchanged
   mappings, then save once and verify the new version. The app also has a guarded
-  circle/rectangle editor, passive analog/motion diagnostics and separate tests
-  for all four motors. All 66 tests pass, including offscreen UI tests, and the
+  circle/rectangle and response-curve editor, passive analog/motion diagnostics
+  and separate tests for all four motors. All 74 tests pass, including official
+  curve reference vectors and offscreen UI tests, and the
   new pages have been visually inspected. Read-only hardware access confirmed the expected
   840-byte mapping format. No save has yet been sent to the controller; power-cycle
   validation remains required.
