@@ -3,6 +3,7 @@
 import json
 import logging
 import signal
+import time
 
 import gi
 
@@ -10,6 +11,15 @@ gi.require_version("Soup", "3.0")
 from gi.repository import Gio, GLib, GLibUnix, Soup
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
+DENIED_SLEEP = "Error org.freedesktop.login1.BlockedByInhibitorLock:"
+
+
+def is_denied_sleep(entry):
+    # Only Steam's explicit logind refusal is evidence that sleep did not occur.
+    return (entry.get("SYSLOG_IDENTIFIER") == "steam"
+            and entry.get("MESSAGE", "").startswith(DENIED_SLEEP))
 
 
 class Guard:
@@ -26,8 +36,42 @@ class Guard:
         self.socket = None
         self.last_report = None
         self.loop = GLib.MainLoop()
+        self.denial_serial = 0
+        self.denial_until = 0
+        self.sent_denial = 0
+        self.journal = Gio.Subprocess.new([
+            "journalctl", "--user", "--follow", "--lines=0", "--output=json",
+            "--unit=gamescope-session-plus@ogui-steam.service"],
+            Gio.SubprocessFlags.STDOUT_PIPE)
+        self.journal_input = Gio.DataInputStream.new(self.journal.get_stdout_pipe())
+        self.read_journal()
         GLib.timeout_add_seconds(5, self.tick)
         GLib.idle_add(self.sync)
+
+    def read_journal(self):
+        self.journal_input.read_line_async(
+            GLib.PRIORITY_DEFAULT, None, self.journal_line)
+
+    def journal_line(self, stream, result):
+        try:
+            line, _ = stream.read_line_finish_utf8(result)
+            if line is None:
+                # Let systemd restart the guard if its event source dies.
+                raise RuntimeError("Steam journal follower stopped")
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                entry = {}
+            if is_denied_sleep(entry):
+                self.denial_serial += 1
+                self.denial_until = time.monotonic() + 15
+                logging.info("Steam sleep refused by logind; checking suspend UI")
+                self.sync()
+            self.read_journal()
+        except Exception:
+            logging.exception("Could not follow Steam sleep failures")
+            self.journal.force_exit()
+            raise SystemExit(1)
 
     def tick(self):
         self.sync()
@@ -80,7 +124,12 @@ class Guard:
             ws.connect("message", lambda w, kind, data: self.message(w, data, generation))
             ws.connect("error", lambda w, error: self.finish(generation, str(error)))
             blocked = json.dumps(self.blocked())
-            expression = """(() => {
+            # Expire old failures, and never recover during an actual suspend.
+            preparing = self.proxy.get_cached_property("PreparingForSleep")
+            recover = (self.denial_until > time.monotonic()
+                       and preparing is not None and not preparing.unpack())
+            self.sent_denial = self.denial_serial if recover else 0
+            expression = """(async () => {
  const store = window.SuspendResumeStore;
  if (!store || typeof store.BlockSuspendAction !== 'function')
    throw new Error('Steam suspend API unavailable');
@@ -95,10 +144,15 @@ class Guard:
  } else if (owned) {
    clearTimeout(owned.timer); owned.release(); delete window[key];
  }
- return {blocked: !!window[key], suspending: store.suspending};
-})()""".replace("BLOCKED", blocked)
+ let recovered = false;
+ if (RECOVER && store.suspending) {
+   await store.InitiateResume();
+   recovered = true;
+ }
+ return {blocked: !!window[key], suspending: store.suspending, recovered};
+})()""".replace("BLOCKED", blocked).replace("RECOVER", json.dumps(recover))
             ws.send_text(json.dumps({"id": 1, "method": "Runtime.evaluate", "params": {
-                "expression": expression, "returnByValue": True}}))
+                "expression": expression, "returnByValue": True, "awaitPromise": True}}))
         except Exception as exc:
             self.finish(generation, str(exc))
 
@@ -112,7 +166,12 @@ class Guard:
             result = reply.get("result", {})
             if "error" in reply or "exceptionDetails" in result:
                 raise RuntimeError("Steam rejected suspend guard")
-            blocked = result["result"]["value"]["blocked"]
+            value = result["result"]["value"]
+            if self.sent_denial and self.sent_denial == self.denial_serial:
+                self.denial_until = 0
+            if value.get("recovered"):
+                logging.info("Recovered Steam UI after logind refused sleep")
+            blocked = value["blocked"]
             self.finish(generation, "Steam sleep guard active" if blocked else "Steam sleep guard released")
         except Exception as exc:
             self.finish(generation, str(exc))
@@ -133,7 +192,10 @@ class Guard:
 
     def run(self):
         GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, self.loop.quit)
-        self.loop.run()
+        try:
+            self.loop.run()
+        finally:
+            self.journal.force_exit()
 
 
 if __name__ == "__main__":

@@ -39,9 +39,17 @@ the library. Once the video ends, it looks like a black screen even though the
 HDMI connection is working.
 
 The `steam-inhibitor-guard` user service mirrors the system's sleep inhibitors
-into Steam's own suspend blocker. This prevents the animation from starting
+into Steam's own suspend blocker to prevent the animation from starting
 while sleep is blocked. It releases only its own blocker, and a fifteen-second
 lease expires if the guard stops responding.
+
+An inhibitor can appear after Steam has already begun its sleep animation.
+The guard also watches Steam's session log for an explicit
+`org.freedesktop.login1.BlockedByInhibitorLock` refusal. If Steam is still in its
+suspending state, the guard calls its resume handler to restore the library.
+It expires a pending refusal after fifteen seconds and will not run recovery
+while logind reports an actual suspend in progress. It does not infer a failed
+suspend from a slow animation or a black screen.
 
 This is a compatibility mitigation using Steam's internal `BlockSuspendAction`
 API, not a change to Steam itself. It requires the local CEF debugging endpoint
@@ -51,7 +59,11 @@ Steam updates. The service uses Python GI, Gio and Soup 3.
 
 Validation covered a real blocked-sleep request, release of the blocker when
 the inhibitor ended, preservation of another Steam blocker, and normal sleep
-and resume. The guard does not control a TV or receiver.
+and resume. The additional refusal recovery was tested against a simulated
+Steam API, including existing blockers and an inhibitor that ends before
+recovery. Calling Steam's resume handler also restored the library after a
+captured real refusal; automatic recovery of a new real refusal still needs a
+hardware test. The guard does not control a TV or receiver.
 
 ```sh
 journalctl --user -u steam-inhibitor-guard.service
