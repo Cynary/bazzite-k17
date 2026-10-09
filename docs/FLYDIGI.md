@@ -265,3 +265,21 @@ The [official-app coverage checklist](https://github.com/Cynary/flydigi-control/
 also tracks stick shape/curves/deadzones, motion, trigger settings and diagnostic
 tests. This expands the remaining scope; LED controls alone are not app parity.
 Neither candidate is in a released image. The panic investigation remains open.
+
+
+### Unpublished image build
+
+The October 9 build from integration commit `e236150` completed successfully.
+It contains app commit `9fe53f9` and SDL commit `e4fe95e6d`; it has not been
+booted, installed or promoted to the release channel.
+
+Validation included all 207 app tests, 12,289 button-report replays, reconnect,
+battery and four-motor tests, the 32-bit Steam library loader, a packaged UI
+render, and 13 bootc checks. All 37 installed Python files match the pinned app
+source. Kernel, Intel graphics and Xbox driver hashes match the existing build.
+
+Image assembly logged rootless-container extended-attribute copy errors and
+NVIDIA firmware copy errors. The resulting initramfs can be listed and includes
+systemd, the Intel graphics modules and Lunar Lake firmware; NVMe and Btrfs are
+built into the kernel. These checks do not replace a boot test. The unresolved
+panic and physical controller tests still prevent release promotion.
