@@ -154,3 +154,12 @@ does not send a command for this device; remote shutdown is not implemented.
 These newer revisions are pinned in the branch but have not yet passed the full
 image boot check. The running machine currently uses a local SDL/app override
 for validation; the older boot-check results above do not cover these changes.
+
+### Native rumble
+
+Steam Identify exposed a separate framing bug: rumble bypassed the helper that
+removes the report ID for this receiver, so an extra `03` reached USB before
+`5A A5`. The SDL fork now queues an unnumbered report for the Vader receiver;
+other models keep their existing format. Steam's start and stop commands were
+captured with the corrected framing. Physical vibration confirmation is pending.
+The build runs the rumble callback regression as well as the input tests.
