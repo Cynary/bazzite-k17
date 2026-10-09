@@ -212,7 +212,8 @@ pressed M1, M2, M3, M4. No driver paddle changes were needed. See the
 
 ## Candidates after the October 9 release hold
 
-Two follow-up candidates are saved separately from the image's pinned sources:
+The integration branch now pins these follow-up candidates for an unpublished
+build. The running K17 and release channel have not been changed:
 
 - [Onboard settings](https://github.com/Cynary/flydigi-control/tree/onboard-settings),
   branch `onboard-settings`: back up the active profile, verify lighting and unchanged
