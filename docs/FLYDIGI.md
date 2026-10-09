@@ -287,13 +287,13 @@ panic and physical controller tests still prevent release promotion.
 
 ### Follow-up source pin
 
-The integration branch now pins app `eaf98fb`. It includes Space Station-compatible
+The integration branch now pins app `f5e8b56`. It includes Space Station-compatible
 macro exports, profile-specific Default lighting, and active-profile default
 restoration with a pre-reset backup and undo through the ordinary restore page.
 The reset is restricted to Vader 5 firmware 7.1.5.0 and the observed data layout.
 It clears that profile's macros without resetting global settings or other profiles.
 
-All 224 app tests pass on the K17, including Qt tests. The presets and 28 global
+All 229 app tests pass on the K17, including Qt tests. The presets and 28 global
 setting/value combinations are checked against the vendor SDK's actual output.
 The Default lighting and reset-confirmation pages were rendered and inspected.
 The factory settings resource is included in the wheel and image installation.
@@ -302,3 +302,9 @@ This source pin is newer than the unpublished image described above. It has not
 been rebuilt into that image or installed on the K17. Lighting saves, factory
 restore/undo, power-cycle persistence and the four motor paths still need physical
 validation. The unresolved panic also remains a release blocker.
+
+The physical macro-bank read returned 1660 bytes, rather than the SDK's 1620.
+The reader now backs up the full reply while preserving the extra 40 bytes
+through edits. They are not treated as additional macro capacity. A complete
+settings snapshot passed on the controller; saving and off/on retention remain
+unverified because subsequent configuration reads timed out before any write.
