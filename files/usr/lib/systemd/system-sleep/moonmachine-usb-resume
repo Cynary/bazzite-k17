@@ -1,0 +1,4 @@
+#!/bin/sh
+# systemd invokes post hooks after kernel device resume; no user session needed.
+[ "$1" = post ] || exit 0
+exec /usr/bin/timeout 20s /usr/bin/python3 /usr/libexec/moonmachine-usb-resume.py
