@@ -72,6 +72,8 @@ COPY tests/test_app_setup.py /tmp/test_app_setup.py
 RUN python3 /tmp/test_app_setup.py && rm /tmp/test_app_setup.py
 COPY tests/test_usb_resume.py /tmp/test_usb_resume.py
 RUN python3 /tmp/test_usb_resume.py && rm /tmp/test_usb_resume.py
+COPY tests/test_usb_health.py /tmp/test_usb_health.py
+RUN python3 /tmp/test_usb_health.py && rm /tmp/test_usb_health.py
 RUN LD_LIBRARY_PATH=/usr/lib/moonmachine/moonlight/usr/lib:/usr/lib/moonmachine/moonlight/usr/lib64 \
     ldd /usr/lib/moonmachine/moonlight/usr/bin/moonlight > /tmp/moonlight-libraries \
     && cat /tmp/moonlight-libraries && ! grep -q 'not found' /tmp/moonlight-libraries \

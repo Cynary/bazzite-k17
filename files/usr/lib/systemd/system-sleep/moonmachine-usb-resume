@@ -1,4 +1,4 @@
 #!/bin/sh
-# systemd invokes post hooks after kernel device resume; no user session needed.
+# Share recovery history with the continuous monitor to prevent reset loops.
 [ "$1" = post ] || exit 0
-exec /usr/bin/timeout 20s /usr/bin/python3 /usr/libexec/moonmachine-usb-resume.py
+exec /usr/bin/timeout 25s /usr/bin/python3 /usr/libexec/moonmachine-usb-health.py

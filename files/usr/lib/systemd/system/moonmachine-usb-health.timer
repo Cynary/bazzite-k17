@@ -1,0 +1,11 @@
+[Unit]
+Description=Monitor configured USB hubs at boot and while awake
+
+[Timer]
+OnBootSec=20s
+OnUnitInactiveSec=15s
+AccuracySec=1s
+Unit=moonmachine-usb-health.service
+
+[Install]
+WantedBy=timers.target

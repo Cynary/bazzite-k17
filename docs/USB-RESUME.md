@@ -11,13 +11,23 @@ Resetting the Genesys hub restored both controllers without restarting Steam or
 Gamescope. This identifies the failed part of the USB path; it does not establish
 whether the original trigger was hub firmware, power, or the host USB driver.
 
-## Optional recovery after resume
+## Automatic health checks
 
-Moonmachine includes an opt-in recovery hook. It checks the configured hub after
-resume. If three consecutive hub-status requests stall, it disconnects and
-re-enumerates that USB branch once. On xHCI hosts with debugfs available, it also
-checks that the host still identifies the device as a hub. Three checks showing
-missing hub metadata trigger the same recovery.
+An opt-in monitor checks the configured hub 20 seconds after boot, every 15
+seconds while the machine is awake, and after resume. It does not prevent sleep
+or wake the computer for a check.
+
+It detects stalled hub control requests, missing xHCI hub metadata, and receivers
+that are present and authorized but failed USB configuration. A fault must still
+be present on a later check, at least 15 seconds after it was first seen, before
+recovery starts. Normal startup and reconnects get time to finish.
+
+Recovery disconnects and re-enumerates that USB branch. This briefly interrupts
+all devices on it, including controllers and headsets. The monitor checks the
+result on subsequent passes. It attempts each persistent fault once, waits at
+least a minute between recoveries, and re-arms after three healthy checks. An
+unrecoverable receiver therefore cannot cause an endless reset loop; a new
+failure on another receiver can still trigger recovery.
 
 This uses the upstream port's `disable` attribute, then re-enables it. It rebuilds
 the host's device records; it does not necessarily cut electrical power. We
@@ -25,10 +35,10 @@ stopped using `USBDEVFS_RESET` after observing that it left the hub's xHCI recor
 without its hub flag, port count and transaction-translator information. A
 working hub-status reply alone did not catch that problem.
 
-The hook verifies the response after recovery and reports any children still
-missing a USB configuration. It does not repeatedly reset devices that report
-bandwidth errors. It refuses to recover a hub with a USB storage interface
-beneath it. Other USB errors are logged without a reset.
+Recovery requires the configured hub identity to match and refuses to disconnect
+a hub carrying USB storage. A missing hub or unrelated USB errors are logged or
+skipped rather than resetting an unidentified device. Checks remain inactive
+until a configuration file exists.
 
 Find the affected hub's path with `lsusb -t` and its identity in
 `/sys/bus/usb/devices/<path>/`. Create `/etc/moonmachine-usb-resume.json` as root,
@@ -56,11 +66,20 @@ Check the configuration without resetting anything:
 sudo python3 /usr/libexec/moonmachine-usb-resume.py --check
 ```
 
-Look for `moonmachine-usb-resume` in `journalctl -b` after waking. Remove the
-configuration file to disable recovery. Recovery briefly disconnects everything
+Check the monitor with:
+
+```sh
+systemctl status moonmachine-usb-health.timer
+journalctl -b -u moonmachine-usb-health.service
+```
+
+The timer is enabled in the image. On a manual installation, enable it with
+`sudo systemctl enable --now moonmachine-usb-health.timer`. Remove the configuration
+file to disable automatic recovery. Recovery briefly disconnects everything
 beneath that hub, including audio receivers. This is recovery for a demonstrated
 failure, not a guarantee that the hub will resume correctly. Automated tests
-cover the reset policy; repeated physical suspend/resume validation is pending.
+cover fault detection policy, recovery limits and re-arming. Repeated physical
+suspend/resume validation is pending.
 
 In a later failure, the Vader receiver remained powered but failed USB
 configuration with `-ENOSPC`. The xHCI event ring identified a **Secondary

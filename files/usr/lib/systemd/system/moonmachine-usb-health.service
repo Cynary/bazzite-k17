@@ -1,0 +1,11 @@
+[Unit]
+Description=Check configured USB hubs and recover persistent faults
+ConditionPathExists=/etc/moonmachine-usb-resume.json
+After=systemd-udevd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/libexec/moonmachine-usb-health.py
+TimeoutStartSec=30s
+TimeoutStopSec=15s
+TimeoutStopFailureMode=terminate
