@@ -24,6 +24,12 @@ class Control(ctypes.Structure):
 class Hub:
     def __init__(self, path, config):
         self.path = path
+        self.config = config
+        self.fd = None
+        self.open()
+
+    def open(self):
+        path, config = self.path, self.config
         for key in ("idVendor", "idProduct", "bcdDevice"):
             actual = (path / key).read_text().strip().lower()
             if actual != config[key].lower():
@@ -38,7 +44,26 @@ class Hub:
             raise ValueError("USB device changed while opening it")
 
     def close(self):
-        os.close(self.fd)
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None
+
+    def context_valid(self):
+        # Optional xHCI diagnostic. A hub answering GET_STATUS does not prove
+        # that the host still knows its port count and transaction translators.
+        for name in Path('/sys/kernel/debug/usb/xhci').glob('*/devices/*/name'):
+            try:
+                if name.read_text().strip() == self.path.name:
+                    context = name.with_name('slot-context').read_text()
+                    LOG.info('%s host context: %s', self.path.name, context.strip())
+                    return ' Hub ' in context
+            except FileNotFoundError:
+                continue
+        return None
+
+    def unconfigured_children(self):
+        return [p.parent.name for p in self.path.resolve().rglob('bConfigurationValue')
+                if p.parent != self.path.resolve() and not p.read_text().strip()]
 
     def status(self):
         # Hub-class GET_STATUS, USB 2.0 section 11.24.2.6; four-byte response.
@@ -55,15 +80,45 @@ class Hub:
         for interface in self.path.resolve().rglob("bInterfaceClass"):
             if interface.read_text().strip() == "08":
                 raise ValueError("hub has a storage interface; refusing automatic reset")
-        fcntl.ioctl(self.fd, 0x5514, 0)  # USBDEVFS_RESET
+        # USBDEVFS_RESET left this xHCI's hub slot without Hub/MTT/port fields.
+        # Disconnect/re-enumerate the branch instead: normal hub probing rebuilds
+        # both the device and host state. This need not cut physical USB power.
+        port = (self.path / 'port').resolve(strict=True) / 'disable'
+        if port.read_text().strip() != '0':
+            raise ValueError('upstream port already disabled; refusing recovery')
+        self.close()
+        try:
+            port.write_text('1')
+            time.sleep(0.2)
+        finally:
+            port.write_text('0')
+        deadline = time.monotonic() + 8
+        while True:
+            try:
+                self.open()
+                if (self.path / 'bConfigurationValue').read_text().strip():
+                    break
+                self.close()
+            except FileNotFoundError:
+                self.close()
+            if time.monotonic() >= deadline:
+                raise TimeoutError('hub did not re-enumerate within eight seconds')
+            time.sleep(0.1)
 
 
-def recover(hub, check_only=False, delay=time.sleep):
+def recover(hub, check_only=False, delay=time.sleep, context_check=lambda: None):
     # Only persistent EPIPE matches the observed fault. Timeouts, disconnects,
     # permissions errors, and other failures must not trigger a speculative reset.
+    reason = 'persistent control stall'
     for attempt in range(3):
         try:
             status = hub.status()
+            if context_check() is False:
+                reason = 'missing host hub context'
+                LOG.error('host context no longer identifies this device as a hub')
+                if attempt < 2:
+                    delay(0.2)
+                continue
             LOG.info("hub responds: %s; no reset", status)
             return "healthy"
         except OSError as error:
@@ -73,12 +128,14 @@ def recover(hub, check_only=False, delay=time.sleep):
             if attempt < 2:
                 delay(0.2)
     if check_only:
-        LOG.error("persistent control stall; check-only mode, no reset")
+        LOG.error("%s; check-only mode, no recovery", reason)
         return "stalled"
-    LOG.warning("persistent control stall; resetting hub once")
+    LOG.warning("%s; disconnecting and re-enumerating hub once", reason)
     hub.reset()
     # Reset completion is not proof of recovery. Require a working control reply.
     status = hub.status()
+    if context_check() is False:
+        raise ValueError('hub reappeared but its host context is still incomplete')
     LOG.info("hub recovered: %s", status)
     return "recovered"
 
@@ -109,7 +166,12 @@ def main():
                     continue
                 LOG.info("checking %s", name)
                 hub = Hub(path, config)
-                if recover(hub, args.check) == "stalled":
+                if recover(hub, args.check, context_check=hub.context_valid) == "stalled":
+                    result = 1
+                failed = hub.unconfigured_children()
+                if failed:
+                    LOG.error('USB children remain unconfigured: %s; no repeated reset',
+                              ', '.join(failed))
                     result = 1
             except (OSError, ValueError, KeyError) as error:
                 LOG.error("recovery failed: %s", error)

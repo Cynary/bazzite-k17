@@ -77,6 +77,73 @@ class RecoveryTests(unittest.TestCase):
                     hub.reset()
                 ioctl.assert_not_called()
 
+    def test_missing_host_context_recovers_even_when_control_works(self):
+        hub = Mock()
+        hub.status.return_value = '00000000'
+        context = Mock(side_effect=[False, False, False, True])
+        self.assertEqual(module.recover(hub, context_check=context,
+                                       delay=lambda _: None), 'recovered')
+        hub.reset.assert_called_once()
+
+    def test_missing_context_check_only_does_not_reset(self):
+        hub = Mock()
+        self.assertEqual(module.recover(hub, check_only=True,
+                                       context_check=lambda: False,
+                                       delay=lambda _: None), 'stalled')
+        hub.reset.assert_not_called()
+
+    def test_context_still_missing_is_not_success(self):
+        hub = Mock()
+        with self.assertRaises(ValueError):
+            module.recover(hub, context_check=lambda: False, delay=lambda _: None)
+        hub.reset.assert_called_once()
+
+    def test_port_reenabled_even_if_disable_write_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            port = path / 'port'
+            port.mkdir()
+            (port / 'disable').write_text('0')
+            hub = module.Hub.__new__(module.Hub)
+            hub.path, hub.fd = path, None
+            writes = []
+            def write(p, value):
+                writes.append(value)
+                if value == '1':
+                    raise OSError(errno.EIO, 'failed disable')
+            with patch.object(Path, 'write_text', write):
+                with self.assertRaises(OSError):
+                    hub.reset()
+            self.assertEqual(writes, ['1', '0'])
+
+    def test_reenumeration_reopens_new_device_and_closes_old_fd(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            (path / 'port').mkdir()
+            (path / 'port/disable').write_text('0')
+            (path / 'bConfigurationValue').write_text('1')
+            hub = module.Hub.__new__(module.Hub)
+            hub.path, hub.fd = path, 42
+            hub.open = Mock()
+            with patch.object(module.os, 'close') as close, \
+                    patch.object(module.time, 'sleep'):
+                hub.reset()
+            close.assert_called_once_with(42)
+            hub.open.assert_called_once()
+            self.assertEqual((path / 'port/disable').read_text(), '0')
+
+    def test_unconfigured_children_are_reported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            (path / 'bad').mkdir()
+            (path / 'good').mkdir()
+            (path / 'bConfigurationValue').write_text('1')
+            (path / 'bad/bConfigurationValue').write_text('')
+            (path / 'good/bConfigurationValue').write_text('1')
+            hub = module.Hub.__new__(module.Hub)
+            hub.path = path
+            self.assertEqual(hub.unconfigured_children(), ['bad'])
+
 
 if __name__ == "__main__":
     unittest.main()
